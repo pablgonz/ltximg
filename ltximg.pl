@@ -1,10 +1,7 @@
 eval '(exit $?0)' && eval 'exec perl -S $0 ${1+"$@"}' && eval 'exec perl -S $0 $argv:q' if 0;
 use v5.18;
-use File::Path;               # creating/removing dirs
-use File::Copy;               # copying files
 use File::Basename;	      # scan argument
-use IO::File;                 # simple IO operation
-use Getopt::Long qw(:config bundling_override); # read parameter and activate "bundling"
+use Getopt::Long qw(:config bundling_override require_order); # read parameter and activate "bundling"
 use autodie;		      # more safe
 use Config;
 use File::Spec;
@@ -37,7 +34,8 @@ my $miktex   = 0;	       	# 1->enable write 18 for miktex system
 my $Verbose  = 0;		# 0 or 1, logfile  
 
 #------------------------------ CHANGES -------------------------------#
-# v1.2 2015-04-21 - Change mogrify to gs for image formats
+# v1.2 2015-04-22 - Remove unused modules
+# v1.1 2015-04-21 - Change mogrify to gs for image formats
 #		  - Create output file
 #                 - Rewrite source code and fix regex
 #                 - Add more image format 
@@ -235,7 +233,7 @@ if ($Win and $::opt_gscmd =~ /\s/) {
 #-----------------Program identification, options and help ------------#
 
 my $program   = "LTXimg";
-my $nv='1.1';
+my $nv='1.2';
 my $copyright = <<END_COPYRIGHT ;
 2015-04-21 - Copyright (c) 2013-2015 by Pablo Gonzalez L.
 END_COPYRIGHT
@@ -304,7 +302,8 @@ Example:
 * parts using (pdf)LaTeX whit preview package and cleaning all tmp files. 
 * Suport bundling for short options: ltximg test.tex -epjco --imgdir=pics
 END_OF_USAGE
-
+### process options
+my @OrgArgv = @ARGV;
 # Options
 my $result=GetOptions (
 	'h|help'     	=> \$::opt_help,
@@ -396,12 +395,16 @@ if ($miktex) {
 # open file
 
 my $InputFilename = "";
-@ARGV > 0 or errorUsage "Input filename missing";
-@ARGV < 2 or errorUsage "Unknown option or too many input files";
-$InputFilename = $ARGV[0];
+#@ARGV > 0 or errorUsage "Input filename missing";
+#@ARGV < 2 or errorUsage "Unknown option or too many input files";
 
+@ARGV >= 1 or die "Error!\n";
+@ARGV < 2 or die "Error Too many files!\n";
+
+$InputFilename = $ARGV[1];
 #--------------------- Arreglo de la extensión ------------------------#
 my @SuffixList = ('.tex', '', '.ltx'); # posible extensión
+#my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 $ext = '.tex' if not $ext; 
 
