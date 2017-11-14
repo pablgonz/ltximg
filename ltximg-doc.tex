@@ -1,0 +1,245 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}%
+\usepackage{libertine}%
+\usepackage{booktabs}%
+\usepackage{tabularx}%
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[margin=0.85in,letterpaper]{geometry}
+\usepackage[scaled=0.9]{inconsolata}
+\usepackage{listings}
+
+\definecolor{lightgrey}{rgb}{0.9,0.9,0.9}
+\definecolor{darkgreen}{rgb}{0,0.6,0}
+\definecolor{darkred}{rgb}{0.6,0,0}
+\definecolor{myblue}{RGB}{20,105,176}
+\definecolor{darkgreen}{rgb}{0,0.6,0}
+
+\lstdefinelanguage{mytex}[LaTeX]{TeX}{
+	columns=flexible,
+	frame=single,
+	framerule=0pt,%
+    backgroundcolor=\color{gray!10},%
+    xleftmargin=\fboxsep,%
+    xrightmargin=\fboxsep,
+    alsoletter={\\,*,\&},
+    morekeywords={\\AtBeginDocument,
+                \\RequirePackage,
+				\\PreviewEnvironment,
+                \&},  
+    morekeywords=[2]{pspicture,
+  				   verbatim,
+                   table,
+                   other,
+                   tikzpicture,
+                   postscript,
+                   preview,
+                   TRICKS,
+					POSTRICKS,
+					TIKZPICTURE,
+					OTHER,
+                   nopreview},
+   morekeywords=[3]{\\begin,
+   					\\pspicture,
+   					\\TRICKS,
+   					\\ENDTRICKS,
+   					\\endpspicture,
+   					\\end},  
+  literate=*{\{}{{\textcolor{myblue}{\{}}}{1}
+            {\}}{{\textcolor{myblue}{\}}}}{1}
+            {[}{{\textcolor{myblue}{[}}}{1}
+            {]}{{\textcolor{myblue}{]}}}{1},
+}
+
+\lstset{language=mytex}
+
+\lstdefinestyle{mystyle1}{
+  basicstyle=\small\ttfamily,
+  keywordstyle=\bfseries\color{red},
+  keywordstyle=[2]{\color{magenta}},
+  keywordstyle=[3]{\color{blue}},
+  commentstyle=\color{darkgreen}, 
+  stringstyle=\color{orange},
+  identifierstyle=\ttfamily,
+  showstringspaces=true,
+  breaklines=true,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\lstset{style=mystyle1}
+\begin{document}
+\title{{\huge\textsf{lxtimg}}\\export tikz|pstricks environments to image format\\  \small v. 1.0}
+\author{Pablo Gonz\'{a}lez Luengo\\ \small \ttfamily pablgonz at yahoo dot com}
+\date{\today}
+\maketitle
+\begin{abstract}
+\noindent
+
+\textsf{ltximg}\footnote{Thanks to Giuseppe Matarazzo for his kind help on testing the script.} is a \textsf{Perl} script that automates the process to export 
+\textsf{tikzpicture} or \textsf{pspicture} environments to image formats (PDF, EPS, PPM, PNG).
+\end{abstract}
+\tableofcontents
+\section{Required Software}
+
+For the full operation of the script you need the following opensource programs
+(available for windows and linux), external to \textsc{ctan} repositories.
+
+\begin{itemize}
+\item \textsf{Perl}.
+
+\item \textsf{Ghostscript}.
+
+\item \textsf{pdftops} (optional, for images in EPS format).
+
+\item \textsf{pdftoppm} (optional, for images in PPM format).
+
+\item \textsf{ImageMagick} (optional, for conversion images).
+\end{itemize}
+\newpage
+\section{Run and options}
+For \TeX Live or Mik\TeX\ users the syntax for \textsf{ltximg} script is simple:
+
+\begin{lstlisting}
+perl ltximg file.tex -options
+\end{lstlisting}
+
+
+\begin{table}[htp]
+\caption{Options for ltximg}
+\begin{tabularx}{\linewidth}{@{}>{\ttfamily} l>{\ttfamily} l >{\ttfamily}l X @{}}\\\toprule
+\emph{name} & \emph{short} & \emph{default} & \emph{description}\\\midrule
+--help      &  --h         &                & display help information and exit.\\
+--version   &  --v         &      			  & display version information and exit.\\
+--license   &  --li        &			      & display license information and exit.\\
+--imageDir= &              &       images    & The dir for the created images.\\
+--DPI=      &  --d         &  300            & Dots per inch for gs, pdftoppm and mogrify.\\
+--IMO="..." &              &                 & Aditional options for mogrify (need double quotes).\\
+--clear     &  --c       	&				  & Delete all temp files.\\
+--xetex     & --xe			&				  & Create all image using xelatex (tikz and pstricks).\\
+--luatex    & --lu			&				  & Create all image using lualatex (tikz).\\
+--latex     & --la			&				  & Create all image using latex(pstricks).\\
+--useppm    & --up			&				  & Create jpg and png using mogrify and ppm\\
+--usemog    & --um			&				  & Create jpg and png (transparent) using mogrify and pdf\\
+--margins=  & --m			& 0				  & Margins for pdfcrop.\\
+--pdf       &    			&				  & Create .pdf files using gs.\\
+--ppm       &    			&				  & Create .ppm files (need pdftoppm).\\
+--eps       &    			&				  & Create .eps files (need pdftops).\\
+--jpg       &    			&				  & Create .jpg files (deafult use gs).\\
+--png       &    			&				  & Create .png files (deafult use gs).\\
+--skip=     & --s			& skip			  & Name for skip environmet in input file.\\
+--other=    & --o   		& other			  & Name for other export environmet.\\
+--all	    & --a			&				  & Create pdf/jpg/png/eps image type.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{How it works}
+
+The script works in two steps, but giving the same result, a new file whit only 
+\emph{tikzpicture} or \emph{pspicture} or bot environments and a folder with the images from
+these environments.
+
+\subsection{Comment and ignore}
+
+The first step \textsf{ltximg } script create a image dir calls \textsf{images} 
+and create a copy for in file, processing is as follows, being assumed that our file is \texttt{test.tex}:
+
+\begin{enumerate}
+\item  Create a copy file called test-tmp.tex and put the problematic environments (verbatim, verbatim\*, lstlisting,
+ LTXexample, Verbatim, comment, alltt, minted, tcblisting, xcomment and skip) inside the:
+
+\begin{lstlisting}
+\begin{nopreview}
+...
+\end{nopreview}
+\end{lstlisting}
+
+and: 
+\begin{enumerate}
+\item If the option is latex adds the following lines to the beginning of the test-fig.tex:
+
+\begin{lstlisting}
+\AtBeginDocument{
+\RequirePackage[active,tightpage]{preview}
+\PreviewEnvironment{pspicture}
+\PreviewEnvironment{other}}
+\end{lstlisting}
+
+\item If options its xetex adds the following lines to the beginning of the test-fig.tex:
+
+\begin{lstlisting}
+\AtBeginDocument{
+\RequirePackage[xetex,active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{pspicture}
+\PreviewEnvironment{other}}
+\end{lstlisting}
+
+\item And if no option is given, adds the following lines at the beginning of the test-fig.tex. This is the default for
+lualatex and pdflatex.
+
+\begin{lstlisting}
+\AtBeginDocument{
+\RequirePackage[pdftex,active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+\PreviewEnvironment{other}}
+\end{lstlisting}
+
+\end{enumerate}
+
+\item Open test-tmp.tex and change the problematic words for verbatin in line or after \% symbol:
+
+\begin{lstlisting}
+\pspicture         => \TRICKS
+\endpspicture      => \ENDTRICKS
+\begin{pspicture   => \begin{TRICKS
+\end{pspicture     => \end{TRICKS
+\begin{postscript} => \begin{POSTRICKS}
+\end{postscript}   => \end{POSTRICKS}
+\begin{tikzpicture => \begin{TIKZPICTURE
+\end{tikzpicture   => \end{TIKZPICTURE
+\begin{other       => \begin{OTHER
+\end{other         => \end{OTHER
+\end{lstlisting}
+
+and save file called test-fig.tex then runs (pdf/lua/xe)latex in \texttt{test-fig.tex} and \textsf{pdfcrop} in 
+\texttt{test-fig.pdf}.
+\end{enumerate}
+\subsection{Split and convert}
+If \textsf{ltximg} called with option \textsf{-pdf} or \textsf{-eps} or \textsf{-um} the file \texttt{test-fig.pdf}
+is splitting in \texttt{test-fig-1.pdf, test-fig-2.pdf,\ldots} and puts them into \texttt{images} dir. The invoked behind this command is:
+
+\begin{lstlisting}
+gs -q -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -dNOPAUSE -dBATCH -sOutputFile=imageDir/test-fig-%d.pdf \
+test-fig.pdf
+\end{lstlisting}
+and then processes the remaining options.
+
+For example, if you use the option \textsf{-pdf -um} the command behind this is:
+
+\begin{lstlisting}
+mogrify -define png:format=png32 -define png:compression-filter=4 -quality 100 -transparent white \
+-density 300 -format png *.pdf
+\end{lstlisting}
+
+And if you use the option \textsf{-pdf -up} the command behind this is:
+
+\begin{lstlisting}
+mogrify -quality 100 -define png:format=png32 -define png:compression-filter=4 -density 300 \
+-format png *.ppm
+\end{lstlisting}
+
+
+\section{Creating other images format}
+If you need to create other image formats we first need to generate the PPM format or PDF, then the procedure is simple
+using the \textsf{ImageMagick} \texttt{convert} command, command usage is so:
+\begin{lstlisting}
+mogrify -format ext *.ppm
+\end{lstlisting}
+for TIFF use  
+\begin{lstlisting}
+mogrify -format tiff *.ppm
+\end{lstlisting}
+
+\end{document}
