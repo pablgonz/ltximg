@@ -1,0 +1,411 @@
+\NeedsTeXFormat{LaTeX2e}
+\usepackage[top=1in, bottom=1in, left=2in, right=1in]{geometry}
+\usepackage{imakeidx}
+\makeindex[columns=2]
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype,textcomp,fetamont,lmodern,hologo,libertine}% fonts
+\usepackage[semibold,scale=0.9]{sourcecodepro}
+\usepackage[bold,osf,scale=0.92]{sourcesanspro}
+\usepackage{xspace,tocloft,titlesec,enumitem}
+%%% Configuration 
+\titleformat{\section}[hang]
+{\normalfont\large\bfseries}
+{\thesection.}{0.5em}{}
+%%% Other pack
+\setlength{\parindent}{0pt}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{adjustbox}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{xparse}
+\usepackage{etoolbox,interfaces,graphicx}
+\usepackage{listings}%
+%^^A Colors
+\definecolor{macrodesc}{rgb}{0.281,0.275,0.485}
+
+\newcommand\myshade{50}
+\colorlet{mylinkcolor}{violet}
+\colorlet{mycitecolor}{YellowOrange}
+\colorlet{myurlcolor}{Aquamarine}
+
+\hypersetup{
+  linkcolor  = blue!50,
+  citecolor  = mycitecolor,%!\myshade!black,%
+  urlcolor   = myurlcolor,%!\myshade!black,%
+  colorlinks = true,%
+  pdftitle=ltximg script extract and convert all PGF/TiKZ/Pstricks and more to image format,
+  pdfauthor= {Pablo González Luengo},%
+  pdfsubject={script extract manual},%
+  pdfstartview={FitH},%
+  hyperindex=true,%
+}
+
+%%% Custom meta and more
+\ExplSyntaxOn
+%^^A user level commands
+\RenewDocumentCommand{\meta}{O{}m}
+{
+    \ltximg_meta_generic:Nnn \ltximg_meta:n { #1 } { #2 }
+}
+\RenewDocumentCommand{\marg}{O{}m}
+{
+    \ltximg_meta_generic:Nnn \ltximg_marg:n { #1 } { #2 }
+}
+\RenewDocumentCommand{\oarg}{O{}m}
+{
+    \ltximg_meta_generic:Nnn \ltximg_oarg:n { #1 } { #2 }
+}
+%^^A variables and keys
+\tl_new:N \l_ltximg_meta_font_tl
+
+\keys_define:nn { ltximg/meta }
+{
+    type .choice:,
+    type / tt .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \ttfamily },
+    type / rm .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \rmfamily },
+    type .initial:n = tt,
+    cf .tl_set:N = \l_ltximg_meta_color_tl,
+    cf .initial:n = black,
+    ac .tl_set:N = \l_ltximg_meta_anglecolor_tl,
+    ac .initial:n = black,
+    sbc .tl_set:N = \l_ltximg_meta_brackcolor_tl,
+    sbc .initial:n = black,
+    cbc .tl_set:N = \l_ltximg_meta_bracecolor_tl,
+    cbc .initial:n = black,
+}
+%^^A internal commands
+\cs_new_protected:Npn \ltximg_meta_generic:Nnn #1 #2 #3
+{
+    \group_begin:
+    \keys_set:nn { ltximg/meta } { #2 }
+    \color{ \l_ltximg_meta_color_tl }
+    \l_ltximg_meta_font_tl
+    #1 { #3 } % #1 is \ltximg_meta:n, \ltximg_marg:n or \ltximg_oarg:n
+    \group_end:
+}
+\cs_new_protected:Npn \ltximg_meta:n #1
+{
+    \ltximg_meta_angle:n { \textlangle }
+    \ltximg_meta_meta:n { #1 }
+    \ltximg_meta_angle:n { \textrangle }
+}
+\cs_new_protected:Npn \ltximg_marg:n #1
+{
+    \ltximg_meta_brace:n { \textbraceleft }
+    \ltximg_meta:n { #1 }
+    \ltximg_meta_brace:n { \textbraceright }
+}
+\cs_new_protected:Npn \ltximg_oarg:n #1
+{
+    \ltximg_meta_brack:n { [ }
+    \ltximg_meta:n { #1 }
+    \ltximg_meta_brack:n { ] }
+}
+\cs_new_protected:Npn \ltximg_meta_meta:n #1
+{
+    \textnormal{\textit{#1}}
+}
+\cs_new_protected:Npn \ltximg_meta_angle:n #1
+{
+    \group_begin:
+    \fontfamily{cmr}\selectfont
+    \textcolor{\l_ltximg_meta_anglecolor_tl}{#1}
+    \group_end:
+}
+\cs_new_protected:Npn \ltximg_meta_brace:n #1
+{
+    \group_begin:
+    \color{\l_ltximg_meta_bracecolor_tl}
+    #1
+    \group_end:
+}
+\cs_new_protected:Npn \ltximg_meta_brack:n #1
+{
+    \textcolor{\l_ltximg_meta_brackcolor_tl}{#1}
+}
+\ExplSyntaxOff
+
+%%% pkgname
+\DeclareDocumentCommand\pkgname{m}{%
+    \mbox{\textsf{#1}}%
+    \SortIndex{packages}{packages>\textsf{#1}}%
+    %\SortIndex{#1}{\textsf{#1} (package)}%
+}%
+%%% package options
+\DeclareDocumentCommand\pkgopt{m}{%
+    \mbox{\textsf{#1}}%
+    \SortIndex{package options}{package options>\textsf{#1}}%
+    %\SortIndex{#1}{\textsf{#1} (package option)}%
+}%
+%%% program names
+\DeclareDocumentCommand\prgname{m}{%
+    \mbox{\textsf{#1}}%
+    \SortIndex{programs}{programs>\textsf{#1}}%
+    \SortIndex{#1}{\textsf{#1} (program)}%
+}%
+%%% program options
+\DeclareDocumentCommand\prgopt{m}{%
+    \mbox{\texttt{-{}#1}}%
+    \SortIndex{program options}{program options>\texttt{#1}}%
+    \SortIndex{#1}{\texttt{-{}#1} (program option)}%
+}
+%^^A script name
+\DeclareDocumentCommand\scriptname{m}{%
+    \mbox{\textsf{#1}}%
+    \SortIndex{scripts}{scripts>\textsf{#1}}%
+    \SortIndex{#1}{\textsf{#1} (script)}%
+}%
+%%% program options
+\DeclareDocumentCommand\scriptopt{m}{%
+    \mbox{\texttt{#1}}%
+    \SortIndex{script options}{script options>\texttt{#1}}%
+    \SortIndex{#1}{\texttt{#1} (script option)}%
+}
+
+%%% Describe tag and environment margin
+\newsavebox{\contentmargin}
+\NewDocumentCommand\DescribeTES{m}{%
+\begin{lrbox}{\contentmargin}%
+   \begin{minipage}[t]{\marginparwidth}%
+   \raggedleft%
+    #1
+    \end{minipage}%
+\end{lrbox}%
+    \leavevmode%
+    \marginpar{\usebox{\contentmargin}}%
+    \ignorespaces%
+}%
+
+%%% save environmet in temporary var
+\DeclareDocumentCommand\tmpenv{m}{
+%#1%
+\SortIndex{environment}{environments>\texttt{#1}}%
+%\SortIndex{#1}{\texttt{#1} (environment)}%
+}
+
+\DeclareDocumentCommand\tmptag{m}{
+#1
+\SortIndex{dtxtag}{dtxtag>\texttt{#1}}%
+%\SortIndex{#1}{\texttt{#1} (dtxtag)}%
+}
+
+%%% filecmd option line...only for example...
+\DeclareDocumentCommand\filecmd{s}{%
+    \raggedleft\ttfamily%
+    \IfBooleanTF{#1}{%
+        \textcolor{macrodesc}{\textbf{\%\textcolor{red}{!}\myscript}}%
+        }%
+        {%
+        \textcolor{macrodesc}{\textbf{\% \myscript}}%
+        }%
+}% 
+
+%%% Input file options
+\DeclareDocumentCommand\fileopt{sm}{%
+    \lapbox{-0.6\marginparsep}{%
+        \IfBooleanTF{#1}{%
+        \textcolor{red}{:}\ \textcolor{macrodesc}{\meta{argument}}\ \textcolor{red}{:}\ %
+        }%
+        {%
+        \textcolor{red}{:}\ \textcolor{macrodesc}{\bfseries\texttt{{#2}}}\ \textcolor{red}{:}\ %
+        \SortIndex{input file options}{input file options>\texttt{#2}}%
+%       \SortIndex{#2}{\texttt{#2} (file options)}%
+        }%
+    }% close lapbox
+}
+
+%%% save command line in tmpopt
+\NewDocumentCommand\tmpopt{m}{%
+{#1}% 
+\SortIndex{\myscript\ options}{\textsf{\myscript}\ command line options>\texttt{-{}-#1}}%
+}%
+
+\NewDocumentCommand\cmdopt{om}{%
+    \IfNoValueTF{#1}%
+    {\texttt{-{}-\tmpopt{#2}}}%
+    {\texttt{-{}#1}, \texttt{-{}-\tmpopt{#2}}}%
+    \ignorespaces%
+}
+
+%%% Create a lang
+\lstdefinelanguage{ltximg-doc}{
+    texcsstyle=*,%
+    frame=single,%
+    rulecolor=\color{gray!50},%
+    framesep=\fboxsep,%
+    framerule=\fboxrule,%
+    xleftmargin=\dimexpr\fboxsep+\fboxrule\relax,%
+    xrightmargin=\dimexpr\fboxsep+\fboxrule\relax,%
+    escapechar=§,%
+    showstringspaces=false,%
+    %extendedchars=true, %
+%%% Important words 
+    classoffset=1,%
+    keywordstyle=\color{blue!50},% 
+    keywords={usepackage,graphicspath,begin,end,documentclass,AtBeginDocument,%
+    RequirePackage,renewcommand,PreviewBbAdjust},%
+%%% Other words
+    classoffset=2, %
+    keywordstyle=\color{darkgray},% 
+    morekeywords={somepack,document,graphicx,preview,active,tightpage,article},%
+}[keywords,tex,comments]% end languaje
+
+\lstdefinestyle{inline}
+{
+    language=ltximg-doc,%
+    basicstyle=\ttfamily\small\color{gray},%
+%%% Take from sample code
+%%% Reserved words (inputfile options)
+    classoffset=3,%
+    keywordstyle=\bfseries\color{macrodesc},% 
+    morekeywords={ltximg,noltximg,remove,options,pspicture,endpspicture,%
+    PSTexample,clean,pst,tkz,eps,pdf,pgfpicture, endpgfpicture,%
+    tikzpicture, endtikzpicture, psgraph, endpsgraph,nopreview,postscript,%
+    xetex,latex,luatex,dvips,arara,psset,extrenv},% 
+% literateee
+literate=*{\{}{{\textcolor{gray}{\{}}}{1}
+          {\}}{{\textcolor{gray}{\}}}}{1}
+          {[}{{\textcolor{gray}{[}}}{1}
+          {]}{{\textcolor{gray}{]}}}{1}
+          {/}{{\textcolor{gray}{/}}}{1}
+}
+
+%%% Environment for code
+\lstnewenvironment{examplecode}{%
+\lstset{
+    language=ltximg-doc,%
+    basicstyle=\ttfamily\small\color{gray},%
+%%% Reserved words (inputfile options)
+    classoffset=3,%
+    keywordstyle=\bfseries\color{macrodesc},% 
+    morekeywords={ltximg,noltximg,remove,options,pspicture,endpspicture,%
+    PSTexample,clean,pst,tkz,eps,pdf,pgfpicture, endpgfpicture,%
+    tikzpicture, endtikzpicture, psgraph, endpsgraph,nopreview,postscript,%
+    xetex,latex,luatex,dvips,arara,psset,extrenv},% 
+% literateee
+literate=*{\{}{{\textcolor{gray}{\{}}}{1}
+          {\}}{{\textcolor{gray}{\}}}}{1}
+          {[}{{\textcolor{gray}{[}}}{1}
+          {]}{{\textcolor{gray}{]}}}{1}
+          {/}{{\textcolor{gray}{/}}}{1}
+    }% close lstset
+}%
+{}% close examplecode
+
+
+%%% Environment for code
+\lstnewenvironment{examplecmd}{%
+\lstset{
+    language=ltximg-doc,%
+    basicstyle=\ttfamily\small,%
+%%% Reserved words (cmd line options)
+    classoffset=4,%
+    keywordstyle=\bfseries\color{macrodesc},% 
+    morekeywords={ltximg},%
+%%% Only for command line options
+    classoffset=5,%
+    keywordstyle=\color{blue},% 
+    keywords={user,machine},%
+%%% literateee
+literate=*{[}{{\textcolor{darkgray}{[}}}{1}
+          {]}{{\textcolor{darkgray}{]}}}{1} 
+          {@}{{\textcolor{blue}{@}}}{1}
+          {\$}{{\textcolor{blue}{\$}}}{1}
+          {:}{{\textcolor{blue}{:}}}{1}
+          {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
+    }% close lstset {~}
+}%
+{}% close examplecmd
+
+
+%%%% \myenv{arg1}
+\DeclareDocumentCommand\myenv{m}{%
+\moveright 0.0pt \hbox{%
+    \begin{minipage}[t]{\marginparwidth}%
+        \raggedleft
+        \ttfamily%
+        {\textcolor{darkgray}{\textbackslash begin\{}}{\bfseries\textcolor{macrodesc}{#1}}\textcolor{darkgray}{\}} \\%
+        \rmfamily\textcolor{darkgray}{\meta{content}}\\%     
+        \ttfamily
+        {\textcolor{darkgray}{\textbackslash end\{}}{\bfseries\textcolor{macrodesc}{#1}}\textcolor{darkgray}{\}}%
+    \end{minipage}%
+                    } % close hbox
+    \SortIndex{environment}{environments>\texttt{#1}}%
+    \SortIndex{#1}{\textsf{#1} (environment)}%
+}%
+%%%% \mytag{arg1}
+\DeclareDocumentCommand\mytag{m}{%
+\moveright 0.0pt \hbox{%
+    \begin{minipage}[t]{\marginparwidth}%
+        \raggedleft%
+        \ttfamily%
+        \textcolor{darkgray}{\%<*}{\bfseries\textcolor{macrodesc}{#1}}\textcolor{darkgray}{>} \\%
+        \rmfamily\textcolor{darkgray}{\meta{content}}\\ 
+        \ttfamily%
+        \textcolor{darkgray}{\%</}{\bfseries\textcolor{macrodesc}{#1}}\textcolor{darkgray}{>}%
+    \end{minipage}%
+                    } % close hbox
+\SortIndex{dtxtag}{dtxtag>\texttt{#1}}%
+\SortIndex{#1}{\texttt{#1} (dtxtag)}%
+}%
+%%%% DescribeCmd[...]{...}{...}{...}
+\newsavebox{\cmdmargin}
+\NewDocumentCommand\DescribeCmd{ommm}{
+\begin{lrbox}{\cmdmargin}%
+   \begin{minipage}[t]{\marginparwidth}%
+    \ttfamily\bfseries\raggedleft%
+   \IfNoValueTF{#1}
+    {\textcolor{macrodesc}{-{}-#2}}
+    {\textcolor{macrodesc}{-{#1}}\textcolor{gray}{,} \textcolor{macrodesc}{-{}-#2}}%
+    \end{minipage}%
+\end{lrbox}%
+    \leavevmode%
+    \marginpar{\usebox{\cmdmargin}}%
+    \ignorespaces
+    %\textcolor{gray}{\textsf{{#3}}}
+    \meta[ac=gray,cf=gray]{\textnormal{\sffamily{#3}}}
+    \hfill\textcolor{gray}{\textsf{(default: {#4})}}%
+    \par%
+}
+
+%%%% DescribeCmdFile{mm}
+\newsavebox{\cmdinfile}
+\NewDocumentCommand\DescribeCmdFile{m}{
+\begin{lrbox}{\cmdinfile}%
+   \begin{minipage}[t]{\marginparwidth}%
+        \ttfamily\bfseries\raggedleft%
+        \textcolor{macrodesc}{\% \myscript}% 
+    \end{minipage}%
+\end{lrbox}%
+\leavevmode%
+\marginpar{\usebox{\cmdinfile}}\lapbox[0pt]{-0.6\marginparsep}{\textcolor{red}{:}}\textcolor{macrodesc}{\bfseries\texttt{{#1}}}\ \textcolor{red}{:}\ %
+\SortIndex{input file options}{input file options>\texttt{#1}}%
+\SortIndex{#1}{\texttt{#1} (input file options)}%
+}
+%%%%
+\DeclareDocumentCommand\env{sm}{
+    \texttt{#2}
+    %\bool_if:NF\g__skdoc_no_index_bool{
+        %\IfBooleanTF{#1}{}{\index@environment{#2}}
+    %}
+}
+
+%%% Logo whit libertine font
+\newsavebox{\llogobox}
+\savebox{\llogobox}{%
+\normalsize%
+\libertineInitial
+{\libertineInitial \textcolor{red}{L}\hspace{-3.0pt}\raisebox{-0.2em}{\small \textcolor{green}{T}}\hspace{-2.9pt}\textcolor{blue}{X}}%
+\hspace{-3.2pt}\textffmw{\textcolor{gray}{img}}%
+}%
+% command
+\newcommand{\LLTXimg}{%
+  \settoheight{\@tempdima}{L}%
+  \resizebox{!}{\@tempdima}{\usebox{\llogobox}}%
+}
+
+\endinput
