@@ -1,39 +1,35 @@
-## ltximg --- latex environment to image format
+# **ltximg** - latex to image
 
-# Description
-`ltximg` is a `perl` script extract and convert all related environments
-from (La)TeX file into single source/images files using `Ghostscript`,
-`poppler-utils` and other software.
+## Description
+> **ltximg** is a *perl script* that automates the process of extracting and converting
+environments provided by **pgf**, **tikz**, **pstricks** and other packages from input file
+to image formats in individual files using `ghostscript` and `poppler-utils`.
+It is possible to create an output file with all extracted environments converted to
+`\includegraphics`. By default the extracted environments are converted to `pdf` format
+and saved in the `/images` using `preview` package and `pdflatex` if no `<compiler>` and options is used.
 
-The advantage of `ltximg` is the ability to discuss the environments that
-give problems using the `preview` package as verbatim in line `\verb|...|`
-or beginning with `%`, and other verbatim write environments like a `LTXexample`.
-
-# Usage
+## Usage
 ```
-$ ltximg [<compiler>] [<options>] <file>.<ext>
-$ ltximg --latex  [<options>] <file>.<ext>
-$ ltximg --xetex  [<options>] <file>.<ext>
-$ ltximg --luatex [<options>] <file>.<ext>
-$ ltximg --arara  [<options>] <file>.<ext>
+$ ltximg <compiler> [options] <file.ext>
+$ ltximg --latex  [options] <file.ext>
+$ ltximg --xetex  [options] <file.ext>
+$ ltximg --arara  [options] <file.ext>
 ```
-If called whitout `compiler`, extract and convert environments using `pdflatex`
-and `Ghostscript`. The images and files created are saved in a `/images` dir by
+If called whitout `compiler` option, extract and convert environments using `pdflatex`
+and `ghostscript`. The images in individual files created are saved in a `/images` dir by
 default.
 
-# Default environments suports
+## Default environments suports
 ```
     pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
 ```
-# Options
+## Options
 
 ```
-Options:
-
  -h,--help             - display this help and exit
  -l,--license          - display license and exit
- -v,--version          - display version (current 1.5rc) and exit
- -d,--dpi = <int>      - dots per inch for images (default: $DPI)
+ -v,--version          - display version (current 1.5) and exit
+ -d,--dpi = <int>      - dots per inch for images (default: 150)
  -t,--tif              - create .tif files using ghostscript [gs]
  -b,--bmp              - create .bmp files using ghostscript [gs]
  -j,--jpg              - create .jpg files using ghostscript [gs]
@@ -47,17 +43,17 @@ Options:
  -m,--margin <int>     - margins in bp for pdfcrop (default: 0)
  -o,--output <outname> - create output file whit environmets converted in image.
                          <outname> must not contain extension.
- --imgdir  <string>    - the folder for images (default: images)
- --verbose             - verbose printing (default: off)
+ --imgdir    <string>  - the name of folder for images (default: images)
+ --verbose             - set -interaction=batchmode for compiler (default: off)
  --srcenv              - create separate files whit only code environment
  --subenv              - create sub files whit preamble and code environment
  --arara               - use arara for compiler files, need to pass "-recorder"
                          % arara : <compiler> : {options: "-recorder"}
- --xetex               - using (Xe)LaTeX compiler for create images
+ --xetex               - using xelatex compiler for create images
  --latex               - using latex>dvips>ps2pdf compiler for create images
  --dvips               - using latex>dvips>ps2pdf for compiler output file
  --dvipdf              - using latex>dvipdfmx  for create images
- --luatex              - using (Lua)LaTeX compiler for create images
+ --luatex              - using lualatex compiler for create images
  --prefix              - prefix append to each file created (default: fig)
  --norun               - run script, but no create images (default off)
  --nopdf               - don't create a PDF image files (default: off)
@@ -66,18 +62,19 @@ Options:
  --clean   <value>     - removes specific text in the output file (default: doc)
                          values are: <doc|pst|tkz|all|off>
  --extrenv <env1,...>  - search other environment to extract (need -- at end)
- --skipenv <env1,...>  - skip default environment, no extract (need -- at end)
+ --skipenv <env1,...>  - skip default environment to extract (need -- at end)
  --verbenv <env1,...>  - add new verbatim environment (need -- at end)
  --writenv <env1,...>  - add new verbatim write environment (need -- at end)
  --deltenv <env1,...>  - delete environment in output file (need -- at end)
 ```
-# Example
+## Examples
 ```
-$ ltximg -e -p -j --srcenv --imgdir pics -o test-out test-in.ltx
+$ ltximg -e -p -j --srcenv --imgdir=pics -o test-out test-in.ltx
 ```
-produce a file `test-out.ltx` whitout all environments suported and create `/pics`
-dir whit all images (pdf,eps,png,jpg) and source code (.ltx) in separate files
-for all environment extracted using (pdf)LaTeX whit `preview` package.
+Create a `/pics` folder and save all the extracted environments converted to
+image formats (pdf, eps, png, jpg) and source code (.ltx) in individual files.
+Create a file `test-out.ltx` whit all environments converted to `\includegraphics`
+using pdflatex whit `preview` package.
 
 Suport bundling for short options:
 ```
@@ -85,4 +82,4 @@ $ ltximg -epj --srcenv --imgdir pics -o test-out  test-in.ltx
 ```
 Use `texdoc ltximg` for full documentation.
 
-Readme for version 1.5.rc (2017-27-11). Copyright (C) 2013 - 2017 by Pablo González L <pablgonz@yahoo.com>
+Readme for version 1.5.rc (2017-12-03). Copyright (C) 2013 - 2017 by Pablo González L <pablgonz@yahoo.com>

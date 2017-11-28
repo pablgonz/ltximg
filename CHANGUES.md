@@ -1,6 +1,7 @@
-## CHANGUES
+## Changues
 ```
- v1.5. (d)  2017-11-27 - Validate string list options
+ v1.5. (d)  2017-12-03 - Fix some part of code, remove
+                       - Validate string list options
                        - Changue pdf2svg for pdftocairo
                        - Changue tab for space in code
                        - Move Changues to end of code
