@@ -1,7 +1,7 @@
-% arara: pdflatex: {draft: yes}
+% arara: lualatex: {draft: yes}
 % arara: makeindex: {style: gind}
 % arara: makeindex: {style: gglo, options: -o mydoc.gls mydoc.glo}
-% arara: pdflatex
+% arara: lualatex
 % arara: clean: { files:[mydoc.glo, mydoc.ilg, mydoc.out, mydoc.gls, mydoc.ind, mydoc.aux, mydoc.idx, mydoc.log,mydoc.toc, mydoc.hd] }
 \documentclass{ltxdoc}
 \usepackage{mysty}
@@ -24,17 +24,17 @@
 
 \title{%
     \textffm{\small extract and convert environments}\\[5pt]%
-    \scalebox{3.5}{\LTXimg}
+    \scalebox{3.2}{\LTXimg}
     \\[2pt]%
-    \textffm{to image formats}\thanks{%
-        This file describes version \fileversion, last revised \filedate.%
-        }%
-}%
-\author{%
-  Pablo González Luengo\thanks{E-mail: <pablgonz@yahoo.com>}
+    {\Large\textffm{to image formats}}\\[5pt]
+    \fileversion{} --- \filedate\thanks{This file describes version \fileversion, last revised \filedate.}\\[5pt]
+    \textcopyright{} 2013--2017, by Pablo González Luengo\thanks{E-mail: <pablgonz@yahoo.com>}\\[5pt]
+    \bigskip\small
+\textsc{CTAN}: \url{http://www.ctan.org/pkg/ltximg}\\
+\textsc{GIT}: \url{https://github.com/pablgonz/ltximg}
 }%
 \date{\small Released \filedate}
-
+%\date{}
 \maketitle
 
 \begin{abstract}
@@ -44,30 +44,27 @@ extracting and converting environments provided by \textsf{pgf}, \textsf{tikz},
 files using \prgname{ghostscript} and \textsf{poppler-utils}. It is possible to 
 create an output file with all extracted environments converted to \textsf{\textbackslash includegraphics}.
 By default the extracted environments are converted to \textsf{pdf} format and 
-saved in the \textsf{/images} folder using 
-\hologo{pdfLaTeX} for compilation.
-
+saved in \textsf{/images} dir using \hologo{pdfLaTeX} for compilation.
 \end{abstract}
 
 \tableofcontents
-\setlength{\parskip}{5pt} 
+\setlength{\parskip}{3pt} 
+
 \section{Motivation}
-The original idea was to extend the functionality of the \scriptname{pst2pdf} script, with 
-support only for \env{pspicture} and \env{postscript} environments, to be able to work with 
-\env{tikzpicture} environments. Extracting and converting tikzpicture to 
-images in separate files was a convenient way to have multiple versions for the 
-same file when translations and presentations are made or when the generated 
-figures took too long to compile, for example.
+The original idea was to extend the functionality of the \scriptname{pst2pdf} script 
+(only for \env{pspicture} and \env{postscript}) to work with \env{tikzpicture} environments. 
+Extracting \env{tikzpicture} to images in separate files was a convenient way to have multiple 
+versions for the same file when translations and presentations are made or when the generated 
+figures took too long to compile.
 
 In the network there are some solutions in \textsf{bash} that were able to extract and 
 convert \env{tikzpicture}, but in general they presented problems when 
 the document contained verbatim-style code or were only available for \textsf{linux}.
 
-
 Analyzed the situation the best thing was to create a new script that was able 
 to extract and convert any environment, to skip the problems related to 
 verbatim, was multiplatform and generate a new file replacing the environments 
-with the created images, thus ltximg is born.
+with the created images, thus \textsf{ltximg} is born.
 
 \thispagestyle{plain}
 \newpage
@@ -86,32 +83,88 @@ programs and scripts.
 \item \prgname{pdftocairo}(poppler-utils)
 \end{itemize}
 
-Most of this are aviable in \TeX Live 2016, include the proper script
+Most of this are aviable in \TeX Live 2017, include the proper script
 
 \section{The input file}
 \label{sec:inputfile}
 The input file to be processed must comply with certain characteristics in
-order to be processed. Before \texttt{\small documentclass} can only be
-commented lines, the script internally
-will split the file at this point. It is not possible to read files using
-\lstinline[style=inline]|\input| or with \lstinline[style=inline]|\include|, if
-the input file contains them, they will not be processed, if you want them to be
+order to be processed. Before \ics{documentclass} can only be
+commented lines, the script internally will split the file at this point. 
+It is not possible to read files using \ics{input} or with \ics{include}, 
+if the input file contains them, they will not be processed, if you want them to be
 processed it is better to use the \scriptname{latexpand} first and then process
 the file.
 
 As an example:
 \begin{examplecode}
-% before preamble
+% some commented lines at begin document
 \documentclass[10pt]{article}
-% preamble
+% preamble 
 \begin{document}
-% body
+% body of document
 \end{document}
-% after body
+% some lines after end document
 \end{examplecode}
 
 \section{Verbatim content}
 \label{sec:verbatim}
+
+One of the greatest capabilities of the script is to skip the complications
+that \texttt{verbatim} style content produces with the extraction of
+environments. For example, if the \pkgname{preview} package or \ics{tikzexternalize} 
+is used, the following example will fail to be compiled:
+
+\begin{examplecode}
+\documentclass{article}
+% called main.tex
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzexternalize % activate!
+\begin{document}
+\begin{tikzpicture}
+\node {root}
+    child {node {left}}
+    child {node {right}
+    child {node {child}}
+    child {node {child}}
+    };
+\end{tikzpicture}
+Allway use \verb|\begin{tikzpicture}| and
+\verb|\end{tikzpicture}| to open and close
+\end{document}
+\end{examplecode}
+
+In order to skip the complications, the verbatim content is classified into
+three types:
+
+\begin{description}[font=\sffamily\small, noitemsep,leftmargin=*,style=nextline]
+\item[Verbatim standard] These are the classic code writing environments, such
+as \texttt{verbatim} and \texttt{verbatim*}.
+
+\item[Verbatim write] They are where you write a file directly on the disk,
+such as \texttt{filecontents} or \texttt{VerbatimOut}.
+
+\item[Verbatim inline] Are the commands in which verbatim content is written
+in the same line, such as \texttt{$\backslash$verb$\vert$code$\vert$}.
+\end{description}
+
+The general process that is carried out when reading the input file is simple
+to describe (but difficult to program):
+
+\begin{quotation}
+When browsing the file look for the words \lstinline[style=inline]|\begin{| and \lstinline[style=inline]|\end{| in 
+verbatim standard, verbatim write, verbatim inline and commented lines, if it finds them, it converts 
+them to \lstinline[style=inline]|\BEGIN{| and \lstinline[style=inline]|\END{| (uppercase), then places all the environments 
+to extract inside the \lstinline[style=inline]|\begin{preview}|\ldots \lstinline[style=inline]|\end{preview}|, exports them and 
+then undoes the changes.
+\end{quotation}
+
+As an example:
+
+The vast majority of packages that provide these environments and commands is
+supported automatically, otherwise, you can use some of the options of the script.
+
+
 The script asume a two verbatim environments, a verbatim write content and
 verbatim standart content, all material included in these environments is
 ignored. Auto detects by default the environments generated by the \pkgname{minted},
@@ -119,15 +172,16 @@ ignored. Auto detects by default the environments generated by the \pkgname{mint
 
 \subsection{Verbatim inline}
 \label{sec:verbatim:inline}
-The script supports most verbatim inline formats. If you format is not
-supported by default or the script can not capture it, you can use the option
+The script supports most verbatim inline commands. If your command is not
+supported by default or the script can not capture, you can use the option
 \cmdopt{myverb}.
 
 The following consideration should be kept in mind for packages that use
 abbreviations for verbatim commands, such as \pkgname{shortverb} or
 \pkgname{doc} for example.
 
-The script detects, in most cases, the use of the commands:
+The script detects the use of the commands \ics{DefineShortVerb}, \ics{lstMakeShortInline}
+and \ics{MakeSpecialShortVerb}.
 
 \begin{examplecode}
 \DefineShortVerb
@@ -136,7 +190,7 @@ The script detects, in most cases, the use of the commands:
 \end{examplecode}
 
 That is, if a package defines it internally, the script will not be able
-to process it correctly. The solution is quite simple, just add:
+to process it correctly. The solution is quite simple, just add in input file:
 
 \begin{examplecode}
 \UndefineShortVerb
@@ -190,23 +244,23 @@ The following list is considered as standard verbatim environments:
 \end{itemize}
 \end{multicols}
 
-And the script tries to capture the defined environments by means of:
+And capture environments defined in main file from commands:
 
-\begin{multicols}{3}
+\begin{multicols}{2}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
 \sffamily\small
-\item newtcblisting
-\item DeclareTCBListing
-\item ProvideTCBListing
-\item NewTCBListing
-\item lstnewenvironment
-\item NewListingEnvironment
-\item NewProgram
-\item specialcomment
-\item includecomment
-\item DefineVerbatimEnvironment
-\item newverbatim
-\item newtabverbatim
+\item \ics{DefineVerbatimEnvironment}
+\item \ics{NewListingEnvironment}
+\item \ics{DeclareTCBListing}
+\item \ics{ProvideTCBListing}
+\item \ics{lstnewenvironment}
+\item \ics{newtabverbatim}
+\item \ics{specialcomment}
+\item \ics{includecomment}
+\item \ics{newtcblisting}
+\item \ics{NewTCBListing}
+\item \ics{newverbatim}
+\item \ics{NewProgram}
 \end{itemize}
 \end{multicols}
 
@@ -227,8 +281,8 @@ The following list is considered as verbatim write environments:
 \item extikzpicture
 \item VerbatimOut
 \item verbatimwrite
-\item file­con­tents­def
-\item file­con­tentshere
+\item filecontentsdef
+\item filecontentshere
 \end{itemize}
 \end{multicols}
 
@@ -236,10 +290,10 @@ And the script tries to capture the defined environments by means of:
 \begin{multicols}{2}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
 \sffamily\small
-\item renewtcbexternalizetcolorbox
-\item renewtcbexternalizeenvironment
-\item newtcbexternalizeenvironment
-\item newtcbexternalizetcolorbox
+\item \ics{renewtcbexternalizetcolorbox}
+\item \ics{renewtcbexternalizeenvironment}
+\item \ics{newtcbexternalizeenvironment}
+\item \ics{newtcbexternalizetcolorbox}
 \end{itemize}
 \end{multicols}
 
@@ -252,35 +306,35 @@ capture it, you can use the option \cmdopt{writenv} to add.
 The syntax for \myscript{} is simple:
 
 \begin{examplecmd}
-[user@machine ~:]$ ltximg §\oarg[type=tt,cf=red]{compiler}{} \oarg[type=tt,cf=gray]{options}{} \marg[type=tt]{file}{.}\marg[type=tt]{ext}§
+[user@machine ~:]§ ltximg `\small \meta[type=tt,cf=red]{compiler} \oarg[type=tt,cf=gray]{options} \marg[type=tt]{file}{.}\marg[type=tt]{ext}`
 \end{examplecmd}
 
-The .\marg{ext} valid for the input \marg{file} are \fext{tex} or \fext{ltx}.
-The \oarg[type=tt,cf=red]{compiler} and \oarg[type=tt,cf=gray]{options} need
-to pass used |--| or |-| (its aviable). For example:
+The .\marg{ext} valid for input \marg{file} are \fext{tex} or \fext{ltx}.
+The \meta[type=tt,cf=red]{compiler} need to pass used \texttt{\small\bfseries\textcolor{optcolor}{-\/-}} 
+and \oarg[type=tt,cf=gray]{options} need to pass used \texttt{\small\bfseries\textcolor{optcolor}{-\/-}} 
+or \texttt{\small\bfseries\textcolor{optcolor}{-}} in command line. For example:
 
 \begin{examplecmd}
-[user@machine ~:]$ ltximg -e -p -j --srcenv --imgdir pics -o test-out test-in.ltx
+[user@machine ~:]§ ltximg -e -p -j --srcenv --imgdir pics -o test-out test-in.ltx
 \end{examplecmd}
 
-produce a file \marg{test-out.ltx} without all supported environments and create
-\sysdir{pics} dir whit all images (\iext{pdf}, \iext{eps}, \iext{png}, \iext{jpg})
-and source code in separate files for all environment extracted using (pdf)LaTeX
-whit \pkgname{preview} package.
+produce a file \marg{test-out.ltx} with all environments extracted converted to \ics{includegraphics} and create
+\sysdir{pics} dir whit all images format (\iext{pdf}, \iext{eps}, \iext{png}, \iext{jpg})
+and source code in separate files using (pdf)LaTeX whit \pkgname{preview} package.
 
 %-output-directory
 The script support bundling for short options:
 
 \begin{examplecmd}
-[user@machine ~:]$ ltximg -epj --srcenv --imgdir=pics -o test-out  test-in.ltx
+[user@machine ~:]§ ltximg -epj --srcenv --imgdir=pics -o test-out  test-in.ltx
 \end{examplecmd}
 
 \subsection{Internal process}
 \label{sec:internal:proc}
-The script works in varius steps for create image, source code and output file
+The script works in varius steps for create image files, source code and output file
 \emph{without} suported environments.
 
-\begin{description}
+\begin{description}[font=\sffamily\small, noitemsep,leftmargin=*,style=nextline]
 \item[Comment and ignore] The first step is to check the input file and create a
 directory \sysdir{images} to save the images and source files of each environment
 to extract. At this point the entire input file (\textsf{test.tex}) is read in
@@ -309,7 +363,7 @@ test-fig-random.tex in \sysdir{tmp} dir:
 \begin{examplecode}
 \AtBeginDocument{%
 \RequirePackage[active,tightpage]{preview}
-\renewcommand\PreviewBbAdjust{-60pt -60pt 60pt 60pt}%
+\renewcommand\PreviewBbAdjust{-60pt -60pt 60pt 60pt}}%
 % rest of input file
 \end{examplecode}
 
@@ -317,16 +371,9 @@ test-fig-random.tex in \sysdir{tmp} dir:
 its put inside the \env{preview} environment. The begin/end lines are only used
 as delimiters for extracting the content without using the package \pkgname{preview}.
 It should be noted that in this mode all the code that wishes to be converted
-must be within the environment or within tags. The generated file test-fig-random.tex
+must be within the environment or within tags. The generated file test-fig-rand.tex
 in \sysdir{tmp} dir has the same preamble, but it only contains the environments that
 we want to extract.
-
-\begin{examplecode}
-code to extract one
-\newpage
-code to extract two
-...
-\end{examplecode}
 \end{enumerate}
 
 \item[Generate files] Now, the \emph{script} run \marg[type=tt,cf=red]{compiler}
@@ -340,9 +387,19 @@ generated are deleted.
 
 \section{Extract content}
 \label{sec:extract}
-The environments: \env{pspicture}, \env{tikzpicture}, \env{pgfpicture},
-\env{psgraph}, \env{postscript} and \env{PSTexample} (including a starred \texttt{*} version)
-are suported by default. If the environments are nested, the outermost will be extracted.
+The environments: 
+\begin{multicols}{3}
+\begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
+\item \env{pspicture}
+\item \env{tikzpicture}
+\item \env{pgfpicture}
+\item \env{psgraph}
+\item \env{postscript} 
+\item \env{PSTexample} 
+\end{itemize}
+\end{multicols}
+(including a starred \texttt{\small\bfseries\textcolor{red}{*}} version) are suported by default. 
+If the environments are nested, the outermost will be extracted.
 
 \subsection{Extract environment}
 \label{sec:extract:env}
@@ -356,14 +413,13 @@ used.
 \vspace{\baselineskip}
 
 \DescribeTE{pspicture}
-Environment provide by \pkgname{pstricks} package. The script converts the plain
-syntax \lstinline[style=inline]|\pspicture ... \endpspicture| to latex syntax
+Environment provide by \pkgname{pstricks} package. The plain
+syntax \lstinline[style=inline]|\pspicture ... \endpspicture| its converted to
 \lstinline[style=inline]|\begin{pspicture} ... \end{pspicture}|.
 \vspace{\baselineskip}
 
 \DescribeTE{psgraph}
-Environment provide by \pkgname{pst-plot}. Without \cmdopt[n]{noprew} option
-the script converts the plain syntax \lstinline[style=inline]|\psgraph ... \endpsgraph|
+Environment provide by \pkgname{pst-plot}. The script converts the plain syntax \lstinline[style=inline]|\psgraph ... \endpsgraph|
 to latex syntax \lstinline[style=inline]|\begin{psgraph} ... \end{psgraph}|.
 
 \vspace{\baselineskip}
@@ -371,19 +427,20 @@ to latex syntax \lstinline[style=inline]|\begin{psgraph} ... \end{psgraph}|.
 \DescribeTE{postscript}
 Environment provide by \pkgname{pst-pdf} and \pkgname{auto-pst-pdf} packages.
 Since the \pkgname{pst-pdf} and \pkgname{auto-pst-pdf} packages internally use
-the \pkgname{preview} package, is better comment this in preamble unless the
-option \cmdopt[n]{noprew} is used.
+the \pkgname{preview} package, is better comment this in preamble.
 
 \vspace{\baselineskip}
 
 \DescribeTE{tikzpicture}
-Environment provide by \pkgname{tikz} package. The script support the plain
-syntax \lstinline[style=inline]|\tikzpicture ... \tikzpicture| but no a short \lstinline[style=inline]|\tikz|.
+Environment provide by \pkgname{tikz} package. The script convert the plain
+syntax \lstinline[style=inline]|\tikzpicture ... \tikzpicture| to latex syntax
+\lstinline[style=inline]|\begin{tikzpicture} ... \end{tikzpicture}|
+but no a short \lstinline[style=inline]|\tikz|.
 \vspace{\baselineskip}
 
 \DescribeTE{pgfpicture}
 Environment provide by \pkgname{pgf} package. Since the script uses a
-recursive regular expression to extract the environment, no presents problems
+\emph{recursive regular expression} to extract environments, no presents problems
 if present \lstinline[style=inline]|pgfinterruptpicture|.
 \vspace{\baselineskip}
 
@@ -391,14 +448,22 @@ if present \lstinline[style=inline]|pgfinterruptpicture|.
 Environment provide by \pkgname{pst-exa} packages. The script automatically
 detects the \lstinline[style=inline]|\begin{PSTexample} ... \end{PSTexample}| environments and
 processes them as separately compiled files. The user should have loaded the
-package with the \pkgopt{swpl} or \pkgopt{tcb} option and run the script
+package with the [\pkgopt{swpl}] or [\pkgopt{tcb}] option and run the script
 using \cmdopt{latex}{} or \cmdopt{xetex}.
 
 \subsection{Extract whit DTXtag}
 \label{sec:extract:tag}
 \DescribeTE*{ltximg}
-All content included between \lstinline[style=inline]|%<*ltximg> ... %</ltximg>| is extracted. The tags can not be
-nested and should be at the beginning of the line and in separate lines.
+All content included between \lstinline[style=inline]|%<*ltximg> ... %</ltximg>| is extracted. 
+The tags can not be nested and should be at the beginning of the line and in separate lines.
+
+\begin{examplecode}
+% no space before open tag %<* 
+%<*ltximg>
+code to extract and convert
+%</ltximg>
+% no space before close tag %</ 
+\end{examplecode}
 
 \subsection{No extract and remove}
 \label{sec:noextract:tag}
@@ -412,11 +477,26 @@ Is better comment this package in preamble unless the option \cmdopt[n]{noprew}{
 All content betwen \lstinline[style=inline]|%<*noltximg> ... %</noltximg>| are ignored and no
 extract. The start and closing of the tag must be at the beginning of the line.
 
+\begin{examplecode}
+% no space before open tag %<* 
+%<*noltximg>
+no extract this lines
+%</noltximg>
+% no space before close tag %</ 
+\end{examplecode}
 \vspace{\baselineskip}
 
 \DescribeTE*{remove}
 All content betwen \lstinline[style=inline]|%<*remove> ... %</remove>| are deleted in the output file. The start and closing
 of the tag must be at the beginning of the line.
+
+\begin{examplecode}
+% no space before open tag %<* 
+%<*remove>
+this lines are removed in output file
+%</remove>
+% no space before close tag %</ 
+\end{examplecode}
 
 \newpage
 \section{Command line options}
@@ -435,28 +515,62 @@ Display the current version (1.5) and exit.
 Dots per inch for images files.
 
 \DescribeCmd[t]{tif}{bolean}{off}
-Create a .\iext{tif} images files using \prgname{ghostscript}.
+Create a .\iext{tif} images files using \prgname{ghostscript}. The line before this options is:
+
+\begin{examplecmd}
+§ gs -q -dNOSAFER -sDEVICE=tiff32nc -r 150
+\end{examplecmd}
 
 \DescribeCmd[b]{bmp}{bolean}{off}
-Create a .\iext{bmp} images files using \prgname{ghostscript}.
+Create a .\iext{bmp} images files using \prgname{ghostscript}. The line before this options is:
+
+\begin{examplecmd}
+§ gs -q -dNOSAFER -sDEVICE=bmp32b -r 150
+\end{examplecmd}
 
 \DescribeCmd[j]{jpg}{bolean}{off}
-Create a .\iext{jpg} images files using \prgname{ghostscript}.
+Create a .\iext{jpg} images files using \prgname{ghostscript}. The line before this options is:
+
+\begin{examplecmd}
+§ gs -q -dNOSAFER -sDEVICE=jpeg -r 150 -dJPEGQ=100 -dGraphicsAlphaBits=4 \
+    -dTextAlphaBits=4
+\end{examplecmd}
 
 \DescribeCmd[p]{png}{bolean}{off}
-Create a .\iext{png} transparent image files using \prgname{ghostscript}.
+Create a .\iext{png} transparent image files using \prgname{ghostscript}.  The line before this options is:
+
+\begin{examplecmd}
+§ gs -q -dNOSAFER -sDEVICE=pngalpha -r 150
+\end{examplecmd}
 
 \DescribeCmd[e]{eps}{bolean}{off}
-Create a .\iext{eps} image files using \prgname{pdftops}.
+Create a .\iext{eps} image files using \prgname{pdftops}. The line before this options is:
+
+\begin{examplecmd}
+§ pdftops -q -eps
+\end{examplecmd}
 
 \DescribeCmd[s]{svg}{bolean}{off}
-Create a .\iext{svg} image files using \prgname{pdftocairo}.
+Create a .\iext{svg} image files using \prgname{pdftocairo}. The line before this options is:
+
+\begin{examplecmd}
+§ pdftocairo -q -eps
+\end{examplecmd}
 
 \DescribeCmd[P]{ppm}{bolean}{off}
-Create a .\iext{ppm} image files using \prgname{pdftoppm}.
+Create a .\iext{ppm} image files using \prgname{pdftoppm}. The line before this options is:
+
+\begin{examplecmd}
+§ pdftoppm -q -eps
+\end{examplecmd}
 
 \DescribeCmd[g]{gray}{bolean}{off}
-Create a gray scale for all images using \prgname{ghostscript}.
+Create a gray scale for all images using \prgname{ghostscript}. The line before this options is:
+
+\begin{examplecmd}
+§ gs -q -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress       \
+     -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray
+\end{examplecmd}
 
 \DescribeCmd[f]{force}{bolean}{off}
 Try to capture \lstinline[style=inline]|\psset| and \lstinline[style=inline]|\tikzset| to extract
@@ -554,6 +668,7 @@ The vast majority of the options can be passed into the input file. These should
 the beginning of the file in commented lines. If you are going to create
 an output file and you do not want these lines to remain, it is better to
 place them inside the \lstinline[style=inline]|%<*remove> ... %</remove>|. Like this:
+
 \begin{examplecode}
 %<*remove>
 % ltximg : options : {png,srcenv,xetex}
@@ -597,7 +712,7 @@ file. For example, if the input file is something like this:
 \end{examplecode}
 and the following line is used:
 \begin{examplecmd}
-[user@machine~:]$ ltximg -o §\meta{file-out}§ §\meta{file-in}.\meta{ext}§
+[user@machine~:]§ ltximg -o `\small\meta{file-out} \meta{file-in}.\meta{ext}`
 \end{examplecmd}
 \newpage
 %\changes{v1.0}{2016/10/07}{Beta for first public release}

@@ -1,0 +1,139 @@
+% arara: latex : {shell: true,action: nonstopmode,options: "-recorder"}
+% arara: dvips
+% arara: ps2pdf : {options: "-dPDFSETTINGS=/prepress"}
+%<*remove>
+% ltximg : options : {output = salida, imgdir = pics, prefix = env, eps,svg, subenv,force,arara} 
+% ltximg : deltenv : {filecontents} 
+%</remove>
+\documentclass{article}
+\usepackage{pstricks-add}
+\usepackage{filecontents}%
+\begin{document}
+No tocar \verb|\begin{preview}| junto a \verb|\end{preview}| y no reemplazar
+
+% inicia filecontents 1
+Algo de texto
+\begin{filecontents*}{content1.tex}
+\begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture}
+\end{filecontents*}
+sigue el entonro 
+
+% verbatim
+\begin{verbatim}
+\begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture}
+my $ltxtags = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %reverse_tag;
+\end{verbatim}
+
+% filecontents 2
+\begin{filecontents*}{content2.tex}
+Some mo er den indictum 
+\end{filecontents*}
+
+% verbatim 
+\begin{verbatim}
+\begin{filecontents*}{content2.tex}
+\end{verbatim}
+
+Usando noltximg , no debería quitar psset
+%<*noltximg> 
+\psset{unit=2cm}
+% some code
+\pspicture*(4,6)
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\endpspicture
+%</noltximg>
+
+
+% Este psset si deberia ser eliminado Extraer sera fig 1
+\psset{unit=2cm}
+% some code
+\begin{pspicture*}(4,6)
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture*}
+ 
+% verbatim
+\begin{verbatim}
+\end{filecontents*}
+\end{verbatim}
+ 
+% filecontents 3
+\begin{filecontents*}{joined2.tex}
+\documentclass{article}%
+\usepackage{pstricks-add}
+\begin{document}
+\begin{pspicture}(4,6)
+\pslineByHand[linecolor=green](0,0)(0,2)(2,2)
+\end{pspicture}
+\end{document}
+\end{filecontents*}
+% sigue el documento
+
+No extraer este entorno usando no preview
+\begin{nopreview}
+\begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture}
+\end{nopreview}
+
+% Este sera fig 2
+\begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture}
+
+Comentar \verb|\begin{pspicture}| y no reemplazar
+ltximg tags
+    \verb|%<*ltximg>|, \verb|%</ltximg>|, \verb|%<*noltximg>|, \verb'%</noltximg>',
+settings pstricks, tikz
+	\verb'\psset', \verb'\tikzset'
+plain pstricks
+	\verb'\pspicture', \verb'\pspicture*', \verb'\endpspicture',\verb'\psgraph', \verb'\endpsgraph',
+latex pstricks
+	\verb|\begin{pspicture}|, \verb|\end{pspicture}|, \verb|\begin{pspicture*}|, \verb|\end{pspicture*}|
+% Este sera fig 3
+texto fig3
+\begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture}
+mas texto
+
+% Este sera fig 4
+texto en la linea \begin{pspicture}(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\end{pspicture} fig 4 mas texto en la misma linea
+
+van algunas linea
+%<*clean>
+Texto al final del archivo
+%</clean>
+siguen mas lineas
+fin documento
+\end{document}
+
+IGNORAR
+No tocar \verb|\begin{preview}| junto a \verb|\begin{preview}| y no reemplazar
+	\verb'\psset', \verb'\tikzset', \verb'\pspicture', \verb'\endpspicture',
+	\verb'\psgraph', \verb'\endpsgraph',
+
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+\end{postscript}
