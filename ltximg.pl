@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-use v5.24;
+use v5.22; # min version 
 use File::Basename;
 use Getopt::Long qw(:config bundling_values require_order no_ignore_case);
 use File::Temp qw(tempdir);
@@ -9,7 +9,7 @@ use File::Spec::Functions qw(catfile devnull);
 use File::Find;
 use Cwd;
 use autodie;
-use Data::Dumper; # comment after test
+#use Data::Dumper; # for test
 
 ### Directory for work and tmp files
 my $tempDir   = tempdir( CLEANUP => 1);
@@ -19,15 +19,15 @@ my $null      = devnull();
 
 ### Program identification
 my $program   = "LTXimg";
-my $nv='1.5rc';
+my $nv='v1.5';
 my $copyright = <<END_COPYRIGHT ;
-2017-12-13 (c) 2013-2017 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2017-12-22] (c) 2013-2017 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
-my $prefix    = 'fig';
-my $skiptag   = 'noltximg';
-my $extrtag   = 'ltximg';
+my $prefix    = 'fig';          # defaul prefix for extract files 
+my $skiptag   = 'noltximg';     # internal tag for regex
+my $extrtag   = 'ltximg';       # internal tag for regex
 my $imageDir  = "images";       # dir for images 
 my $myverb    = "myverb";       # \myverb verbatim inline
 my $margins   = "0";            # margins for pdfcrop
@@ -253,47 +253,48 @@ find_ghostscript();
 my $licensetxt = <<END_LICENSE ;
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
+  the Free Software Foundation; either version 3 of the License, or
   (at your option) any later version.
 
   This program is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-  MA  02111-1307  USA
 END_LICENSE
 
-my $title = "$program $nv, $copyright";
+my $title = "$program $nv $copyright";
 my $usage = <<"END_OF_USAGE";
 ${title}
-Usage: ltximg <compiler> [<options>] <file.ext>
-* ltximg --latex [<options>] <file.ext>
-* ltximg --xetex [<options>] <file.ext>
-* ltximg --arara [<options>] <file.ext>
-
    LTXimg is a perl script that automates the process of extracting and 
-   converting environments provided by pgf, tikz, pstricks and other packages
+   converting environments provided by tikz, pstricks and other packages
    from input file to image formats in individual files using ghostscript 
-   and poppler-utils. It is possible to create an output file with all 
-   extracted environments converted to \\includegraphics.
-  
-   If no <compiler> and [<options>] is used, the extracted environments are 
-   converted to pdf format and saved in the /images dir using pdflatex and
-   preview package.
+   and poppler-utils. Generates a file with only extracted environments 
+   and another with environments converted to \\includegraphics.
 
-Default environments extract:
+* Syntax
+\$ ltximg <compiler> [<options>] [--] <file>.<tex|ltx>
+
+* Usage
+\$ ltximg --latex [<options>] <file.tex>
+\$ ltximg --arara [<options>] <file.tex>
+\$ ltximg [<options>] <file.tex>
+\$ ltximg <file.tex>
+   
+   If used without <compiler> and [<options>] the extracted environments
+   are converted to pdf format and saved in the /images directory using 
+   pdflatex and preview package. Relative or absolute paths for files and 
+   directories is not supported and if the last option take a list separated
+   by commas you need -- at the end.
+
+* Default environments extract
 
         pspicture tikzpicture pgfpicture psgraph postscript PSTexample
 
-Options:                                                           (default)
+* Options                                                          (default)
 
- -h,--help               - display this help and exit
- -l,--license            - display license and exit
- -v,--version            - display version (current $nv) and exit
+ -h,--help               - display this help and exit              (off)
+ -l,--license            - display license and exit                (off)
+ -v,--version            - display version (current $nv) and exit (off)
  -d,--dpi=<int>          - dots per inch for images                ($DPI)
  -t,--tif                - create .tif files using ghostscript     ($gscmd)
  -b,--bmp                - create .bmp files using ghostscript     ($gscmd)
@@ -321,7 +322,7 @@ Options:                                                           (default)
                            and pdflatex for compiler output
  --dvips                 - using latex>dvips>ps2pdf for compiler input 
                            and latex>dvips>ps2pdf for compiler output
- --dvipdf                - using latex>dvipdfmx for input and output file
+ --dvipdf                - using latex>dvipdfmx for input and output
  --luatex                - using lualatex for compiler input and output
  --prefix=<string>       - prefix append to each image file        (fig)
  --norun                 - run script, but no create images files  (off)
@@ -330,22 +331,24 @@ Options:                                                           (default)
  --myverb=<verbcmd>      - set custom verbatim \\verbcmd|<code>|    (myverb)
  --clean=<doc|pst|tkz|all|off>
                          - removes specific text in output file    (doc)
- --extrenv=<env1,...>--  - add new environments to extract         (empty)
- --skipenv=<env1,...>--  - skip environments to extract            (empty)
- --verbenv=<env1,...>--  - add verbatim environments               (empty)
- --writenv=<env1,...>--  - add verbatim write environments         (empty)
- --deltenv=<env1,...>--  - delete environments in output file      (empty)
+ --extrenv=<env1,...>    - add new environments to extract         (empty)
+ --skipenv=<env1,...>    - skip environments to extract            (empty)
+ --verbenv=<env1,...>    - add verbatim environments               (empty)
+ --writenv=<env1,...>    - add verbatim write environments         (empty)
+ --deltenv=<env1,...>    - delete environments in output file      (empty)
 
-Example:
+* Example
 
-* ltximg -e -p -j --srcenv --imgdir=pics -o test-out test-in.ltx
-* Create a /pics dir whit all extracted environments (whit source code)
-* converted to image formats (pdf, eps, png, jpg) in individual files and 
-* output file test-out.ltx whit all environments converted to \\includegraphics
-* using pdflatex and preview package.
-* Suport bundling for short options:
-* ltximg -epj --srcenv --imgdir pics -o test-out  test-in.ltx
-* Use texdoc ltximg for full documentation.
+\$ ltximg --latex -e -p --srcenv --imgdir=pics -o test-out test-in.ltx
+\$ ltximg --latex -ep --srcenv --imgdir pics -o test-out  test-in.ltx
+ 
+ Create a "/pics" directory whit all extracted environments (whit source code)
+ converted to image formats (pdf, eps, png) in individual files, an output 
+ file "test-out.ltx" whit all environments converted to \\includegraphics and
+ a single file "test-in-fig-all.tex" with only the extracted environments 
+ using latex>dvips>ps2pdf and preview package for input file and pdflatex for
+ output file. 
+ Use "texdoc ltximg" for full documentation.
 END_OF_USAGE
 
 ### Error in command line
@@ -1219,7 +1222,7 @@ $cuerpo =~ s/\%<\*ltximgverw>\n
 } # close PSTexa
 
 ### Command line script identification
-print "$program $nv, $copyright" ;
+print "$program $nv $copyright" ;
 
 ### Check if enviroment found in input file
 if ($envNo == 0 and $exaNo == 0){
@@ -1772,32 +1775,32 @@ open my $OUTfile, '>', "$output$ext";
 print   $OUTfile "$out_file";
 close $OUTfile;
 
-### Compile output file
+### Process the output file
 if($run){
-### If input file using latex otputfile using pdflatex
+### Set correct $compiler, if input use  latex then output use pdflatex
 $compiler = "pdflatex $opt_compiler" if $latex;
 $msg_compiler = "pdflatex" if $latex;
 
-### Compiling output file (pdflatex)
+### Compiling output file using pdflatex or arara
 say "Compiling file $output$ext using $msg_compiler";
 system("$compiler $output$ext $silence");
 
-### Compiling file using latex>dvips>ps2pdf
+### Compiling output file using latex>dvips>ps2pdf
 if($dvips){
     system("dvips -q -Ppdf $output.dvi");
     system("ps2pdf  -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf");
 } # close dvips
 
-### Compiling file using latex>dvipdfmx
+### Compiling output file using latex>dvipdfmx
 if($dvipdf){
     system("dvipdfmx -q $output.dvi");
            } # close dvipdf
       } # close run
 } # close outfile file
 
-### Remove tmp files
+### Deleting temporary files
 if($run){
-say "Removing temp files created during the process";
+say "Deleting (most) temporary files created during the process";
 my @protected = qw();
 push (@protected,"$output$ext","$output.pdf") if defined $output;
 

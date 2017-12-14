@@ -1,23 +1,27 @@
 \NeedsTeXFormat{LaTeX2e}
-\RequirePackage[top=0.5in, bottom=0.5in, left=2in, right=1in,%
-                footskip=0.2in,headsep=10pt
-                %,showframe
-                ]{geometry}
-\usepackage[columns=2]{idxlayout}
+\RequirePackage[top=0.5in, bottom=0.5in, left=2in, right=1in,footskip=0.2in,%
+                headsep=10pt]{geometry} % page dimension
+\usepackage[totoc,columns=2]{idxlayout} % index
 \EnableCrossrefs
 \CodelineIndex
-\RecordChanges
-\RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
-\RequirePackage{microtype,lmodern,libertine,fetamont,hologo}
-\RequirePackage[semibold,scale=0.90]{sourcecodepro}
-\RequirePackage[semibold,osf,scale=0.90]{sourcesanspro}
-\RequirePackage{xspace,titlesec,enumitem,fancyhdr,lastpage}
-\usepackage[titles]{tocloft}
-\RequirePackage[dvipsnames,svgnames]{xcolor}
-\RequirePackage{adjustbox,multicol,hyperref,xparse,listings}
-\usepackage{interfaces,graphicx}
-\RequirePackage{accsupp}
+\RequirePackage[mono=false]{libertine} % default roman/serif fonts
+\setmonofont[ 
+        Ligatures      = TeX ,
+        Scale          = 0.84,
+        Extension      = .otf,
+        UprightFont    = *-Regular ,
+        ItalicFont     = *-RegularIt,
+        BoldFont       = *-Medium , 
+        BoldItalicFont = *-MediumIt
+        ]{SourceCodePro} % srccode font
+\RequirePackage{microtype,fetamont,hologo} % LaTeX logo and LTXimg logo
+\RequirePackage{xspace,tocloft,enumitem,fancyhdr,lastpage} % custom
+\RequirePackage[svgnames]{xcolor} % colors :)
+\RequirePackage[sf,bf,compact,medium]{titlesec} % sections
+\RequirePackage{adjustbox,multicol,hyperref,xparse,listings,accsupp}
+\RequirePackage{interfaces,graphicx}
+
+% don't copy numbers in code example
 \newcommand*{\noaccsupp}[1]{\BeginAccSupp{ActualText={}}#1\EndAccSupp{}}
 
 % parindent
@@ -25,11 +29,8 @@
 
 % Colors for options
 \definecolor{optcolor}{rgb}{0.281,0.275,0.485}
-%\colorlet{mylinkcolor}{violet}
-\colorlet{mycitecolor}{YellowOrange}
-\colorlet{myurlcolor}{Aquamarine}
 
-% \LTXimg Logo whit libertine font
+% Logo whit libertine font for title
 \newsavebox{\logobox}
 \savebox{\logobox}{%
     \normalsize%
@@ -43,24 +44,23 @@
   \settoheight{\@tempdima}{L}%
   \resizebox{!}{\@tempdima}{\usebox{\logobox}}%
 }
-% oldstyle for libertine
+% oldstyle for libertine, need after \LTXimg 
 \useosf
 
-% Configuration for section
-\titleformat{\section}[hang]
-    {\normalfont\large\bfseries}
-    {\thesection}{0.5em}{}
+% logo for body docuemnt
+\newcommand*{\ltximg}{%
+    \normalsize\texttt{\bfseries
+     \textcolor{optcolor}{ltximg}}\xspace%
+}% close ltximg
 
 % Config hyperref
 \hypersetup{
   linkcolor  = blue!50,
-  citecolor  = mycitecolor,%
+  citecolor  = red!50,%
   urlcolor   = magenta,%
-% citecolor  = red,
-% urlcolor   = magenta,
   colorlinks = true,%
-  pdftitle   =.::ltximg v1.5 (2017-12-12)::. extract and convert environments to image formats,%
-  pdfauthor= {Pablo González Luengo},%
+  pdftitle   ={.::ltximg v1.5 (2017-12-22) --- LaTeX environments to image formats::.},%
+  pdfauthor= {Pablo Gonz\'{a}lez Luengo},% á fails
   pdfsubject={Documentation for version 1.5},%
   pdfstartview={FitH},%  
   bookmarksopenlevel=2,%
@@ -69,12 +69,10 @@
 % Configuration fancyhdr
 \fancypagestyle{plain}{%
 \fancyhf{}%
-\fancyfoot[C]{%
-    \textsf{\thepage}\ of \textsf{\pageref{LastPage}}
-    }%
+\fancyfoot[R]{\small\textsf{\thepage{} /\pageref{LastPage}}}
 \renewcommand{\headrulewidth}{0pt}%
 \renewcommand{\footrulewidth}{0pt}%
-}%
+}% close plain style
 
 \renewcommand{\sectionmark}[1]{
     \markboth{\textsf{\scshape\small\S\thesection. #1}}{}
@@ -83,28 +81,33 @@
 \fancypagestyle{myheader}{%
 \fancyhf{}%
 \fancyhead[L]{\raisebox{-0.75\baselineskip}[0pt][0pt]{%
-    \textsf{\small\LTXimg{} \textcolor{gray}{v1.5}}%
+\textsf{\small \textcolor{gray}{Documentation for version 1.5 [2017-12-20]}}%
         }%
     }%
-\fancyhead[RO,CE]{\raisebox{-0.75\baselineskip}[0pt][0pt]{%
+\fancyhead[R]{\raisebox{-0.75\baselineskip}[0pt][0pt]{%
     \small\nouppercase{\leftmark}%
         }%
     }%
-\fancyfoot[C]{\textsf{\thepage}\ of \textsf{\pageref{LastPage}}}%
+\fancyfoot[R]{\small\textsf{\thepage{} /\pageref{LastPage}}}
+\fancyfoot[L]{%
+    \small\sffamily%
+    \LTXimg{}
+    \textcolor{gray}{%
+    \raisebox{-1pt}{\textcopyright}{}2013--2017 by Pablo González L%
+    }%
+}%
 \renewcommand{\headrulewidth}{0.5pt}%
-\renewcommand{\footrulewidth}{0.5pt}%
+\renewcommand{\footrulewidth}{0pt}%
 \renewcommand{\headrule}{%
     \hbox to\headwidth{%
     \color{optcolor}\leaders\hrule height \headrulewidth\hfill}%
     }%
-\renewcommand{\footrule}{%
-    \hbox to\headwidth{%
-    \color{optcolor}\leaders\hrule height \footrulewidth\hfill}%
-    }%
-}
+} % close myheader
+
+% add headheight
 \setlength{\headheight}{21pt}%
 
-% Custom <meta> and more
+% Custom \meta[...]{...}, \marg[...]{...} and \oarg[...]{...} for color
 \ExplSyntaxOn
 %^^A user level commands
 \RenewDocumentCommand{\meta}{O{}m}
@@ -189,30 +192,16 @@
 }
 \ExplSyntaxOff
 
-% \pkgname{m}
-\DeclareDocumentCommand\pkgname{m}{%
-    \mbox{\textsf{\textcolor{SlateBlue}{#1}}}%
-    \SortIndex{packages}{packages>\textsf{#1}}%
-    %\SortIndex{#1}{\textsf{#1} (package)}%
-}%
-
-% \pkgopt{m}
-\DeclareDocumentCommand\pkgopt{m}{%
-    \mbox{\textsf{\textcolor{Orange}{#1}}}%
-    \SortIndex{package options}{package options>\textsf{#1}}%
-    \SortIndex{#1}{\textsf{#1} (package option)}%
-}%
-
 % \prgname{sm} : #1 index compiler, #2 index programs:
 \DeclareDocumentCommand\prgname{sm}{%
     \IfBooleanTF{#1}
     {
-    \mbox{\textcolor{ForestGreen}{\ttfamily\small\bfseries{#2}}\xspace}%
-    \SortIndex{compiler}{compiler>\textsf{#2}}%
+    \textcolor{ForestGreen}{\ttfamily\bfseries{#2}}\xspace%
+    \SortIndex{compiler}{Compiler>\textsf{#2}}%
     }
     {
-    \mbox{\textcolor{ForestGreen}{\ttfamily\small\bfseries{#2}}\xspace}%
-    \SortIndex{programs}{programs>\textsf{#2}}%
+    \textcolor{ForestGreen}{\ttfamily\bfseries{#2}}\xspace%
+    \SortIndex{programs}{Programs>\textsf{#2}}%
     }
 }%
 
@@ -220,8 +209,8 @@
 \DeclareDocumentCommand\prgopt{sm}{%
     \IfBooleanTF{#1}
     {
-    \mbox{\textcolor{gray}{\ttfamily\small\bfseries{-{}#2}}\xspace}%
-    \SortIndex{compiler options}{compiler options>\small\texttt{-{}#2}}%
+    \textcolor{gray}{\ttfamily\bfseries{-{}#2}}\xspace%
+    \SortIndex{compiler options}{Compiler options>\small\texttt{-{}#2}}%
     }
     {
     \mbox{\texttt{-{}#2}}%
@@ -229,53 +218,91 @@
     }
 }
 
-% \scriptname{m}
+% \scriptname*{m}
 \DeclareDocumentCommand\scriptname{m}{%
-    %\mbox{\textsf{#1}}% 
-    \textcolor{ForestGreen}{\ttfamily\small\bfseries{#1}}\xspace%
-    \SortIndex{scripts}{scripts>\textsf{#1}}%
+    \textcolor{ForestGreen}{\ttfamily\bfseries{#1}}\xspace
+    \SortIndex{scripts}{Scripts>\textsf{#1}}%
 }%
 
 % \scriptopt{m}
 \DeclareDocumentCommand\scriptopt{m}{%
     \mbox{\texttt{#1}}\xspace%
-    \SortIndex{script option}{script options>\small\textsf{#1}}%
+    \SortIndex{script option}{Script options>\small\textsf{#1}}%
 }
 
-% file extention
-\DeclareDocumentCommand\fext{m}{%
-    \mbox{\textcolor{optcolor}{\ttfamily\small\bfseries{.#1}}\xspace}%
-    \SortIndex{files extention}{files extentions>\small\textsf{.#1}}%
-}
+% \pkgname{m}
+\DeclareDocumentCommand\pkgname{m}{%
+    \textsf{\textcolor{SlateBlue}{#1}}%
+    \SortIndex{packages}{Packages>\textsf{#1}}%
+    %\SortIndex{#1}{\textsf{#1} (package)}%
+}%
 
-% image format/extention
-\DeclareDocumentCommand\iext{m}{%
-    \mbox{\textcolor{optcolor}{\ttfamily\small\bfseries{#1}}\xspace}%
-    \SortIndex{image format}{image formats>\small\textsf{#1}}%
-}
-
-% \sysydir{m}
-\DeclareDocumentCommand\sysdir{m}{%
-    \mbox{\textcolor{OrangeRed}{\ttfamily\small\bfseries{/#1}}}%
-}
+% \pkgopt{m}
+\DeclareDocumentCommand\pkgopt{m}{%
+    \textsf{\textcolor{Orange}{#1}}%
+    \SortIndex{package options}{Package options>\textsf{#1}}%
+    \SortIndex{#1}{\textsf{#1} (package option)}%
+}%
 
 % \env{sm}, #1 not used now
 \DeclareDocumentCommand\env{sm}{
-    \textcolor{optcolor}{\ttfamily\small\bfseries{#2}}%
-    \SortIndex{environment}{environments>\small\textsf{#2}}%
+    \textcolor{optcolor}{\sffamily{#2}}%
+    \SortIndex{environment}{Environments>\small\textsf{#2}}%
 }
 
 % \ics{sm}, #1 not used now
 \DeclareDocumentCommand\ics{sm}{
-    \textcolor{optcolor}{\ttfamily\small\bfseries{\textbackslash#2}}%
+    \textcolor{optcolor}{\ttfamily{\textbackslash#2}}%
     \SortIndex{#2}{\textsf{\small\textbackslash#2}}
+}
+
+% file extention
+\DeclareDocumentCommand\fext{m}{%
+    \mbox{\textcolor{optcolor}{\ttfamily\bfseries{.#1}}\xspace}%
+    \SortIndex{files extention}{File extentions (input)>\small\textsf{.#1}}%
+}
+
+% image format/extention
+\DeclareDocumentCommand\iext{m}{%
+    \textcolor{optcolor}{\ttfamily\bfseries{#1}}%
+    \SortIndex{Image format}{Image formats>\small\textsf{#1}}%
+}
+
+% \DescribeIF{m}, #1 image format
+\newsavebox{\marginIF}
+\NewDocumentCommand\DescribeIF{m}{%
+\begin{lrbox}{\marginIF}%
+   \begin{minipage}[t]{\marginparwidth}%
+    \raggedleft
+    \iext{#1}
+    \end{minipage}%
+\end{lrbox}%
+    \leavevmode%
+    \marginpar{\usebox{\marginIF}}%
+    \ignorespaces%
+}%
+
+% \sysydir{m}
+\DeclareDocumentCommand\sysdir{m}{%
+    \mbox{\textcolor{OrangeRed}{\ttfamily{/#1}}}%
+}
+
+% \sysfile{m} ...only for color in some exaples
+\DeclareDocumentCommand\sysfile{m}{%
+    \mbox{\textcolor{gray}{\ttfamily{#1}}}\xspace%
+}
+
+% \OSsystem{m} ...only for color in some exaples
+\DeclareDocumentCommand\OSsystem{m}{%
+    \mbox{\textcolor{OrangeRed}{\ttfamily\bfseries{#1}}}%
+    \SortIndex{Operating system}{Operating system>\small\textsf{#1}}%
 }
 
 % \cmdopt[short]{long}
 \NewDocumentCommand\cmdopt{om}{%
     \IfNoValueTF{#1}%
-    {\textcolor{optcolor}{\ttfamily\small\bfseries{-\/-#2}}\xspace}%
-    {\textcolor{optcolor}{\ttfamily\small\bfseries{-{}#1}}, \textcolor{optcolor}{\ttfamily\small\bfseries{-\/-#2}}\xspace}%
+    {\textcolor{optcolor}{\ttfamily\bfseries{-\/-#2}}\xspace}%
+    {\textcolor{optcolor}{\ttfamily\bfseries{-{}#1}}, \textcolor{optcolor}{\ttfamily\bfseries{-\/-#2}}\xspace}%
 \SortIndex{options}{\textsf{\myscript}\ options in command line>\small\texttt{-\/-#2}}%
 }
 
@@ -283,26 +310,26 @@
 \DeclareDocumentCommand\myenv{m}{%
 \moveright 0.0pt \hbox{%
     \begin{minipage}[t]{\marginparwidth}%
-        \raggedleft\ttfamily\small%
+        \raggedleft\ttfamily%\small%
         {\textcolor{gray}{\textbackslash begin\{}}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{\}}\par%
         \meta[ac=gray,cf=gray]{env content}\par%
         {\textcolor{gray}{\textbackslash end\{}}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{\}}%
     \end{minipage}%
                     } % close hbox
-\SortIndex{environment}{environments>\small\textsf{#1}}%
+\SortIndex{Environment}{Environments suport by default>\small\textsf{#1}}%
 }%
 
 % \mytag{dtxtag}
 \DeclareDocumentCommand\mytag{m}{%
 \moveright 0.0pt \hbox{%
     \begin{minipage}[t]{\marginparwidth}%
-        \raggedleft\ttfamily\small%
+        \raggedleft\ttfamily%\small%
         \textcolor{gray}{\%<*}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{>}\par%
         \meta[ac=gray,cf=gray]{content}\par%
         \textcolor{gray}{\%</}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{>}%
     \end{minipage}%
                     } % close hbox
-\SortIndex{docstrip}{docstrip tag>\textsf{#1}}%
+\SortIndex{docstrip}{Docstrip tag>\textsf{#1}}%
 }%
 
 % \DescribeTE{sm}, #1 tag, #2 env
@@ -375,20 +402,26 @@
 % Important words 1
     keywordstyle=[1]{\bfseries\color{blue}},% 
     keywords=[1]{AtBeginDocument,begin,end,documentclass,BEGIN,END},%
-% Other words 1
+% Other words 2
     keywordstyle=[2]{\color{blue!75}},% 
     keywords=[2]{usepackage,graphicspath,RequirePackage,renewcommand,%
-    PreviewBbAdjust,usetikzlibrary,tikzexternalize,psset,tikzset,%
+    PreviewBbAdjust,usetikzlibrary,tikzexternalize,psset,tikzset,PrependGraphicsExtensions,%
     DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb},%
-% Other words 2
+% Other words 3
     keywordstyle=[3]{\color{optcolor!85}},%
-    keywords=[3]{document,graphicx,preview,active,tightpage,article,%
+    keywords=[3]{document,graphicx,preview,active,tightpage,article,grfext,description,%
     external,tikz,clean,pst,tkz,eps,pdf,xetex,latex,luatex,dvips,png,srcenv},%
-% Reserved words 3(inputfile options)
+% Reserved words 4(inputfile options)
     keywordstyle=[4]{\bfseries\color{optcolor}},% 
     keywords=[4]{ltximg,noltximg,remove,options,pspicture,endpspicture,%
     PSTexample,pgfpicture, endpgfpicture, tikzpicture, endtikzpicture, %
-    psgraph, endpsgraph,nopreview,postscript, arara,extrenv,deltenv},%     
+    psgraph, endpsgraph,nopreview,postscript, arara,extrenv,deltenv},%
+% Reserved in orange
+    keywordstyle=[5]{\color{OrangeRed}},% 
+    keywords=[5]{images,includegraphics},%
+% Reserved in orange
+    keywordstyle=[6]{\color{red}},% 
+    keywords=[6]{verb},%
 }[keywords,tex,comments,strings]% end languaje
 
 % \begin{examplecode}[optlst]...\end{examplecode}
@@ -436,9 +469,13 @@ literate=*{\{}{{\bfseries\textcolor{gray}{\{}}}{1}
     xleftmargin=\dimexpr\fboxsep+\fboxrule\relax,%
     xrightmargin=\dimexpr\fboxsep+\fboxrule\relax,%
 % Reserved words (cmd line options)
-    classoffset=4,%
+    classoffset=7,%
     keywordstyle=\bfseries\color{optcolor},% 
     morekeywords={ltximg},%
+% % Reserved words (cmd line options)
+    classoffset=8,%
+    keywordstyle={\bfseries\color{ForestGreen}},% 
+    morekeywords={gs,pdftoppm,pdftocairo,pdftops},%
 % Only for command line options
     classoffset=5,%
     keywordstyle=\color{blue},% 
@@ -449,7 +486,7 @@ literate=*{[}{{\textcolor{darkgray}{[}}}{1}
           {@}{{\textcolor{blue}{@}}}{1}
           {\$}{{\textcolor{blue}{\$}}}{1}
           {:}{{\textcolor{blue}{:}}}{1}
-          {§}{{\textcolor{blue}{\$}}}{1}
+          {§}{{\textcolor{red}{\$}}}{1}
           {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
     }% close lstset {~}
 }%
@@ -459,13 +496,12 @@ literate=*{[}{{\textcolor{darkgray}{[}}}{1}
 \lstdefinestyle{inline}
 {
     language=ltximg-doc,%
-    basicstyle=\ttfamily\small\color{gray},%
+    basicstyle=\ttfamily\color{gray},%
 % literateee
 literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
-          %{\%</remove>}{{\bfseries\textcolor{gray}{\%</remove>}}}{10}
-          %{\%<*ltximg>}{{\bfseries\textcolor{gray}{\%<*ltximg>}}}{10}
-          %{\%</ltximg>}{{\bfseries\textcolor{gray}{\%</ltximg>}}}{10}
-          %{\%<*noltximg>}{{\bfseries\textcolor{gray}{\%<*noltximg>}}}{12}
-          %{\%</noltximg>}{{\bfseries\textcolor{gray}{\%</noltximg>}}}{12},%
 }
+
+% set default style
+\lstset{style=inline}
+
 \endinput

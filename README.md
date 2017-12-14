@@ -1,20 +1,26 @@
-# **ltximg** - latex to image
+## ltximg &ndash; LaTeX environments to image format 
 
 ## Description
-**ltximg** is a perl *script* that automates the process of extracting and converting
-environments provided by **pgf**, **tikz**, **pstricks** and other packages from input file
-to image formats in individual files using `ghostscript` and `poppler-utils`. It is possible 
-to create an output file with all extracted environments converted to `\includegraphics`.
 
+**ltximg** is a perl *script* that automates the process of extracting and converting
+environments provided by **tikz**, **pstricks** and other packages from input file
+to image formats in individual files using `ghostscript` and `poppler-utils`. Generates a file 
+with only extracted environments and another with environments converted to `includegraphics`.
+
+## Syntax
+```
+$ ltximg <compiler> [<options>] [--] <file>.<tex|ltx>
+```
 ## Usage
 ```
-$ ltximg <compiler> [<options>] <file.ext>
-$ ltximg --latex  [<options>] <file.ext>
-$ ltximg --xetex  [<options>] <file.ext>
-$ ltximg --arara  [<options>] <file.ext>
+$ ltximg --latex  [<options>] <file.tex>
+$ ltximg --arara  [<options>] <file.tex>
+$ ltximg [<options>] <file.tex>
+$ ltximg <file.tex>
 ```
-If called whitout `<compiler>` and `[<options>]`, the extracted environments are converted to `pdf` 
-format and saved in `/images` dir using `pdflatex` and `preview` package.
+If used without `<compiler>` and `[<options>]` the extracted environments are converted to `pdf` image format 
+and saved in the `/images` directory using `pdflatex` and `preview` package. Relative or absolute `paths` for files 
+and directories is not supported and if the last `[<options>]` take a list separated by commas you need `--` at the end.
 
 ## Default environments extract
 ```
@@ -25,9 +31,9 @@ format and saved in `/images` dir using `pdflatex` and `preview` package.
 ```
 Options:                                                          (default)
 
- -h,--help               - display this help and exit
- -l,--license            - display license and exit
- -v,--version            - display version (current 1.5rc) and exit
+ -h,--help               - display this help and exit              (off)
+ -l,--license            - display license and exit                (off)
+ -v,--version            - display version (current v1.5) and exit (off) 
  -d,--dpi=<int>          - dots per inch for images                (150)
  -t,--tif                - create .tif files using ghostscript     (gs)
  -b,--bmp                - create .bmp files using ghostscript     (gs)
@@ -55,7 +61,7 @@ Options:                                                          (default)
                            and pdflatex for compiler output
  --dvips                 - using latex>dvips>ps2pdf for compiler input 
                            and latex>dvips>ps2pdf for compiler output
- --dvipdf                - using latex>dvipdfmx for input and output file
+ --dvipdf                - using latex>dvipdfmx for input and output
  --luatex                - using lualatex for compiler input and output
  --prefix=<string>       - prefix append to each image file        (fig)
  --norun                 - run script, but no create images files  (off)
@@ -64,24 +70,38 @@ Options:                                                          (default)
  --myverb=<verbcmd>      - set custom verbatim \verbcmd|<code>|    (myverb)
  --clean=<doc|pst|tkz|all|off>
                          - removes specific text in output file    (doc)
- --extrenv=<env1,...>--  - add new environments to extract         (empty)
- --skipenv=<env1,...>--  - skip environments to extract            (empty)
- --verbenv=<env1,...>--  - add verbatim environments               (empty)
- --writenv=<env1,...>--  - add verbatim write environments         (empty)
- --deltenv=<env1,...>--  - delete environments in output file      (empty)
+ --extrenv=<env1,...>    - add new environments to extract         (empty)
+ --skipenv=<env1,...>    - skip environments to extract            (empty)
+ --verbenv=<env1,...>    - add verbatim environments               (empty)
+ --writenv=<env1,...>    - add verbatim write environments         (empty)
+ --deltenv=<env1,...>    - delete environments in output file      (empty)
 ```
-## Examples
+## Example
 ```
-$ ltximg -e -p -j --srcenv --imgdir=pics -o test-out test-in.ltx
+$ ltximg --latex -e -p --srcenv --imgdir=pics -o test-out test-in.ltx
 ```
-Create a `/pics` dir whit all extracted environments (whit source code) converted to image 
-formats (`pdf`, `eps`, `png`, `jpg`) in individual files and output file `test-out.ltx` whit 
-all environments converted to `\includegraphics` using `pdflatex` whit `preview` package.
-
-Suport bundling for short options:
 ```
-$ ltximg -epj --srcenv --imgdir pics -o test-out  test-in.ltx
+$ ltximg --latex -ep --srcenv --imgdir pics -o test-out  test-in.ltx
 ```
+Create a `/pics` directory whit all extracted environments (whit source code) converted to image 
+formats (`pdf`, `eps`, `png`) in individual files, an output file `test-out.ltx` whit all environments 
+converted to `\includegraphics` and a single file `test-in-fig-all.tex` with only the extracted environments 
+using `latex>dvips>ps2pdf` and `preview` package for input file and `pdflatex` for output file. 
 Use `texdoc ltximg` for full documentation.
 
-Readme for version 1.5.rc [2017-12-13], (c) 2013 - 2017 by Pablo González L <pablgonz@yahoo.com>
+## Licence
+This program is free software; you can redistribute it and/or modify it under the terms of the GNU 
+General Public License as published by the Free Software Foundation; either version 3 of the License, 
+or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public 
+License for more details.
+
+## Author
+
+Written by Pablo González L <pablgonz@yahoo.com>
+
+## Copyright
+
+Copyright © 2013 - 2017 Pablo González L [2017-12-22]

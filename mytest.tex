@@ -1,8 +1,8 @@
-% arara: latex : {shell: true,action: nonstopmode,options: "-recorder"}
+% arara: latex : {shell: true, action: nonstopmode, options: "-recorder"}
 % arara: dvips
 % arara: ps2pdf : {options: "-dPDFSETTINGS=/prepress"}
 %<*remove>
-% ltximg : options : {output = salida, imgdir = pics, prefix = env, eps,svg, subenv,force,arara} 
+% ltximg : options : {arara,output = salida, imgdir = pics, prefix = env, eps,svg, subenv,force, clean = doc} 
 % ltximg : deltenv : {filecontents} 
 %</remove>
 \documentclass{article}
@@ -98,11 +98,11 @@ Comentar \verb|\begin{pspicture}| y no reemplazar
 ltximg tags
     \verb|%<*ltximg>|, \verb|%</ltximg>|, \verb|%<*noltximg>|, \verb'%</noltximg>',
 settings pstricks, tikz
-	\verb'\psset', \verb'\tikzset'
+    \verb'\psset', \verb'\tikzset'
 plain pstricks
-	\verb'\pspicture', \verb'\pspicture*', \verb'\endpspicture',\verb'\psgraph', \verb'\endpsgraph',
+    \verb'\pspicture', \verb'\pspicture*', \verb'\endpspicture',\verb'\psgraph', \verb'\endpsgraph',
 latex pstricks
-	\verb|\begin{pspicture}|, \verb|\end{pspicture}|, \verb|\begin{pspicture*}|, \verb|\end{pspicture*}|
+    \verb|\begin{pspicture}|, \verb|\end{pspicture}|, \verb|\begin{pspicture*}|, \verb|\end{pspicture*}|
 % Este sera fig 3
 texto fig3
 \begin{pspicture}(4,6)
@@ -120,17 +120,17 @@ texto en la linea \begin{pspicture}(4,6)
 \end{pspicture} fig 4 mas texto en la misma linea
 
 van algunas linea
-%<*clean>
+%<*remove>
 Texto al final del archivo
-%</clean>
+%</remove>
 siguen mas lineas
 fin documento
 \end{document}
 
 IGNORAR
 No tocar \verb|\begin{preview}| junto a \verb|\begin{preview}| y no reemplazar
-	\verb'\psset', \verb'\tikzset', \verb'\pspicture', \verb'\endpspicture',
-	\verb'\psgraph', \verb'\endpsgraph',
+    \verb'\psset', \verb'\tikzset', \verb'\pspicture', \verb'\endpspicture',
+    \verb'\psgraph', \verb'\endpsgraph',
 
 \begin{postscript}
 \begin{pspicture}[showgrid](0,3)(10,10)
