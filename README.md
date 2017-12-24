@@ -1,4 +1,4 @@
-## ltximg &ndash; LaTeX environments to image format 
+## LTXimg &ndash; LaTeX environments to image format 
 
 ## Description
 
@@ -67,7 +67,7 @@ Options:                                                          (default)
  --norun                 - run script, but no create images files  (off)
  --nopdf                 - don't create a PDF image files          (off)
  --nocrop                - don't run pdfcrop                       (off)
- --myverb=<verbcmd>      - set custom verbatim \verbcmd|<code>|    (myverb)
+ --verbcmd=<name>        - set of custom verbatim command          (myverb)
  --clean=<doc|pst|tkz|all|off>
                          - removes specific text in output file    (doc)
  --extrenv=<env1,...>    - add new environments to extract         (empty)
@@ -100,8 +100,8 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2017-12-30.
 
 ## Copyright
 
-Copyright © 2013 - 2017 Pablo González L [2017-12-22]
+Copyright © 2013 - 2017 Pablo González L 

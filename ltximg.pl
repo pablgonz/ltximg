@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-use v5.22; # min version 
+use v5.22; # minimum version
 use File::Basename;
 use Getopt::Long qw(:config bundling_values require_order no_ignore_case);
 use File::Temp qw(tempdir);
@@ -21,7 +21,7 @@ my $null      = devnull();
 my $program   = "LTXimg";
 my $nv='v1.5';
 my $copyright = <<END_COPYRIGHT ;
-[2017-12-22] (c) 2013-2017 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2017-12-30] (c) 2013-2017 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
@@ -29,7 +29,7 @@ my $prefix    = 'fig';          # defaul prefix for extract files
 my $skiptag   = 'noltximg';     # internal tag for regex
 my $extrtag   = 'ltximg';       # internal tag for regex
 my $imageDir  = "images";       # dir for images 
-my $vrbcmd    = "myverb";       # set \myverb command
+my $verbcmd   = "myverb";       # set \myverb command
 my $margins   = "0";            # margins for pdfcrop
 my $DPI       = "150";          # dpi for image formats
 my $arara     = 0;              # use arara to compiler
@@ -392,7 +392,7 @@ my $result=GetOptions (
     'deltenv=s{1,9}' => \@delt_env_tmp, # delete environment
 # string options
     'imgdir=s{1}'    => \$imageDir, # images dir name
-    'vrbcmd=s{1}'    => \$vrbcmd,   # \myverb inline (string)
+    'verbcmd=s{1}'   => \$verbcmd,  # \myverb inline (string)
     'prefix=s{1}'    => \$prefix,   # prefix
 # negated options
     'crop!'          => \$crop,    # run pdfcrop
@@ -716,8 +716,8 @@ if (exists $opts_file{deltenv} ) {
 }
 
 ### Set \myverb|<code>| options from input file
-if (exists $opts_file{options}{vrbcmd}){
-    $vrbcmd = $opts_file{options}{vrbcmd};
+if (exists $opts_file{options}{verbcmd}){
+    $verbcmd = $opts_file{options}{verbcmd};
 }
 
 ### Create  @env_all_tmp contain all environments
@@ -871,7 +871,7 @@ my $no_llaves   = qr/(?: $llaves )?                                             
 my $corchetes   = qr/\[ .+? \]                                                          /x;
 my $anidado     = qr/(\{(?:[^\{\}]++|(?1))*\})                                          /x;
 my $delimitador = qr/\{ (?<del>.+?) \}                                                  /x;
-my $verb        = qr/(?:((spv|(?:q|f)?v|V)erb|$vrbcmd)[*]?)                             /ix;
+my $verb        = qr/(?:((spv|(?:q|f)?v|V)erb|$verbcmd)[*]?)                             /ix;
 my $lst         = qr/(?:(lst|pyg)inline)(?!\*) $no_corchete                             /ix;
 my $mint        = qr/(?: $mintline |SaveVerb) (?!\*) $no_corchete $no_llaves $llaves    /ix;
 my $no_mint     = qr/(?: $mintline) (?!\*) $no_corchete                                 /ix;
@@ -908,7 +908,7 @@ while ($documento =~
 
 ### Regex for verbatim inline whit braces {...}
 my $mintd_ani = qr/\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves     /x;
-my $tcbxverb  = qr/\\ (?: tcboxverb [*]?|$vrbcmd [*]?|lstinline)  $no_corchete /x;
+my $tcbxverb  = qr/\\ (?: tcboxverb [*]?|$verbcmd [*]?|lstinline)  $no_corchete /x;
 my $tcbxmint  = qr/(?:$tcbxverb|$mintd_ani) (?:\s*)? $anidado                  /x;
 
 ### Changue \verb*{code} inline 

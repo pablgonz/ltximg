@@ -50,7 +50,7 @@
 % logo for body docuemnt
 \newcommand*{\ltximg}{%
     \normalsize\texttt{\bfseries
-     \textcolor{optcolor}{ltximg}}\xspace%
+     \textcolor{NavyBlue}{ltximg}}\xspace%
 }% close ltximg
 
 % Config hyperref
@@ -59,7 +59,7 @@
   citecolor  = red!50,%
   urlcolor   = magenta,%
   colorlinks = true,%
-  pdftitle   ={.::ltximg v1.5 (2017-12-24) --- LaTeX environments to image formats::.},%
+  pdftitle   ={.::ltximg v1.5 (2017-12-30) --- LaTeX environments to image formats::.},%
   pdfauthor= {Pablo Gonz\'{a}lez Luengo},% á fails
   pdfsubject={Documentation for version 1.5},%
   pdfstartview={FitH},%  
@@ -81,7 +81,7 @@
 \fancypagestyle{myheader}{%
 \fancyhf{}%
 \fancyhead[L]{\raisebox{-0.75\baselineskip}[0pt][0pt]{%
-\textsf{\small \textcolor{gray}{Documentation for version 1.5 [2017-12-20]}}%
+\textsf{\small \textcolor{gray}{Documentation for version 1.5 [2017-12-30]}}%
         }%
     }%
 \fancyhead[R]{\raisebox{-0.75\baselineskip}[0pt][0pt]{%
@@ -209,7 +209,7 @@
 \DeclareDocumentCommand\prgopt{sm}{%
     \IfBooleanTF{#1}
     {
-    \textcolor{gray}{\ttfamily\bfseries{-{}#2}}\xspace%
+    \textcolor{gray}{\ttfamily\bfseries{-{}#2}}%\xspace%
     \SortIndex{compiler options}{Compiler options>\small\texttt{-{}#2}}%
     }
     {
@@ -400,7 +400,7 @@
     morecomment=[l]{\%},%
     commentstyle=\itshape\color{lightgray},%
 % Important words 1
-    keywordstyle=[1]{\bfseries\color{blue}},% 
+    keywordstyle=[1]{\bfseries\color{NavyBlue}},% 
     keywords=[1]{AtBeginDocument,begin,end,documentclass,BEGIN,END},%
 % Other words 2
     keywordstyle=[2]{\color{blue!75}},% 
@@ -409,16 +409,16 @@
     DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb},%
 % Other words 3
     keywordstyle=[3]{\color{optcolor!85}},%
-    keywords=[3]{document,graphicx,preview,active,tightpage,article,grfext,description,%
-    external,tikz,clean,pst,tkz,eps,pdf,xetex,latex,luatex,dvips,png,srcenv},%
+    keywords=[3]{document,graphicx,preview,active,tightpage,article,grfext,description,filecontents,%
+    external,tikz,clean,pst,tkz,eps,pdf,xetex,latex,luatex,dvips,png,srcenv,noprew,imgdir,prefix,output},%
 % Reserved words 4(inputfile options)
     keywordstyle=[4]{\bfseries\color{optcolor}},% 
     keywords=[4]{ltximg,noltximg,remove,options,pspicture,endpspicture,%
     PSTexample,pgfpicture, endpgfpicture, tikzpicture, endtikzpicture, %
-    psgraph, endpsgraph,nopreview,postscript, arara,extrenv,deltenv},%
+    psgraph, endpsgraph,nopreview,postscript, arara,extrenv,deltenv,skipenv},%
 % Reserved in orange
     keywordstyle=[5]{\color{OrangeRed}},% 
-    keywords=[5]{images,includegraphics},%
+    keywords=[5]{images,includegraphics,env,file-out,pics,doc},%
 % Reserved in orange
     keywordstyle=[6]{\color{red}},% 
     keywords=[6]{verb},%
@@ -439,7 +439,6 @@ literate=*{\{}{{\bfseries\textcolor{gray}{\{}}}{1}
           {]}{{\bfseries\textcolor{optcolor}{]}}}{1}
           {*}{{\bfseries\textcolor{red}{*}}}{1}
           {:}{{\textcolor{red}{:}}}{1}
-          {"}{{\textcolor{red}{\textquotedbl}}}{1}
           {,}{{\textcolor{gray}{,}}}{1}
           {=}{{\textcolor{gray}{=}}}{1}
           {/}{{\textcolor{gray}{/}}}{1}
@@ -487,6 +486,7 @@ literate=*{[}{{\textcolor{darkgray}{[}}}{1}
           {\$}{{\textcolor{blue}{\$}}}{1}
           {:}{{\textcolor{blue}{:}}}{1}
           {§}{{\textcolor{red}{\$}}}{1}
+          {"}{{\textcolor{red}{\textquotedbl}}}{1}
           {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
     }% close lstset {~}
 }%

@@ -6,9 +6,9 @@
 \documentclass{ltxdoc}
 \usepackage{mysty}
 \def\myscript{ltximg}
-\def\fileversion{v1.5}
-\def\filedate{2017-12-22}
-\def\rulecolor{\color{SlateBlue}}
+\def\fileversion{1.5}
+\def\filedate{2017-12-30}
+\def\rulecolor{\color{NavyBlue}}
 
 % email https://tex.stackexchange.com/a/663
 \catcode`\_=11\relax%
@@ -17,7 +17,7 @@
   \href{mailto:#1@#2}{{\emailfont #1\emailampersat #2}}%
 }%
 \newcommand\emailfont{\sffamily}%
-\newcommand\emailampersat{{\color{blue}\footnotesize@}}%
+\newcommand\emailampersat{{\color{NavyBlue}\footnotesize@}}%
 \catcode`\_=8\relax% %  
 
 % Table of contents, need change font style
@@ -97,36 +97,34 @@ would be the great mission (which does not end yet).
 \thispagestyle{plain}
 \newpage
 \pagestyle{myheader}
-\section{Required Software}
-\label{sec:software}
+\section{Required Software}\label{sec:software}
 
 For the complete operation of \ltximg{} you need to have a modern \hologo{TeX} 
 distribution such as \hologo{TeX}Live 2017 or \hologo{MiKTeX} 2.9, have a version equal to or 
 greater than \liningnums{5.22} of \prgname{perl}, a version equal to or greater than \liningnums{9.19} of 
-\prgname{ghostscript} and have a version equal to or greater than \liningnums{0.52} of 
-\textcolor{ForestGreen}{\ttfamily\bfseries poppler-utils}. 
+\prgname{ghostscript} and have a version equal to or greater than \liningnums{0.52} of \prgname{poppler-utils}. 
 
 The distribution of \hologo{TeX}Live 2017 for \OSsystem{Windows} includes \ltximg{} and all 
 requirements, \hologo{MiKTeX} users must install the appropriate software for full operation.
 
 The script has been tested on \OSsystem{Windows} (version 10) and \OSsystem{Linux} (fedora 27) in x64 architecture using 
-\prgname{ghostscript} \liningnums{v9.20}, \textcolor{ForestGreen}{\ttfamily\bfseries poppler-utils} \liningnums{v0.52} to \liningnums{v0.60} and 
+\prgname{ghostscript} \liningnums{v9.20}, \prgname{poppler-utils} \liningnums{v0.52} to \liningnums{v0.60} and 
 \prgname{perl} from \liningnums{v5.22} to \liningnums{v5.26}.
 
-\section{How it works}
-\label{sec:howtowork}
+\section{How it works}\label{sec:howtowork}
+
 It is important to have a general idea of how the \emph{extraction and conversion} 
 process works and the requirements that must be fulfilled so that everything 
 works correctly, for this we must be clear about some concepts related to how to 
-work with the \emph{verbatim content}, the  \emph{input file}, the \emph{output file} and the 
-\emph{steps process}.
+work with the \meta{verbatim content}, the  \meta{input file}, the \meta{output file} and the 
+\meta{steps process}.
 
-\subsection{The input file}
-\label{sec:inputfile}
+\subsection{The input file}\label{sec:inputfile}
+
 The \meta{input file} must comply with certain characteristics in
 order to be processed, the content at the beginning and at the end of the \meta{input file} 
-is treated in a special way, before \ics{documentclass} can only be commented lines and
-after \lstinline|\end{document}| can go any type of content, the \emph{script} internally 
+is treated in a special way, before \lstinline|\documentclass| can only be commented lines and
+after \lstinline|\end{document}| can go any type of content, internally 
 will split the \meta{input file} at this points.
  
 If the \meta{input file} contains files using \ics{input} or \ics{include} these 
@@ -162,8 +160,7 @@ Some text
 % some lines after end document
 \end{examplecode}
 
-\subsection{Verbatim contents}
-\label{sec:verbatim}
+\subsection{Verbatim contents}\label{sec:verbatim}
 
 One of the greatest capabilities of \ltximg{} script is to skip the complications
 that \emph{verbatim style} content produces with the extraction of environments. 
@@ -180,13 +177,12 @@ Each of these classifications works differently within the creation and
 extraction process using different regular expressions for it.
 \newpage
 
-\subsubsection{Verbatim in line}
-\label{sec:verbatim:inline}
+\subsubsection{Verbatim in line}\label{sec:verbatim:inline}
+
 The small pieces of code written in the same line using a verbatim command are 
-considered \meta{verbatim in line}, such as 
-\texttt{\textbackslash verb\textbar\meta[type=tt]{code}\textbar}. The script 
-supports most verbatim commands, the packages \pkgname{minted}, \pkgname{fancyvrb} and \pkgname{listings} have 
-been tested and are fully  supported by \ltximg. The \emph{script} detects the verbatim command generates 
+considered \meta{verbatim in line}, such as \lstinline+\verb|<code>|+. Most verbatim commands 
+provide by packages \pkgname{minted}, \pkgname{fancyvrb} and \pkgname{listings} have 
+been tested and are fully  supported. They are automatically detected the verbatim command generates 
 by \ics{newmint} and \ics{newmintinline} and the following command list:
 
 \begin{multicols}{3}
@@ -207,10 +203,10 @@ by \ics{newmint} and \ics{newmintinline} and the following command list:
 \end{multicols}
 
 Some packages define abbreviated versions for verbatim commands as \ics{DefineShortVerb}, \ics{lstMakeShortInline}
-and \ics{MakeSpecialShortVerb}, the \emph{script} detects commands if declared explicitly in \meta{input file}.
+and \ics{MakeSpecialShortVerb}, will be detected automatically if are declared explicitly in \meta{input file}.
 
 The following consideration should be kept in mind for some packages that use
-abbreviations for verbatim commands, such as \pkgname{shortverb} or \pkgname{doc} 
+abbreviations for verbatim commands, such as \pkgname{shortvrb} or \pkgname{doc} 
 for example in which there is no explicit command in the document by means of 
 which the abbreviated form can be detected, for automatic detection need to find 
 \ics{DefineShortVerb} explicitly to process it correctly. 
@@ -222,10 +218,10 @@ The solution is quite simple, just add in \meta{input file}:
 \end{examplecode}
 
 depending on the package you are using. If your verbatim command is not supported 
-by default or \ltximg{} can not detect, use the options described in \ref{sec:optline} and \ref{sec:optfile}.
+by default or can not detect, use the options described in \ref{sec:optline} and \ref{sec:optfile}.
 
-\subsubsection{Verbatim standard}
-\label{sec:verbatim:std}
+\subsubsection{Verbatim standard}\label{sec:verbatim:std}
+
 These are the classic environments for writing code are considered \meta{verbatim standard}, 
 such as \env{verbatim} and \env{lstlisting} environments. The following list is considered 
 as \meta{verbatim standard} environments:
@@ -271,7 +267,7 @@ as \meta{verbatim standard} environments:
 \end{itemize}
 \end{multicols}
 
-The \emph{script} detects \meta{verbatim standard} environments generates by commands:
+They are automatically detected \meta{verbatim standard} environments generates by commands:
 
 \begin{multicols}{2}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
@@ -292,11 +288,11 @@ The \emph{script} detects \meta{verbatim standard} environments generates by com
 \end{itemize}
 \end{multicols}
 
-If any of the  \meta{verbatim standard} environments is not supported by default or the script can
+If any of the  \meta{verbatim standard} environments is not supported by default or can
 not detected, you can use the options described in \ref{sec:optline} and \ref{sec:optfile}.
 
-\subsubsection{Verbatim write}
-\label{sec:verbatim:write}
+\subsubsection{Verbatim write}\label{sec:verbatim:write}
+
 Some environments have the ability to write external files directly, these environments are considered
 \meta{verbatim write}, such as \env{filecontents} or \env{VerbatimOut} environments. The following list 
 is considered as \meta{verbatim write} environments:
@@ -316,7 +312,8 @@ is considered as \meta{verbatim write} environments:
 \end{itemize}
 \end{multicols}
 
-The \emph{script} detects \meta{verbatim write} environments generates by commands:
+They are automatically detected \meta{verbatim write} environments generates by commands:
+
 \begin{multicols}{2}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
 \small
@@ -327,11 +324,11 @@ The \emph{script} detects \meta{verbatim write} environments generates by comman
 \end{itemize}
 \end{multicols}
 
-If any of the  \meta{verbatim write} environments is not supported by default or the script can
+If any of the  \meta{verbatim write} environments is not supported by default or can
 not detected, you can use the options described in \ref{sec:optline} and \ref{sec:optfile}.
 
-\subsection{Steps process}
-\label{sec:steps:process}
+\subsection{Steps process}\label{sec:steps:process}
+
 For creation of the image formats, extraction of code and creation of an 
 output file, \ltximg{} need a various steps. Let's assume that the \meta{input file} is \sysfile{test.tex}, 
 \meta{output file} is \sysfile{test-out}, the working directory are \sysdir{workdir}, the directory
@@ -381,9 +378,11 @@ whit the same preamble of \sysfile{test.tex} but the body only contains code tha
 \end{enumerate}
 
 \item[Generate image formats] 
-In the third step the script run \meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}
-\prgopt*{recorder} \prgopt*{shell-escape} \sysfile{test-fig-1981.tex} generating the file
-\sysfile{test-fig-1981.pdf} whit all code extracted, move \sysfile{test-fig-1981.pdf} 
+In the third step the script run: 
+\begin{examplecmd}
+[user@machine ~:]§`\small\meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}` -recorder -shell-escape `\small\sysfile{test-fig-1981.tex}`  
+\end{examplecmd}
+generating the file \sysfile{test-fig-1981.pdf} whit all code extracted, move \sysfile{test-fig-1981.pdf} 
 to \sysdir{tmp/hG45uVklv9}, separate in individual files \sysfile{test-fig-1.pdf}, \sysfile{test-fig-2.pdf}, \ldots{}   
 and copy to \sysdir{workdir/images/}. The file \sysfile{test-fig-1981.tex} is moved to the \sysdir{workdir/images/} 
 and rename to \sysfile{test-fig-all.tex}.
@@ -403,8 +402,10 @@ In the fourth step the script creates the output file \sysfile{test-out.tex} con
 \end{examplecode}
 
 If the packages \pkgname{graphicx} and \pkgname{grfext} are already loaded and the command \ics{graphicspath} 
-is found in the input file were detected automatically and only the changes will be added then proceed to
-run \meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler} \prgopt*{recorder} \prgopt*{shell-escape} \sysfile{test-out.tex} 
+is found in the input file were detected automatically and only the changes will be added then proceed to run:
+\begin{examplecmd}
+[user@machine ~:]§`\small\meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}` -recorder -shell-escape `\small\sysfile{test-out.tex}`
+\end{examplecmd}
 generating the file \sysfile{test-out.pdf}.
 \end{description}
 Now the script read the files \sysfile{test-fig-1981.fls} and \sysfile{test-out.fls}, extract the information from the 
@@ -457,10 +458,10 @@ Some text
 \end{minipage}
 \newpage
 
-\section{Extract content}
-\label{sec:extract}
-The script provides two ways to extract content from a \hologo{LaTeX} file, using \meta[type=rm,cf=optcolor,ac=gray]{environments} 
-and \meta[type=rm,cf=optcolor,ac=gray]{docstrip} tags. Some environment (including a starred \texttt{\small\bfseries\textcolor{red}{*}} version) are suported by default and if the environments are nested, the outermost will be extracted.
+\section{Extract content}\label{sec:extract}
+The script provides two ways to extract content from \meta{input file}, using \meta[type=rm,cf=optcolor,ac=gray]{environments} 
+and \meta[type=rm,cf=optcolor,ac=gray]{docstrip tags}. Some environment (including a starred \texttt{\small\bfseries\textcolor{red}{*}} version) 
+are supported by default and if the environments are nested, the outermost will be extracted.
 
 \subsection{Default environments}
 \label{sec:extract:env}
@@ -526,9 +527,8 @@ code to extract
 % no space before close tag %</ 
 \end{examplecode}
 
-\subsection{Prevent extraction and remove}
-\label{sec:noextract}
-Sometimes you do not want to extract all the environments from the input file or you want to 
+\subsection{Prevent extraction and remove}\label{sec:noextract}
+Sometimes you do not want to extract all the environments from \meta{input file} or you want to 
 remove environments or arbitrary content, for example auxiliary files to generate a graphic. 
 The script provides a convenient way to solve this situation.
 
@@ -551,7 +551,7 @@ no extract this
 \end{examplecode}
 
 \DescribeTE*{remove}
-All content betwen \lstinline|%<*remove> ... %</remove>| are deleted in the output file. The start and closing
+All content betwen \lstinline|%<*remove> ... %</remove>| are deleted in the \meta{output file}. The start and closing
 of the tag must be at the beginning of the line.
 
 \begin{examplecode}
@@ -563,9 +563,10 @@ lines removed in output file
 \end{examplecode}
 
 If you want to remove specific environments automatically you can use one of the options described in \ref{sec:optline} or \ref{sec:optfile}.
-\section{Image Formats}
-\label{sec:image:format}
-The image formats generated by the script are the following:
+
+\section{Image Formats}\label{sec:image:format}
+The \meta{image formats} generated by the \ltximg{} using \prgname{ghostscript} and \textcolor{ForestGreen}{\ttfamily\bfseries poppler-utils} 
+are the following command lines:
 
 \DescribeIF{pdf}
 The image format generated using \prgname{ghostscript}. The line executed by the system is:
@@ -637,8 +638,8 @@ relative or absolute paths for files and directories is not supported. If used w
 and \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options} the extracted environments are converted to \iext{pdf} 
 image format and saved in the \sysdir{images} directory using \prgname*{pdflatex} and \pkgname{preview} package.
 
-\subsection{Options in command line}
-\label{sec:optline}
+\subsection{Options in command line}\label{sec:optline}
+
 \ltximg{} provides a \emph{command line interface} with short and long option names. 
 They may be given before the name of the file. Also, the order of specifying the 
 options is significant. Certain options accept a list separate by commas, this require a separated by 
@@ -687,54 +688,63 @@ Create a gray scale for all images using \prgname{ghostscript}. The line before 
 \end{examplecmd}
 
 \DescribeCmd[f]{force}{bolean}{off}
-Try to capture \lstinline|\psset{...}| and \lstinline|\tikzset{...}| to extract.
+Try to capture \lstinline|\psset{...}| and \lstinline|\tikzset{...}| to extract. 
+When using the \cmdopt{force} option the script will try to capture \lstinline|\psset{...}| or 
+\lstinline|\tikzset{...}| and leave it inside the \env{preview} environment, any line that is between \lstinline|\psset{...}| and 
+\lstinline|\begin{pspicture}| or between \lstinline|\tikzset{...}| and \lstinline|\begin{tikzpicture}| will be captured.
 
+\newpage
 \DescribeCmd[n]{noprew}{bolean}{off}
-Create images files without \pkgname{preview} package.
+Create images files without \pkgname{preview} package. The \lstinline|\begin{preview}|\ldots \lstinline|\end{preview}| 
+lines are only used as delimiters for extracting the content \emph{without} using the package \pkgname{preview}.
+Sometimes it is better to use it together with \cmdopt{force}.
 
 \DescribeCmd[m]{margin}{numeric}{0}
 Set margins in bp for \scriptname{pdfcrop}.
 
-\DescribeCmd[o]{output}{string}{empty}
-Create output file whit all environments converted in image. The output file name must not contain extension.
+\DescribeCmd[o]{output}{output file name}{empty}
+Create \meta{output file name} whit all extracted environments/contents converted to \ics{includegraphics}. 
+The \meta{output file name} must not contain extension.
 
-\DescribeCmd{imgdir}{string}{/images}
-The folder for save images and source code.
+\DescribeCmd{imgdir}{string}{images}
+The name of directory for save images and source code.
 
 \DescribeCmd{verbose}{bolean}{off}
 Show verbose information in screen and change \prgopt*{interaction} for compiler.
 
 \DescribeCmd{srcenv}{bolean}{off}
-Create separate files whit only code for all environment.
+Create separate files whit \emph{only code} for all extracted environments.
 
 \DescribeCmd{srcenv}{bolean}{off}
-Create sub files whit preamble and code for all environment.
+Create sub files whit \emph{preamble} and code for all extracted environments.
 
 \DescribeCmd{arara}{bolean}{off}
-Use \prgname{arara} for compiler files, need to pass \prgopt*{recorder} option to input file\par
+Use \prgname*{arara} for compiler files, need to pass \prgopt*{recorder} option to input file\par
 \lstinline|% arara : <compiler> : {options: "-recorder"}|
 
 \DescribeCmd{xetex}{bolean}{off}
 Using \prgname*{xelatex} compiler for create images.
 
 \DescribeCmd{latex}{bolean}{off}
-Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvips}\texttt{\bfseries\guillemotright}\prgname*{ps2pdf} compiler in input file to create images
-and \prgname*{pdflatex} for output file.
+Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvips}\texttt{\bfseries\guillemotright}\scriptname{ps2pdf} 
+compiler in \meta{input file} and \prgname*{pdflatex} for \meta{output file}.
 
 \DescribeCmd{dvips}{bolean}{off}
-Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvips}\texttt{\bfseries\guillemotright}\prgname*{ps2pdf} for compiler input and output file.
+Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvips}\texttt{\bfseries\guillemotright}\scriptname{ps2pdf} 
+for compiler \meta{input file} and \meta{output file}.
 
 \DescribeCmd{dvipdf}{bolean}{off}
-Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvipdfmx} process for create images.
+Using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvipdfmx} for compiler \meta{input file} and \meta{output file}.
 
 \DescribeCmd{luatex}{bolean}{off}
-Using \prgname*{lualatex} to compiler files.
+Using \prgname*{lualatex} for compiler \meta{input file} and \meta{output file}.
 
 \DescribeCmd{prefix}{string}{fig}
-Add prefix append to each file created.
+Add prefix append to each files created.
 
 \DescribeCmd{norun}{bolean}{off}
-Run script, but no create images.
+Run script, but no create images. This option is designed to debug the file and 
+when you only need to extract the code
 
 \DescribeCmd{nopdf}{bolean}{off}
 Don't create a .\iext{pdf} image files.
@@ -742,14 +752,23 @@ Don't create a .\iext{pdf} image files.
 \DescribeCmd{nocrop}{bolean}{off}
 Don't run \scriptname{pdfcrop} in image files.
 
-\DescribeCmd{myverb}{string}{myverb}
-Set custom verbatim command \lstinline+\verbcmd|<code>|+.
-
 \DescribeCmd{clean}{doc\textbar pst\textbar tkz\textbar all\textbar off}{doc}
-Removes specific text in output file.
+Removes specific content in \meta{output file}. Valid values for this option are:
+
+\begin{description}[font=\small\sffamily, noitemsep,leftmargin=*]
+\item[doc] All content after \lstinline+\end{document}+ is removed.
+\item[pst] All \lstinline|\psset{...}| and \pkgname{pstricks} package  is removed.
+\item[tkz] All \lstinline|\tikzset{...}| is removed.
+\item[all] Activates doc, pst and tkz.
+\item[off] Deactivate all.
+\end{description}
+
+\newpage
+\DescribeCmd{verbcmd}{command name}{myverb}
+Set custom verbatim command \lstinline+\myverb|<code>|+.
 
 \DescribeCmd{extrenv}{list separate by comma}{empty}
-List of other environments to extract, need \texttt{-\/-} at end.\par
+List of environments to extract, need \texttt{-\/-} at end.\par
 
 \DescribeCmd{skipenv}{list separate by comma}{empty}
 
@@ -758,19 +777,16 @@ by default, need \texttt{-\/-} at end.\par
 
 \DescribeCmd{verbenv}{list separate by comma}{empty}
 
-Add new verbatim environment support, need \texttt{-\/-} at end.\par
+List of \meta{verbatim standard} environment support, need \texttt{-\/-} at end.\par
 
 \DescribeCmd{writenv}{list separate by comma}{empty}
 
-Add new verbatim write environment support, need \texttt{-\/-} at end.\par
+List of \meta{verbatim write} environment support, need \texttt{-\/-} at end.\par
 
 \DescribeCmd{deltenv}{list separate by comma}{empty}
-Delete environment in output file,  need -\/- at end. The deletion process only occurs 
-if an output file is defined. It runs after having extracted and created the images 
-completely and only affects the output file. For example, if the input file is something like this:
+List of environment deleted in \meta{output file}, need \texttt{-\/-} at end. 
 
-\subsection{Options in input file}
-\label{sec:optfile}
+\subsection{Options in input file}\label{sec:optfile}
 
 Many of the ideas in this section are inspired by the \prgname{arara} program (I adore it).
 A very useful way to pass options to the script is to place them in commented
@@ -779,21 +795,10 @@ lines at the beginning of the file, very much in the style of \prgname{arara}.
 \DescribeOptFile*{\meta[ac=gray,cf=gray]{argument}}{option one, option two, option three, \ldots}
 \DescribeOptFile*{\meta[ac=gray,cf=gray]{argument}}{option one, option two, option three, \ldots}[!]
 
-The vast majority of the options can be passed into the input file. These should be put at
-the beginning of the file in commented lines. If you are going to create
-an output file and you do not want these lines to remain, it is better to
-place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
-
-\begin{examplecode}
-%<*remove>
-% ltximg : options : {png,srcenv,xetex}
-% ltximg : extrenv : {description}
-%</remove>
-\documentclass{article}
-\begin{document}
-    some content
-\end{document}
-\end{examplecode}
+The vast majority of the options can be passed into the \meta{input file}. These 
+should be put at the beginning of the file in commented lines and everything must 
+be on the same line, the exclamation mark deactivates the option. Valid values for 
+\meta[ac=gray,cf=gray]{argument} are the following:
 
 \DescribeOptFile{options}{option one = value, option two = value, option three = value, \ldots}
 This line is to indicate to the script which options need to process.
@@ -806,32 +811,55 @@ default, are extracted.
 This line is to indicate to the script which environments, of the ones
 supported by default, should not be extracted.
 
-\DescribeOptFile{verbenv}{verbatim environment one, verbatim environment two, \ldots}
-This line is to indicate to the script which environments, its considerate a verbatim standard.
+\DescribeOptFile{verbenv}{environment one, environment two, environment three, \ldots}
+This line is to indicate to the script which environments, its considerate a \meta{verbatim standard}.
 
-\DescribeOptFile{writenv}{verbatim environment write one, verbatim environment write two, \ldots}
-This line is to indicate to the script which environments its consider verbatim write.
+\DescribeOptFile{writenv}{environment one, environment two, environment three, \ldots}
+This line is to indicate to the script which environments its consider \meta{verbatim write}.
 
 \DescribeOptFile{deltenv}{environment one, environment two, environment three, \ldots}
 This line is to indicate to the script which environments are deleted.
 
+If you are going to create an \meta{output file} and you do not want these lines to remain, it is better to
+place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
+
 \begin{examplecode}
-% file-in.tex
-% ltximg : options : {png,srcenv}
-% ltximg : deltenv : {enumerate}
-\documentclass[10pt]{article}
-\begin{document}
-    some content
-\end{document}
+%<*remove>
+% ltximg : options : {png,srcenv,xetex}
+% ltximg : extrenv : {description}
+%</remove>
 \end{examplecode}
-and the following line is used:
-\begin{examplecmd}
-[user@machine~:]§ ltximg -o file-out file-in.tex
-\end{examplecmd}
 \newpage
 
-\section{Change history}%
-\label{sec:change:history}
+\section{Examples} \label{sec:examples}
+\begin{examplecmd}
+[user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
+\end{examplecmd}
+Create a \sysdir{images} directory whit all extracted environments converted to image 
+formats (\iext{pdf}, \iext{svg}) in individual files, an \meta{output file} \sysfile{test-out.ltx} whit all supported  environments 
+converted to \ics{includegraphics} and a single file \sysfile{test-in-fig-all.ltx} with only the extracted environments 
+using \prgname*{latex}\texttt{\bfseries\guillemotright}\prgname*{dvips}\texttt{\bfseries\guillemotright}\scriptname{ps2pdf}  
+and \pkgname{preview} package for \meta{input file} and \prgname*{pdflatex} for \meta{output file}. 
+
+Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
+\begin{examplecode}
+%<*remove>
+% ltximg : options : {output = file-out, noprew, imgdir = pics, prefix = env, clean = doc}
+% ltximg : skipenv : {tikzpicture}
+% ltximg : deltenv : {filecontents}
+%</remove>
+\end{examplecode}
+and run:
+\begin{examplecmd}
+[user@machine~:]§ ltximg file-in.tex
+\end{examplecmd}
+Create a \sysdir{pics} directory whit all extracted environments, except \env{tikzpicture}, converted to image 
+formats (\iext{pdf}) in individual files, an \meta{output file} \sysfile{file-out.tex} whit all extracted  environments 
+converted to \ics{includegraphics} and environment \env{filecontents} removed, a single file \sysfile{test-in-env-all.ltx} 
+with only the extracted environments using \prgname*{pdflatex} and \pkgname{preview} package for \meta{input file} and \meta{output file}. 
+
+\section{Change history}\label{sec:change:history}
+
 Some of the notable changes in the history of the \ltximg{} along with the 
 versions, both development (devp) and public (ctan).
 
@@ -840,7 +868,7 @@ versions, both development (devp) and public (ctan).
 \newlength\descrwidth
 \settowidth{\descrwidth}{\textsf{v1.4.5, (ctan), 2013-01-23}}
 \begin{description}[font=\small\sffamily, wide=0pt, style=multiline, leftmargin=\descrwidth]
-\item [v1.5 (ctan), 2017-12-20]
+\item [v1.5 (ctan), 2017-12-30]
     \begin{itemize} 
         \item Use GitHub to control version
         \item Rewrite and optimize most part of code and options
@@ -883,66 +911,6 @@ versions, both development (devp) and public (ctan).
 \end{description}
 
 \newpage
+\clearpage
 \PrintIndex
 \end{document}
-
-
-
-
-
-For example, if the \pkgname{preview} package or \ics{tikzexternalize} 
-is used, the following example will fail to be compiled:
-
-\begin{examplecode}
-\documentclass{article}
-\usepackage{tikz}
-\begin{document}
-\begin{tikzpicture}
-\node {root}
-    child {node {left}}
-    child {node {right}
-    child {node {child}}
-    child {node {child}}
-    };
-\end{tikzpicture}
-Allway use \verb|\begin{tikzpicture}| and
-\verb|\end{tikzpicture}| to open and close
-\end{document}
-\end{examplecode}
-
-For example:
-
-\begin{examplecmd}
-[user@machine ~:]§ ltximg -e -p -j --srcenv --imgdir pics -o test-out test-in.ltx
-\end{examplecmd}
-or
-\begin{examplecmd}
-[user@machine ~:]§ ltximg -epj --srcenv --imgdir=pics -o test-out  test-in.ltx
-\end{examplecmd}
-produce a file \marg{test-out.ltx} with all environments extracted converted to \ics{includegraphics} and create
-\sysdir{pics} dir whit all images format (\iext{pdf}, \iext{eps}, \iext{png}, \iext{jpg})
-and source code in separate files using \prgname{pdlt} (pdf)LaTeX whit \pkgname{preview} package.
-
-\begin{minipage}[c]{0.5\textwidht}
-\begin{examplecode}
-\documentclass{article}
-\usepackage{tikz}
-\begin{document}
-Some text
-\begin{tikzpicture}
-Some code
-\end{tikzpicture}
-Allway use \verb|\begin{tikzpicture}| and
-\verb|\end{tikzpicture}| to open and close
-\begin{tikzpicture}
-some code
-\end{tikzpicture}
-Some text
-\end{document}
-\end{examplecode}
-\end{minipage}
-\begin{minipage}[c]{0.5\textwidht}
-...
-\end{minipage}
-
-If the last \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{option} take a \emph{list separated by commas} you need \texttt{\bfseries\textcolor{optcolor}{-\/-}} at the end. 
