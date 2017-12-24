@@ -29,7 +29,7 @@ my $prefix    = 'fig';          # defaul prefix for extract files
 my $skiptag   = 'noltximg';     # internal tag for regex
 my $extrtag   = 'ltximg';       # internal tag for regex
 my $imageDir  = "images";       # dir for images 
-my $myverb    = "myverb";       # \myverb verbatim inline
+my $vrbcmd    = "myverb";       # set \myverb command
 my $margins   = "0";            # margins for pdfcrop
 my $DPI       = "150";          # dpi for image formats
 my $arara     = 0;              # use arara to compiler
@@ -282,8 +282,8 @@ ${title}
    
    If used without <compiler> and [<options>] the extracted environments
    are converted to pdf format and saved in the /images directory using 
-   pdflatex and preview package. Relative or absolute paths for files and 
-   directories is not supported and if the last option take a list separated
+   pdflatex and preview package. Relative or absolute paths for directories
+   files and is not supported , if the last option take a list separated
    by commas you need -- at the end.
 
 * Default environments extract
@@ -328,7 +328,7 @@ ${title}
  --norun                 - run script, but no create images files  (off)
  --nopdf                 - don't create a PDF image files          (off)
  --nocrop                - don't run pdfcrop                       (off)
- --myverb=<verbcmd>      - set custom verbatim \\verbcmd|<code>|    (myverb)
+ --vrbcmd=<name>         - set \\name of custom verbatim command    (myverb)
  --clean=<doc|pst|tkz|all|off>
                          - removes specific text in output file    (doc)
  --extrenv=<env1,...>    - add new environments to extract         (empty)
@@ -391,8 +391,8 @@ my $result=GetOptions (
     'writenv=s{1,9}' => \@verw_env_tmp, # verbatim write environment
     'deltenv=s{1,9}' => \@delt_env_tmp, # delete environment
 # string options
-    'imgdir=s{1}'    => \$imageDir, # images dir
-    'myverb=s{1}'    => \$myverb,   # \myverb inline (string)
+    'imgdir=s{1}'    => \$imageDir, # images dir name
+    'vrbcmd=s{1}'    => \$vrbcmd,   # \myverb inline (string)
     'prefix=s{1}'    => \$prefix,   # prefix
 # negated options
     'crop!'          => \$crop,    # run pdfcrop
@@ -611,7 +611,7 @@ $mintdline  = join "\n", map { qq/$_\Qinline\E/ } @mint_dline;
 @mint_dline = split /\n/, $mintdline;
 }
 
-### Join all minted inline/short in @array
+### Join all minted inline/short and lstinline in @array
 my @mintline;
 my @mint_tmp  = qw ( mint  mintinline lstinline);
 push(@mintline,@mint_dline,@mint_cline,@mint_dshrt,@mint_cshrt,@mint_tmp);
@@ -716,8 +716,8 @@ if (exists $opts_file{deltenv} ) {
 }
 
 ### Set \myverb|<code>| options from input file
-if (exists $opts_file{options}{myverb}){
-    $myverb = $opts_file{options}{myverb};
+if (exists $opts_file{options}{vrbcmd}){
+    $vrbcmd = $opts_file{options}{vrbcmd};
 }
 
 ### Create  @env_all_tmp contain all environments
@@ -871,7 +871,7 @@ my $no_llaves   = qr/(?: $llaves )?                                             
 my $corchetes   = qr/\[ .+? \]                                                          /x;
 my $anidado     = qr/(\{(?:[^\{\}]++|(?1))*\})                                          /x;
 my $delimitador = qr/\{ (?<del>.+?) \}                                                  /x;
-my $verb        = qr/(?:((spv|(?:q|f)?v|V)erb)[*]?)                                     /ix;
+my $verb        = qr/(?:((spv|(?:q|f)?v|V)erb|$vrbcmd)[*]?)                             /ix;
 my $lst         = qr/(?:(lst|pyg)inline)(?!\*) $no_corchete                             /ix;
 my $mint        = qr/(?: $mintline |SaveVerb) (?!\*) $no_corchete $no_llaves $llaves    /ix;
 my $no_mint     = qr/(?: $mintline) (?!\*) $no_corchete                                 /ix;
@@ -908,7 +908,7 @@ while ($documento =~
 
 ### Regex for verbatim inline whit braces {...}
 my $mintd_ani = qr/\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves     /x;
-my $tcbxverb  = qr/\\ (?: tcboxverb [*]?|$myverb [*]?|lstinline)  $no_corchete /x;
+my $tcbxverb  = qr/\\ (?: tcboxverb [*]?|$vrbcmd [*]?|lstinline)  $no_corchete /x;
 my $tcbxmint  = qr/(?:$tcbxverb|$mintd_ani) (?:\s*)? $anidado                  /x;
 
 ### Changue \verb*{code} inline 
