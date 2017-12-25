@@ -1,6 +1,6 @@
 ## Changues
 ```
- v1.5. (d)  2017-12-13 - Use GitHub to control version
+ v1.5. (d)  2017-12-30 - Use GitHub to control version
                        - Rewrite and optimize most part of code and options
                        - Changue pdf2svg for pdftocairo
                        - Complete support for pst-exa pack
@@ -22,5 +22,4 @@
                        - Change date to iso format
  v1.0  (p)  2013-12-01 - First public release
 ```
-Copyright (C) 2013 - 2017 by Pablo González L <pablgonz@yahoo.com>. 
-`(d)`: developed; `(p)`: public
+Copyright (C) 2013 - 2017 by Pablo González L <pablgonz@yahoo.com>.
