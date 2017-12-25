@@ -21,7 +21,7 @@ my $null      = devnull();
 my $program   = "LTXimg";
 my $nv='v1.5';
 my $copyright = <<END_COPYRIGHT ;
-[2017-12-30] (c) 2013-2017 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2018-04-12] (c) 2013-2018 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
@@ -251,104 +251,104 @@ find_ghostscript();
 ### Program identification, options and help for command line
 
 my $licensetxt = <<END_LICENSE ;
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  General Public License for more details.
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
 END_LICENSE
 
 my $title = "$program $nv $copyright";
 my $usage = <<"END_OF_USAGE";
-${title}
-   LTXimg is a perl script that automates the process of extracting and 
-   converting environments provided by tikz, pstricks and other packages
-   from input file to image formats in individual files using ghostscript 
-   and poppler-utils. Generates a file with only extracted environments 
-   and another with environments converted to \\includegraphics.
+${title}** Description **
+   LTXimg is a "perl" script that automates the process of extracting and 
+   converting "environments" provided by tikz, pstricks and other packages
+   from LaTeX file to image formats in "individual files" using ghostscript 
+   and poppler-utils. Generates a one file with only extracted environments 
+   and other with all extracted environments converted to \\includegraphics.
 
-* Syntax
-\$ ltximg <compiler> [<options>] [--] <file>.<tex|ltx>
+** Syntax **
+ \$ ltximg [<compiler>] [<options>] [--] <filename>.<tex|ltx>
 
-* Usage
-\$ ltximg --latex [<options>] <file.tex>
-\$ ltximg --arara [<options>] <file.tex>
-\$ ltximg [<options>] <file.tex>
-\$ ltximg <file.tex>
+** Usage **
+ \$ ltximg --latex [<options>] <file.tex>
+ \$ ltximg --arara [<options>] <file.tex>
+ \$ ltximg [<options>] <file.tex>
+ \$ ltximg <file.tex>
    
-   If used without <compiler> and [<options>] the extracted environments
-   are converted to pdf format and saved in the /images directory using 
-   pdflatex and preview package. Relative or absolute paths for directories
-   files and is not supported , if the last option take a list separated
-   by commas you need -- at the end.
+   If used without [<compiler>] and [<options>] the extracted environments
+   are converted to pdf image format and saved in the "/images" directory
+   using "pdflatex" and "preview" package. Relative or absolute paths for 
+   directories and files is not supported, if the last option take a list 
+   separated by commas you need -- at the end.
 
-* Default environments extract
-
+** Default environments extract **
         pspicture tikzpicture pgfpicture psgraph postscript PSTexample
 
-* Options                                                          (default)
+** Options **
+                                                                    [default]
+-h, --help            Display command line help and exit            [off]
+-l, --license         Display GPL license and exit                  [off]
+-v, --version         Display current version ($nv) and exit       [off]
+-t, --tif             Create .tif files using ghostscript           [$gscmd]
+-b, --bmp             Create .bmp files using ghostscript           [$gscmd]
+-j, --jpg             Create .jpg files using ghostscript           [$gscmd]
+-p, --png             Create .png files using ghostscript           [$gscmd]
+-e, --eps             Create .eps files using poppler-utils         [pdftops]
+-s, --svg             Create .svg files using poppler-utils         [pdftocairo]
+-P, --ppm             Create .ppm files using poppler-utils         [pdftoppm]
+-g, --gray            Gray scale for images using ghostscript       [off]
+-f, --force           Capture "\\psset" and "\\tikzset" to extract    [off]
+-n, --noprew          Create images files whitout "preview" package [off]
+-d <integer>, --dpi <integer>          
+                      Dots per inch resolution for images           [150]
+-m <integer>, --margin <integer>       
+                      Set margins for pdfcrop                       [0]
+--imgdir <dirname>    Set name of directory to save images          [images]
+-o <filename>, --output <filename>   
+                      Create output file                            [off]
+--verbose             Verbose printing                              [off]
+--srcenv              Create files whit only code environment       [off]
+--subenv              Create files whit preamble and code           [off]
+--latex               Using latex>dvips>ps2pdf for compiler input 
+                      and pdflatex for compiler output              [off]
+--dvips               Using latex>dvips>ps2pdf for compiler input 
+                      and latex>dvips>ps2pdf for compiler output    [off] 
+--arara               Use arara for compiler input and output       [off]
+--xetex               Using xelatex for compiler input and output   [off]
+--dvipdf              Using dvipdfmx for compiler input and output  [off]
+--luatex              Using lualatex for compiler input and output  [off] 
+--prefix <string>     Set prefix append to each image file          [off]
+--norun               Run script, but no create images files        [off]
+--nopdf               Don't create a ".pdf" image files             [off]
+--nocrop              Don't run pdfcrop                             [off]
+--verbcmd <cmdname>   Set "\\cmdname" verbatim command               [myverb]
+--clean (doc|pst|tkz|all|off)
+                      Removes specific text in output file          [doc]
+--extrenv <env1,...>  Add new environments to extract               [empty]
+--skipenv <env1,...>  Skip environments to extract                  [empty]
+--verbenv <env1,...>  Add verbatim environments                     [empty]
+--writenv <env1,...>  Add verbatim write environments               [empty]
+--deltenv <env1,...>  Delete environments in output file            [empty]
 
- -h,--help               - display this help and exit              (off)
- -l,--license            - display license and exit                (off)
- -v,--version            - display version (current $nv) and exit (off)
- -d,--dpi=<int>          - dots per inch for images                ($DPI)
- -t,--tif                - create .tif files using ghostscript     ($gscmd)
- -b,--bmp                - create .bmp files using ghostscript     ($gscmd)
- -j,--jpg                - create .jpg files using ghostscript     ($gscmd)
- -p,--png                - create .png files using ghostscript     ($gscmd)
- -e,--eps                - create .eps files using poppler-utils   (pdftops)
- -s,--svg                - create .svg files using poppler-utils   (pdftocairo)
- -P,--ppm                - create .ppm files using poppler-utils   (pdftoppm)
- -g,--gray               - gray scale for images using ghostscript (off)
- -f,--force              - capture \\psset and \\tikzset to extract  (off)
- -n,--noprew             - create images files whitout preview     (off)
- -m,--margin=<int>       - margins in bp for pdfcrop               (0)
- -o,--output=<outname>   - create output file whit all extracted
-                           converted to \\includegraphics
- --imgdir=<string>       - set name of folder to save images       (images)
- --verbose               - verbose printing, set -interaction=mode (off)
- --srcenv                - create files whit only code environment
-                           [mutually exclusive whit --subenv]
- --subenv                - create files whit preamble and code 
-                           [mutually exclusive whit --srcenv]
- --arara                 - use arara for compiler input and output, 
-                           need {options: "-recorder"} in arara rule
- --xetex                 - using xelatex for compiler input and output
- --latex                 - using latex>dvips>ps2pdf for compiler input 
-                           and pdflatex for compiler output
- --dvips                 - using latex>dvips>ps2pdf for compiler input 
-                           and latex>dvips>ps2pdf for compiler output
- --dvipdf                - using latex>dvipdfmx for input and output
- --luatex                - using lualatex for compiler input and output
- --prefix=<string>       - prefix append to each image file        (fig)
- --norun                 - run script, but no create images files  (off)
- --nopdf                 - don't create a PDF image files          (off)
- --nocrop                - don't run pdfcrop                       (off)
- --vrbcmd=<name>         - set \\name of custom verbatim command    (myverb)
- --clean=<doc|pst|tkz|all|off>
-                         - removes specific text in output file    (doc)
- --extrenv=<env1,...>    - add new environments to extract         (empty)
- --skipenv=<env1,...>    - skip environments to extract            (empty)
- --verbenv=<env1,...>    - add verbatim environments               (empty)
- --writenv=<env1,...>    - add verbatim write environments         (empty)
- --deltenv=<env1,...>    - delete environments in output file      (empty)
-
-* Example
-
-\$ ltximg --latex -e -p --srcenv --imgdir=pics -o test-out test-in.ltx
-\$ ltximg --latex -ep --srcenv --imgdir pics -o test-out  test-in.ltx
+** Example **
+ \$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
+ \$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
  
- Create a "/pics" directory whit all extracted environments (whit source code)
- converted to image formats (pdf, eps, png) in individual files, an output 
- file "test-out.ltx" whit all environments converted to \\includegraphics and
- a single file "test-in-fig-all.tex" with only the extracted environments 
- using latex>dvips>ps2pdf and preview package for input file and pdflatex for
- output file. 
- Use "texdoc ltximg" for full documentation.
+   Create a "/mypics" directory whit all extracted environments converted to
+   image formats (.pdf, .eps, .png), individual files whit source code (.tex)
+   for all extracted environments, a file "test-out.ltx" whit all extracted 
+   environments converted to \\includegraphics and file "test-in-fig-all.tex" 
+   with only the extracted environments using latex>dvips>ps2pdf and preview 
+   package for <input file> and pdflatex for <output file>.
+
+** Documentation **
+   For extended documentation use:
+ \$ texdoc ltximg 
 END_OF_USAGE
 
 ### Error in command line
@@ -456,7 +456,7 @@ if (defined $opts_cmd{license}){
 ### Set tmp random name for name-fig-tmp (temp files)
 my $tmp = "$$";
 
-### Check --srcenv and --subenv option
+### Check --srcenv and --subenv option from command line
 if ($srcenv && $subenv) {
   die errorUsage "--srcenv and --subenv options are mutually exclusive";
 }
