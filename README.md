@@ -32,7 +32,7 @@ and directories is not supported and if the last `[<options>]` take a list separ
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
--v, --version         Display current version (v1.5) and exit       [off]
+-v, --version         Display current version (v1.6) and exit       [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
 -b, --bmp             Create .bmp files using ghostscript           [gs]
 -j, --jpg             Create .jpg files using ghostscript           [gs]
@@ -105,7 +105,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2018-04-12.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2018-04-29.
 
 ## Copyright
 

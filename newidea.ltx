@@ -1,0 +1,36 @@
+% arara: pdflatex : {shell: true, interaction: nonstopmode}
+% arara: clean: { extensions: [ aux, out, log ] }
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{attachfile}
+
+\makeatletter
+\let\saved@Gin@setfile\Gin@setfile
+
+\def\Gin@setfile#1#2#3{%
+\saved@Gin@setfile{#1}{#2}{#3}%
+\ifGin@attach
+\textattachfile{#3}{}%
+{\def\Gin@ext{.txt}%
+\IfFileExists{#3}{%
+\textattachfile{#3}{}%
+}{\PackageWarning{graphicx}{no #3 to attach}}%
+}%
+\fi
+}
+\newif\ifGin@attach\Gin@attachtrue
+\define@key{Gin}{attach}[true]{%
+  \lowercase{\Gin@boolkey{#1}}{attach}}
+
+\makeatother
+
+\begin{document}
+
+% For example image, see http://tex.stackexchange.com/questions/231738    
+
+\centering
+\includegraphics[width=0.3\textwidth]{example-image.png} 
+\includegraphics[width=0.3\textwidth]{example-image-a.png} 
+\includegraphics[width=0.3\textwidth,attach=false]{example-image-b.png} 
+
+\end{document}

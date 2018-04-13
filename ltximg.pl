@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-use v5.22; # minimum version
+use v5.24; # minimum version
 use File::Basename;
 use Getopt::Long qw(:config bundling_values require_order no_ignore_case);
 use File::Temp qw(tempdir);
@@ -19,9 +19,9 @@ my $null      = devnull();
 
 ### Program identification
 my $program   = "LTXimg";
-my $nv='v1.5';
+my $nv='v1.6';
 my $copyright = <<END_COPYRIGHT ;
-[2018-04-12] (c) 2013-2018 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2018-04-29] (c) 2013-2018 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
@@ -419,19 +419,19 @@ s/^\s*(\=):?|\s*//mg foreach @delt_env_tmp;
 
 ### Validate input string options
 if ( grep( /(^\-|^\.).*?/, @extr_env_tmp ) ) {
-  die errorUsage "Invalid option for --extrenv, invalid environment name";
+  die errorUsage "Invalid argument for --extrenv option";
 }
 if ( grep( /(^\-|^\.).*?/, @skip_env_tmp ) ) {
-  die errorUsage "Invalid option for --skipenv, invalid environment name";
+  die errorUsage "Invalid argument for --skipenv option";
 }
 if ( grep( /(^\-|^\.).*?/, @verb_env_tmp ) ) {
-  die errorUsage "Invalid option for --verbenv, invalid environment name";
+  die errorUsage "Invalid argument for --verbenv option";
 }
 if ( grep( /(^\-|^\.).*?/, @verw_env_tmp ) ) {
-  die errorUsage "Invalid option for --verwenv, invalid environment name";
+  die errorUsage "Invalid argument for --writenv option";
 }
 if ( grep( /(^\-|^\.).*?/, @delt_env_tmp ) ) {
-  die errorUsage "Invalid option for --deltenv, invalid environment name";
+  die errorUsage "Invalid argument for --deltenv option";
 }
 
 ### Help
@@ -523,7 +523,7 @@ push(@verb_env_tmp,@verb_tmp);
 
 ### Default verbatim write environment
 my @verbw_tmp = qw (
-    filecontents tcboutputlisting tcbexternal extcolorbox extikzpicture
+    filecontents tcboutputlisting tcbexternal tcbwritetmp extcolorbox extikzpicture
     VerbatimOut verbatimwrite PSTexample filecontentsdef filecontentshere
     );
 
@@ -793,7 +793,7 @@ my %changes_in = (
     '\graphicspath{'    =>  '\GRAPHICSPATH{',
     );
 
-### Changues for \begin... \end inline verbatim
+### Changues \begin... \end in verbatim inline
 my %init_end = (
 # begin{ and end{
     '\begin{'           =>  '\BEGIN{',
@@ -880,7 +880,7 @@ my $comentario  = qr/^ \s* \%+ .+? $                                            
 my $definedel   = qr/\\ (?: DefineShortVerb | lstMakeShortInline| MakeSpecialShortVerb ) [*]? $no_corchete $delimitador /ix;
 my $indefinedel = qr/\\ (?: (Undefine|Delete)ShortVerb | lstDeleteShortInline) $llaves  /ix;
 
-### Changues in input file in memory
+### Changues in input file (in memory)
 while ($documento =~
         /   $marca
         |   $comentario
@@ -911,7 +911,7 @@ my $mintd_ani = qr/\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves     /
 my $tcbxverb  = qr/\\ (?: tcboxverb [*]?|$verbcmd [*]?|lstinline)  $no_corchete /x;
 my $tcbxmint  = qr/(?:$tcbxverb|$mintd_ani) (?:\s*)? $anidado                  /x;
 
-### Changue \verb*{code} inline 
+### Changue \verb*{code} for verbatim inline 
 while ($documento =~ /$tcbxmint/pgmx) {
         my($pos_inicial, $pos_final) = ($-[0], $+[0]);
         my $encontrado = ${^MATCH};
@@ -922,15 +922,15 @@ while ($documento =~ /$tcbxmint/pgmx) {
         pos($documento)= $pos_inicial + length $encontrado;
 } # close while
 
-### Changue <*TAGS> to <*tags> in file
+### Changue <*TAGS> to <*tags>
 my $ltxtags = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %reverse_tag;
 $documento =~ s/^($ltxtags)/$reverse_tag{$1}/gmsx;
 
-### Defined environments Verbatim standart
+### Define environments Verbatim standart
 my $verbatim = join "|", map quotemeta, sort { length $a <=> length $b } @verbatim;
 $verbatim = qr/$verbatim/x;
 
-### Defined environments Verbatim write
+### Define environments Verbatim write
 my $verbatim_w = join "|", map quotemeta, sort { length $a <=> length $b } @verbatim_w;
 $verbatim_w = qr/$verbatim_w/x;
 
@@ -1132,7 +1132,7 @@ $cuerpo =~ s/    \%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                 \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
         ($extr_env)/\\begin\{preview\}\n$1\n\\end\{preview\}/gmsx;
 
-### The extract environments need back word to original
+### The extract environments need back words to original
 %replace = (%changes_out,%reverse_tag);
 $find = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %replace;
 
@@ -1314,6 +1314,7 @@ my $sub_prea = "$optin$cabeza$opt_page";
 ### Delete <*remove> ... </remove> in $sub_prea
 $sub_prea =~s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
 
+### Options for preview packpage
 my $opt_prew = $xetex ? 'xetex,'
              : $latex ? ''
              :          'pdftex,'
@@ -1445,7 +1446,7 @@ my $silence = $verbose ? ''
             :            ">$null"
             ;
 
-### Append -q to gs/poppler for system command line
+### Append -q to gs and poppler for system command line
 my $quiet = $verbose ?  ''
             :           '-q'
             ;
@@ -1609,7 +1610,7 @@ closedir $DIR;
 
 ### Create a output file
 if ($outfile) {
-say "Creating the file $output$ext, changue extracted environments to \\includegraphics";
+say "Creating the file $output$ext, convert extracted environments to \\includegraphics";
 
 ### Convert extracted environments to \includegraphics
 my $grap="\\includegraphics[scale=1]{$name-$prefix-";
@@ -1654,7 +1655,7 @@ if($clean{pst}){
 $PALABRAS  = qr/\b (?: pst-\w+ | pstricks (?: -add )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
 $FAMILIA   = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
 
-### Remove package lines
+### Remove pst packages lines
 $cabeza =~ s/ \%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
         ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
 
@@ -1674,7 +1675,7 @@ $cabeza =~ s/ \%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
 ### Delete empty package line \usepackage{} 
 $cabeza =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+//gmsx;
 
-### Append graphix to end of preamble
+### Append graphicx to end of preamble
 if(!@graphix == 0){
 $cabeza .= <<"EXTRA";
 @graphix
@@ -1708,7 +1709,7 @@ while ($cabeza =~ /$graphicspath /pgmx) {
 ### Regex to capture
 my ($GraphicsPath) = $cabeza =~ m/($graphicspath)/msx;
 
-### Append graphicspath to end of preamble
+### Append \graphicspath to end of preamble
 $cabeza .= <<"EXTRA";
 $GraphicsPath
 \\usepackage{grfext}
