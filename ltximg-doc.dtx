@@ -30,7 +30,7 @@ $ ltximg <file.tex>
 ```
 If used without `[<compiler>]` and `[<options>]` the extracted environments are converted to `pdf` image format
 and saved in the `/images` directory using `pdflatex` and `preview` package. Relative or absolute `paths` for files
-and directories is not supported and if the last `[<options>]` take a list separated by commas you need `--` at the end.
+and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
 ```
@@ -58,6 +58,8 @@ and directories is not supported and if the last `[<options>]` take a list separ
 -m <integer>, --margin <integer>       
                       Set margins for pdfcrop                       [0]
 --imgdir <dirname>    Set name of directory to save images          [images]
+--zip                 Compress files generated in .zip format       [off]
+--tar                 Compress files generated in .tar.gz format    [off]
 -o <filename>, --output <filename>   
                       Create output file                            [off]
 --verbose             Verbose printing                              [off]
@@ -92,7 +94,7 @@ $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
    Create a `/mypics` directory whit all extracted environments converted to
-   image formats(`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`) 
+   image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`) 
    for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics` 
    and file `test-in-fig-all.tex` with only the extracted environments using 
    `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex` 
@@ -102,6 +104,10 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
    For full documentation use:
 ```
 $ texdoc ltximg 
+```
+   For recreation all documentation use:
+```
+$ arara ltximg-doc.dtx 
 ```
 
 ## Licence
@@ -115,18 +121,18 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2018-04-29.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-14.
 
 ## Copyright
 
-Copyright 2013 - 2018 by Pablo González L
+Copyright 2013 - 2019 by Pablo González L
 %</readme>
 %<*changues>
 ## Changues
-### v1.6 (d)  2018-08-01 
-- Update minimun perl version
-- Add `tcbwritetmp` to verbatim write
-- Fix typo and update documentation
+### v1.6 (d)  2019-02-14 
+- Add `tar` and `zip` options
+- Add new `Verb` from `fvextra`
+- Fix and update source code and documentation
 ### v1.5 (p)  2018-04-12 
 - Use GitHub to control version
 - Rewrite and optimize most part of code and options
@@ -155,7 +161,7 @@ Copyright 2013 - 2018 by Pablo González L
 ### v1.0  (p)  2013-12-01 
 - First public release
 
-Copyright 2013 - 2018 by Pablo González L <pablgonz@yahoo.com>.
+Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
 %</changues>
 %<*internal>
 \fi
@@ -188,14 +194,14 @@ Copyright 2013 - 2018 by Pablo González L <pablgonz@yahoo.com>.
 \CodelineIndex
 \usepackage[mono=false]{libertine} % default roman/serif fonts
 \setmonofont[
-      % Ligatures      = TeX , % disable to correct "..." in lst
-        Scale          = 0.84,
-        Extension      = .otf,
-        UprightFont    = *-Regular ,
-        ItalicFont     = *-RegularIt,
-        BoldFont       = *-Medium ,
-        BoldItalicFont = *-MediumIt
-        ]{SourceCodePro} % source code font
+    % Ligatures    = TeX , % disable to correct "..." in listings
+    Scale          = 0.84,
+    Extension      = .otf,
+    UprightFont    = *-Regular ,
+    ItalicFont     = *-RegularIt,
+    BoldFont       = *-Medium ,
+    BoldItalicFont = *-MediumIt
+            ]{SourceCodePro} % source code font
 \usepackage{microtype,fetamont,hologo} % LaTeX logo and LTXimg logo
 \usepackage{xspace,tocloft,enumitem,fancyhdr,lastpage} % custom
 \usepackage[svgnames]{xcolor} % colors :)
@@ -242,19 +248,19 @@ Copyright 2013 - 2018 by Pablo González L <pablgonz@yahoo.com>.
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{1.6}
-\def\filedate{2018-08-01}
+\def\filedate{2019-02-14}
 
 % Config hyperref
 \hypersetup{
-  linkcolor  = blue!50,
-  citecolor  = red!50,%
-  urlcolor   = magenta,%
-  colorlinks = true,%
-  pdftitle   ={.::ltximg v\fileversion{} (\filedate) --- LaTeX environments to image formats::.},%
-  pdfauthor= {Pablo Gonz\'{a}lez Luengo},% á fail
-  pdfsubject={Documentation for version v\fileversion},%
-  pdfstartview={FitH},%
-  bookmarksopenlevel=2,%
+  linkcolor          = blue!50,
+  citecolor          = red!50,%
+  urlcolor           = magenta,%
+  colorlinks         = true,%
+  pdftitle           = {.:: ltximg v\fileversion{} (\filedate) --- LaTeX environments to image formats ::.},%
+  pdfauthor          = {Pablo Gonz\'{a}lez Luengo},% á fail
+  pdfsubject         = {Documentation for version v\fileversion},%
+  pdfstartview       = {FitH},%
+  bookmarksopenlevel = 2,%
 }
 
 % Configuration fancyhdr
@@ -450,7 +456,7 @@ Copyright 2013 - 2018 by Pablo González L <pablgonz@yahoo.com>.
 % file extention
 \DeclareDocumentCommand\fext{m}{%
     \mbox{\textcolor{optcolor}{\ttfamily\bfseries{.#1}}\xspace}%
-    \SortIndex{files extention}{File extentions (input)>\small\textsf{.#1}}%
+    \SortIndex{files extention}{File extentions >\small\textsf{.#1}}%
 }
 
 % image format/extention
@@ -670,14 +676,13 @@ literate=*{\{}{{\bfseries\textcolor{gray}{\{}}}{1}
     classoffset=5,%
     keywordstyle=\color{blue},%
     keywords={user,machine},%
-% literateee ...{"}{{\textcolor{red}{\textquotedbl}}}{1}
-literate=*{[}{{\textcolor{darkgray}{[}}}{1}
-          {]}{{\textcolor{darkgray}{]}}}{1}
-          {@}{{\textcolor{blue}{@}}}{1}
-          {\$}{{\textcolor{blue}{\$}}}{1}
-          {:}{{\textcolor{blue}{:}}}{1}
-          {§}{{\textcolor{red}{\$}}}{1}
-          {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
+    literate=*{[}{{\textcolor{darkgray}{[}}}{1}
+              {]}{{\textcolor{darkgray}{]}}}{1}
+              {@}{{\textcolor{blue}{@}}}{1}
+              {\$}{{\textcolor{blue}{\$}}}{1}
+              {:}{{\textcolor{blue}{:}}}{1}
+              {§}{{\textcolor{red}{\$}}}{1}
+              {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
     }% close lstset 
 }%
 {}% close examplecmd
@@ -689,8 +694,7 @@ literate=*{[}{{\textcolor{darkgray}{[}}}{1}
     basicstyle=\ttfamily\color{gray},%
     escapechar=`,%
     upquote=true,%
-% literateee
-literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
+    literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
 }
 
 % set default style
@@ -732,7 +736,7 @@ title=Contents\quad{\rulecolor\leaders\vrule height3.4pt depth-3pt\hfill\null},
     This file describes a documentation for version \fileversion, last revised \filedate.}\\[25pt]%
     \author{%
     \large%
-    \raisebox{-1pt}{\textcopyright}{}2013--2018 by Pablo González L%
+    \raisebox{-1pt}{\textcopyright}{}2013--2019 by Pablo González L%
     \thanks{E-mail:<\email{pablgonz@yahoo.com}>}%
     }%
 \small
@@ -788,15 +792,15 @@ would be the great mission (which does not end yet).
 
 For the complete operation of \ltximg{} you need to have a modern \hologo{TeX}
 distribution such as \hologo{TeX}Live or \hologo{MiKTeX}, have a version equal to or
-greater than \liningnums{5.24} of \prgname{perl}, a version equal to or greater than \liningnums{9.23} of
-\prgname{ghostscript} and have a version equal to or greater than \liningnums{0.62} of \prgname{poppler-utils}.
+greater than \liningnums{5.26} of \prgname{perl}, a version equal to or greater than \liningnums{9.24} of
+\prgname{ghostscript} and have a version equal to or greater than \liningnums{0.52} of \prgname{poppler-utils}.
 
 The distribution of \hologo{TeX}Live 2018 for \OSsystem{Windows} includes \ltximg{} and all
 requirements, \hologo{MiKTeX} users must install the appropriate software for full operation.
 
-The script has been tested on \OSsystem{Windows} (version 10) and \OSsystem{Linux} (fedora 28) in x64 architecture using
-\prgname{ghostscript} \liningnums{v9.20}, \prgname{poppler-utils} \liningnums{v0.52} to \liningnums{v0.60} and
-\prgname{perl} from \liningnums{v5.22} to \liningnums{v5.26}.
+The script has been tested on \OSsystem{Windows} (version 10) and \OSsystem{Linux} (fedora 29) in x64 architecture using
+\prgname{ghostscript} \liningnums{v9.26}, \prgname{poppler-utils} \liningnums{v0.52} to \liningnums{v0.67} and
+\prgname{perl} from \liningnums{v5.24} to \liningnums{v5.28}.
 
 \section{How it works}\label{sec:howtowork}
 
@@ -1023,7 +1027,7 @@ output file, \ltximg{} need a various steps. Let's assume that the \meta{input f
 for images are \sysdir{workdir/images} and the user's temporary directory is \sysdir{tmp} and we
 want to generate images in \iext{pdf} format together with the source codes of the environments.
 
-\begin{description}[font=\sffamily\small, leftmargin=0em,style=nextline]
+\begin{description}[font=\sffamily\small,leftmargin=0em,style=nextline]
 \item[Comment and ignore]
 The first step is read and validated \oarg[type=rm,cf=gray,sbc=optcolor,ac=gray]{options} from the command
 line and \sysfile{test.tex}, verifying that \sysfile{test.tex}, \sysfile{test-out} and the
@@ -1250,10 +1254,12 @@ lines removed in output file
 % no space before close tag %</
 \end{examplecode}
 
-If you want to remove specific environments automatically you can use one of the options described in \ref{sec:optline} or \ref{sec:optfile}.
+If you want to remove specific environments automatically you can use one of 
+the options described in \ref{sec:optline} or \ref{sec:optfile}.
 
 \section{Image Formats}\label{sec:image:format}
-The \meta{image formats} generated by the \ltximg{} using \prgname{ghostscript} and \textcolor{ForestGreen}{\ttfamily\bfseries poppler-utils}
+The \meta{image formats} generated by the \ltximg{} using \prgname{ghostscript} 
+and \textcolor{ForestGreen}{\ttfamily\bfseries poppler-utils}
 are the following command lines:
 
 \DescribeIF{pdf}
@@ -1397,6 +1403,14 @@ The \meta{output file name} must not contain extension.
 \DescribeCmd{imgdir}{string}{images}
 The name of directory for save images and source code.
 
+\DescribeCmd{zip}{bolean}{off}
+Compress only the files generated by the script during the process in \sysdir{images} in \fext{zip} format. 
+Does not include \meta{output file}.
+
+\DescribeCmd{tar}{bolean}{off}
+Compress only the files generated by the script during the process in \sysdir{images} in \fext{tar.gz} format. 
+Does not include \meta{output file}.
+
 \DescribeCmd{verbose}{bolean}{off}
 Show verbose information in screen and change \prgopt*{interaction} for compiler.
 
@@ -1409,7 +1423,7 @@ Create sub files whit \emph{preamble} and code for all extracted environments, i
 \DescribeCmd{arara}{bolean}{off}
 Use \prgname*{arara} for compiler files, need to pass \prgopt*{recorder} option to \meta{input file}:\par
 
-\lstinline|% arara : <compiler> : {options: "-recorder"}|
+\lstinline|% arara : <compiler> : { options: [-recorder] }| 
 
 \DescribeCmd{xetex}{bolean}{off}
 Using \prgname*{xelatex} compiler \meta{input file} and \meta{output file}.
@@ -1441,6 +1455,7 @@ Don't create a .\iext{pdf} image files.
 \DescribeCmd{nocrop}{bolean}{off}
 Don't run \scriptname{pdfcrop} in image files.
 
+\newpage
 \DescribeCmd{clean}{doc\textbar pst\textbar tkz\textbar all\textbar off}{doc}
 Removes specific content in \meta{output file}. Valid values for this option are:
 
@@ -1452,7 +1467,6 @@ Removes specific content in \meta{output file}. Valid values for this option are
 \item[off] Deactivate all.
 \end{description}
 
-\newpage
 \DescribeCmd{verbcmd}{command name}{myverb}
 Set custom verbatim command \lstinline+\myverb|<code>|+.
 
@@ -1558,31 +1572,32 @@ versions, both development (devp) and public (ctan).
 \newlength\descrwidth
 \settowidth{\descrwidth}{\textsf{v1.4.5, (ctan), 2013-01-23}}
 \begin{description}[font=\small\sffamily, wide=0pt, style=multiline, leftmargin=\descrwidth,  nosep, noitemsep]
-\item [v\fileversion{} (devp), \filedate]
+\item [v\fileversion{} (ctan), \filedate]
     \begin{itemize}
-        \item Add \texttt{tcbwritetmp} in verbatim write array
-        \item Fix typo and date in documentation
+        \item Add \texttt{zip} and \texttt{tar} options
+        \item Add new \texttt{Verb} from \texttt{fvextra} 
+        \item Fix and update source code and documentation
     \end{itemize}
 \item [v1.5 (ctan), 2018-04-12]
     \begin{itemize}
         \item Use \texttt{GitHub} to control version
-        \item Rewrite and optimize most part of code and options
+        \item Rewrite and optimize most part of source code and options
         \item Change \texttt{pdf2svg} for \texttt{pdftocairo}
         \item Complete support for \texttt{pst-exa} package
-        \item Escape characters in regex according to v5.4x.x
+        \item Escape characters in regex according to \texttt{perl} v5.4x.x
     \end{itemize}
 \item [v1.4 (devp), 2016-11-29]
     \begin{itemize}
         \item Remove and rewrite code for regex and system call
-        \item Append \texttt{arara} compiler, clean and comment code
-        \item Append \texttt{dvips} and \texttt{dvipdfm(x)} for creation images
-        \item Append \texttt{bmp}, \texttt{tiff} image format
+        \item Add \texttt{arara} compiler, clean and comment code
+        \item Add \texttt{dvips} and \texttt{dvipdfm(x)} for creation images
+        \item Add \texttt{bmp}, \texttt{tiff} image format
     \end{itemize}
 \item [v1.3 (devp), 2016-08-14]
     \begin{itemize}
         \item Rewrite some part of code (norun, nocrop, clean)
-        \item Suport \texttt{minted} and \texttt{tcolorbox} package for verbatim
-        \item Escape some characters in regex according to v5.2x.x
+        \item Suport \texttt{minted} and \texttt{tcolorbox} package
+        \item Escape some characters in regex according to \texttt{perl} v5.2x.x
         \item All options read from command line and input file
         \item Use \texttt{/tmp} dir for work process
     \end{itemize}

@@ -1,8 +1,8 @@
 ## Changues
-### v1.6 (d)  2018-08-01
-- Update minimun perl version
-- Add `tcbwritetmp` to verbatim write
-- Fix typo and update documentation
+### v1.6 (d)  2019-02-14
+- Add `tar` and `zip` options
+- Add new `Verb` from `fvextra`
+- Fix and update source code and documentation
 ### v1.5 (p)  2018-04-12
 - Use GitHub to control version
 - Rewrite and optimize most part of code and options
@@ -31,4 +31,4 @@
 ### v1.0  (p)  2013-12-01
 - First public release
 
-Copyright 2013 - 2018 by Pablo González L <pablgonz@yahoo.com>.
+Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.

@@ -20,7 +20,7 @@ $ ltximg <file.tex>
 ```
 If used without `[<compiler>]` and `[<options>]` the extracted environments are converted to `pdf` image format
 and saved in the `/images` directory using `pdflatex` and `preview` package. Relative or absolute `paths` for files
-and directories is not supported and if the last `[<options>]` take a list separated by commas you need `--` at the end.
+and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
 ```
@@ -48,6 +48,8 @@ and directories is not supported and if the last `[<options>]` take a list separ
 -m <integer>, --margin <integer>
                       Set margins for pdfcrop                       [0]
 --imgdir <dirname>    Set name of directory to save images          [images]
+--zip                 Compress files generated in .zip format       [off]
+--tar                 Compress files generated in .tar.gz format    [off]
 -o <filename>, --output <filename>
                       Create output file                            [off]
 --verbose             Verbose printing                              [off]
@@ -82,7 +84,7 @@ $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
    Create a `/mypics` directory whit all extracted environments converted to
-   image formats(`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`)
+   image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`)
    for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
    and file `test-in-fig-all.tex` with only the extracted environments using
    `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
@@ -92,6 +94,10 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
    For full documentation use:
 ```
 $ texdoc ltximg
+```
+   For recreation all documentation use:
+```
+$ arara ltximg-doc.dtx
 ```
 
 ## Licence
@@ -105,8 +111,8 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2018-04-29.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-14.
 
 ## Copyright
 
-Copyright 2013 - 2018 by Pablo González L
+Copyright 2013 - 2019 by Pablo González L
