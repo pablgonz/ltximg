@@ -23,7 +23,7 @@ my $null    = devnull();
 my $program   = "LTXimg";
 my $nv        = 'v1.6';
 my $copyright = <<END_COPYRIGHT ;
-[2019-02-14] (c) 2013-2019 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2019-02-15] (c) 2013-2019 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
@@ -867,7 +867,7 @@ my $del    = $no_del;
 my $llaves      = qr/\{ .+? \}                                                          /x;
 my $no_llaves   = qr/(?: $llaves )?                                                     /x;
 my $corchetes   = qr/\[ .+? \]                                                          /x;
-my $anidado     = qr/(\{(?:[^\{\}]++|(?1))*\})                                          /x;
+my $nestedbr    = qr/(\{(?:[^\{\}]++|(?1))*\})                                          /x;
 my $delimitador = qr/\{ (?<del>.+?) \}                                                  /x;
 my $verb        = qr/(?:((spv|(?:q|f)?v|V)erb|$verbcmd)[*]?)                            /ix;
 my $lst         = qr/(?:(lst|pyg)inline)(?!\*) $no_corchete                             /ix;
@@ -904,14 +904,14 @@ while ($document =~
     }
 }
 
-### Regex for verbatim inline whit braces {...} Verb
-my $fvextra   = qr /\\ (?: (Save|Esc)Verb [*]?) $no_corchete                     /x;
-my $mintd_ani = qr /\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves      /x;
-my $tcbxverb  = qr /\\ (?: tcboxverb [*]?|$verbcmd [*]?|lstinline)  $no_corchete /x;
-my $tcbxmint  = qr /   (?:$tcbxverb|$mintd_ani|$fvextra) (?:\s*)? $anidado       /x;
+### Regex for verbatim inline whit braces {...}
+my $fvextra    = qr /\\ (?: (Save|Esc)Verb [*]?) $no_corchete                     /x;
+my $mintedbr   = qr /\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves      /x;
+my $tcbxverb   = qr /\\ (?: tcboxverb [*]?|$verbcmd [*]?|lstinline)  $no_corchete /x;
+my $verb_brace = qr /   (?:$tcbxverb|$mintedbr|$fvextra) (?:\s*)? $nestedbr      /x;
 
 ### Changue \verb*{code} for verbatim inline 
-while ($document =~ /$tcbxmint/pgmx) {
+while ($document =~ /$verb_brace/pgmx) {
         my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
         my  $encontrado = ${^MATCH};
         while (my($busco, $cambio) = each %cambios) {

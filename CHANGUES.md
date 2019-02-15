@@ -1,8 +1,8 @@
 ## Changues
-### v1.6 (d)  2019-02-14
+### v1.6 (d)  2019-02-15
 - Add `tar` and `zip` options
 - Add new `Verb` from `fvextra`
-- Fix and update source code and documentation
+- Update source code and documentation
 ### v1.5 (p)  2018-04-12
 - Use GitHub to control version
 - Rewrite and optimize most part of code and options

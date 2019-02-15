@@ -111,7 +111,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-14.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-15.
 
 ## Copyright
 
