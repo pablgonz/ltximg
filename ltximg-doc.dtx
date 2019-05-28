@@ -18,11 +18,11 @@ to image formats in individual files using `ghostscript` and `poppler-utils`. Ge
 with only extracted environments and other with environments converted to `\includegraphics`.
 
 ## Syntax
-```
+```[bash]
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
 ## Usage
-```
+```[bash]
 $ ltximg --latex  [<options>] <file.tex>
 $ ltximg --arara  [<options>] <file.tex>
 $ ltximg [<options>] <file.tex>
@@ -33,12 +33,12 @@ and saved in the `/images` directory using `pdflatex` and `preview` package. Rel
 and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
-```
+```[bash]
     pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
 ```
 ## Options
 
-```
+```[bash]
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
@@ -87,10 +87,10 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --deltenv <env1,...>  Delete environments in output file            [empty]
 ```
 ## Example
-```
+```[bash]
 $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 ```
-```
+```[bash]
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
    Create a `/mypics` directory whit all extracted environments converted to
@@ -102,11 +102,11 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 
 ## Documentation
    For full documentation use:
-```
+```[bash]
 $ texdoc ltximg 
 ```
    For recreation all documentation use:
-```
+```[bash]
 $ arara ltximg-doc.dtx 
 ```
 
@@ -121,7 +121,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-15.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-05-29.
 
 ## Copyright
 
@@ -129,7 +129,7 @@ Copyright 2013 - 2019 by Pablo González L
 %</readme>
 %<*changues>
 ## Changues
-### v1.6 (d)  2019-02-15 
+### v1.6 (d)  2019-05-29 
 - Add `tar` and `zip` options
 - Add new `Verb` from `fvextra`
 - Update source code and documentation
@@ -248,7 +248,7 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{1.6}
-\def\filedate{2019-02-15}
+\def\filedate{2019-05-29}
 
 % Config hyperref
 \hypersetup{
@@ -285,12 +285,12 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
     \small\nouppercase{\leftmark}%
         }%
     }%
-\fancyfoot[R]{\small\textsf{\thepage{} /\pageref{LastPage}}}
+\fancyfoot[R]{\small\textsf{\thepage{} / \pageref{LastPage}}}
 \fancyfoot[L]{%
     \small\sffamily%
     \LTXimg{}
     \textcolor{gray}{%
-    \raisebox{-1pt}{\textcopyright}{}2013--2018 by Pablo González L%
+    \raisebox{-1pt}{\textcopyright}{}2013--2019 by Pablo González L%
         }%
     }%
 \renewcommand{\headrulewidth}{0.5pt}%
@@ -308,85 +308,85 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
 \ExplSyntaxOn
 %^^A user level commands
 \RenewDocumentCommand{\meta}{O{}m}
-{
-    \ltximg_meta_generic:Nnn \ltximg_meta:n { #1 } { #2 }
-}
+  {
+   \ltximg_meta_generic:Nnn \ltximg_meta:n { #1 } { #2 }
+  }
 \RenewDocumentCommand{\marg}{O{}m}
-{
-    \ltximg_meta_generic:Nnn \ltximg_marg:n { #1 } { #2 }
-}
+  {
+   \ltximg_meta_generic:Nnn \ltximg_marg:n { #1 } { #2 }
+  }
 \RenewDocumentCommand{\oarg}{O{}m}
-{
-    \ltximg_meta_generic:Nnn \ltximg_oarg:n { #1 } { #2 }
-}
+  {
+   \ltximg_meta_generic:Nnn \ltximg_oarg:n { #1 } { #2 }
+  }
 %^^A variables and keys
 \tl_new:N \l_ltximg_meta_font_tl
 
 \keys_define:nn { ltximg/meta }
-{
-    type .choice:,
-    type / tt .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \ttfamily },
-    type / rm .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \rmfamily },
-    type .initial:n = tt,
-    cf .tl_set:N = \l_ltximg_meta_color_tl,
-    cf .initial:n = black,
-    ac .tl_set:N = \l_ltximg_meta_anglecolor_tl,
-    ac .initial:n = black,
-    sbc .tl_set:N = \l_ltximg_meta_brackcolor_tl,
-    sbc .initial:n = black,
-    cbc .tl_set:N = \l_ltximg_meta_bracecolor_tl,
-    cbc .initial:n = black,
-}
+  {
+   type .choice:,
+   type / tt .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \ttfamily },
+   type / rm .code:n = \tl_set:Nn \l_ltximg_meta_font_tl { \rmfamily },
+   type .initial:n = tt,
+   cf .tl_set:N = \l_ltximg_meta_color_tl,
+   cf .initial:n = black,
+   ac .tl_set:N = \l_ltximg_meta_anglecolor_tl,
+   ac .initial:n = black,
+   sbc .tl_set:N = \l_ltximg_meta_brackcolor_tl,
+   sbc .initial:n = black,
+   cbc .tl_set:N = \l_ltximg_meta_bracecolor_tl,
+   cbc .initial:n = black,
+  }
 %^^A internal commands
 \cs_new_protected:Npn \ltximg_meta_generic:Nnn #1 #2 #3
-{
-    \group_begin:
+  {
+   \group_begin:
     \keys_set:nn { ltximg/meta } { #2 }
     \color{ \l_ltximg_meta_color_tl }
     \l_ltximg_meta_font_tl
     #1 { #3 } % #1 is \ltximg_meta:n, \ltximg_marg:n or \ltximg_oarg:n
-    \group_end:
-}
+   \group_end:
+  }
 \cs_new_protected:Npn \ltximg_meta:n #1
-{
-    \ltximg_meta_angle:n { \textlangle }
-    \ltximg_meta_meta:n { #1 }
-    \ltximg_meta_angle:n { \textrangle }
-}
+  {
+   \ltximg_meta_angle:n { \textlangle }
+   \ltximg_meta_meta:n { #1 }
+   \ltximg_meta_angle:n { \textrangle }
+  }
 \cs_new_protected:Npn \ltximg_marg:n #1
-{
-    \ltximg_meta_brace:n { \textbraceleft }
-    \ltximg_meta:n { #1 }
-    \ltximg_meta_brace:n { \textbraceright }
-}
+  {
+   \ltximg_meta_brace:n { \textbraceleft }
+   \ltximg_meta:n { #1 }
+   \ltximg_meta_brace:n { \textbraceright }
+  }
 \cs_new_protected:Npn \ltximg_oarg:n #1
-{
-    \ltximg_meta_brack:n { [ }
-    \ltximg_meta:n { #1 }
-    \ltximg_meta_brack:n { ] }
-}
+  {
+   \ltximg_meta_brack:n { [ }
+   \ltximg_meta:n { #1 }
+   \ltximg_meta_brack:n { ] }
+  }
 \cs_new_protected:Npn \ltximg_meta_meta:n #1
-{
-    \textnormal{\textit{#1}}
-}
+  {
+   \textnormal{\textit{#1}}
+  }
 \cs_new_protected:Npn \ltximg_meta_angle:n #1
-{
-    \group_begin:
+  {
+   \group_begin:
     \fontfamily{cmr}\selectfont
     \textcolor{\l_ltximg_meta_anglecolor_tl}{#1}
-    \group_end:
-}
+   \group_end:
+  }
 \cs_new_protected:Npn \ltximg_meta_brace:n #1
-{
-    \group_begin:
+  {
+   \group_begin:
     \color{\l_ltximg_meta_bracecolor_tl}
     #1
-    \group_end:
-}
+   \group_end:
+  }
 \cs_new_protected:Npn \ltximg_meta_brack:n #1
-{
-    \textcolor{\l_ltximg_meta_brackcolor_tl}{#1}
-}
+  {
+   \textcolor{\l_ltximg_meta_brackcolor_tl}{#1}
+  }
 \ExplSyntaxOff
 
 % \prgname{sm} : #1 index compiler, #2 index programs:
@@ -689,13 +689,13 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
 
 % \lstinline[style=inline]|...|
 \lstdefinestyle{inline}
-{
-    language=ltximg-doc,%
-    basicstyle=\ttfamily\color{gray},%
-    escapechar=`,%
-    upquote=true,%
-    literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
-}
+  {
+   language=ltximg-doc,%
+   basicstyle=\ttfamily\color{gray},%
+   escapechar=`,%
+   upquote=true,%
+   literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
+  }
 
 % set default style
 \lstset{style=inline}
@@ -792,15 +792,15 @@ would be the great mission (which does not end yet).
 
 For the complete operation of \ltximg{} you need to have a modern \hologo{TeX}
 distribution such as \hologo{TeX}Live or \hologo{MiKTeX}, have a version equal to or
-greater than \liningnums{5.26} of \prgname{perl}, a version equal to or greater than \liningnums{9.24} of
+greater than \liningnums{5.28} of \prgname{perl}, a version equal to or greater than \liningnums{9.24} of
 \prgname{ghostscript} and have a version equal to or greater than \liningnums{0.52} of \prgname{poppler-utils}.
 
-The distribution of \hologo{TeX}Live 2018 for \OSsystem{Windows} includes \ltximg{} and all
+The distribution of \hologo{TeX}Live 2019 for \OSsystem{Windows} includes \ltximg{} and all
 requirements, \hologo{MiKTeX} users must install the appropriate software for full operation.
 
-The script has been tested on \OSsystem{Windows} (version 10) and \OSsystem{Linux} (fedora 29) in x64 architecture using
-\prgname{ghostscript} \liningnums{v9.26}, \prgname{poppler-utils} \liningnums{v0.52} to \liningnums{v0.67} and
-\prgname{perl} from \liningnums{v5.24} to \liningnums{v5.28}.
+The script has been tested on \OSsystem{Windows} (version 10) and \OSsystem{Linux} (fedora 30) in x64 architecture using
+\prgname{ghostscript} \liningnums{v9.26}, \prgname{poppler-utils} \liningnums{v0.52} to \liningnums{v0.73} and
+\prgname{perl} from \liningnums{v5.28} to \liningnums{v5.30}.
 
 \section{How it works}\label{sec:howtowork}
 

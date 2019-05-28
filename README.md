@@ -8,11 +8,11 @@ to image formats in individual files using `ghostscript` and `poppler-utils`. Ge
 with only extracted environments and other with environments converted to `\includegraphics`.
 
 ## Syntax
-```
+```[bash]
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
 ## Usage
-```
+```[bash]
 $ ltximg --latex  [<options>] <file.tex>
 $ ltximg --arara  [<options>] <file.tex>
 $ ltximg [<options>] <file.tex>
@@ -23,12 +23,12 @@ and saved in the `/images` directory using `pdflatex` and `preview` package. Rel
 and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
-```
+```[bash]
     pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
 ```
 ## Options
 
-```
+```[bash]
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
@@ -77,10 +77,10 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --deltenv <env1,...>  Delete environments in output file            [empty]
 ```
 ## Example
-```
+```[bash]
 $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 ```
-```
+```[bash]
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
    Create a `/mypics` directory whit all extracted environments converted to
@@ -92,11 +92,11 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 
 ## Documentation
    For full documentation use:
-```
+```[bash]
 $ texdoc ltximg
 ```
    For recreation all documentation use:
-```
+```[bash]
 $ arara ltximg-doc.dtx
 ```
 
@@ -111,7 +111,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-02-15.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-05-29.
 
 ## Copyright
 
