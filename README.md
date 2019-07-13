@@ -8,11 +8,11 @@ to image formats in individual files using `ghostscript` and `poppler-utils`. Ge
 with only extracted environments and other with environments converted to `\includegraphics`.
 
 ## Syntax
-```[bash]
+```bash
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
 ## Usage
-```[bash]
+```bash
 $ ltximg --latex  [<options>] <file.tex>
 $ ltximg --arara  [<options>] <file.tex>
 $ ltximg [<options>] <file.tex>
@@ -23,16 +23,16 @@ and saved in the `/images` directory using `pdflatex` and `preview` package. Rel
 and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
-```[bash]
+```bash
     pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
 ```
 ## Options
 
-```[bash]
+```bash
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
--v, --version         Display current version (v1.6) and exit       [off]
+-v, --version         Display current version (1.6) and exit        [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
 -b, --bmp             Create .bmp files using ghostscript           [gs]
 -j, --jpg             Create .jpg files using ghostscript           [gs]
@@ -77,10 +77,10 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --deltenv <env1,...>  Delete environments in output file            [empty]
 ```
 ## Example
-```[bash]
+```bash
 $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 ```
-```[bash]
+```bash
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
    Create a `/mypics` directory whit all extracted environments converted to
@@ -92,11 +92,11 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 
 ## Documentation
    For full documentation use:
-```[bash]
+```bash
 $ texdoc ltximg
 ```
    For recreation all documentation use:
-```[bash]
+```bash
 $ arara ltximg-doc.dtx
 ```
 
@@ -111,7 +111,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-05-29.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-07-13.
 
 ## Copyright
 

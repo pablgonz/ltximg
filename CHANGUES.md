@@ -1,7 +1,7 @@
 ## Changues
-### v1.6 (d)  2019-05-29
+### v1.6 (p)  2019-07-13
 - Add `tar` and `zip` options
-- Add new `Verb` from `fvextra`
+- Add suport for new `Verb` from `fvextra`
 - Update source code and documentation
 ### v1.5 (p)  2018-04-12
 - Use GitHub to control version
@@ -31,4 +31,4 @@
 ### v1.0  (p)  2013-12-01
 - First public release
 
-Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>.
+Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID

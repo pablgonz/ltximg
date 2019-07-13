@@ -23,7 +23,7 @@ my $null    = devnull();
 my $program   = "LTXimg";
 my $nv        = 'v1.6';
 my $copyright = <<END_COPYRIGHT ;
-[2019-02-15] (c) 2013-2019 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2019-07-13] (c) 2013-2019 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
