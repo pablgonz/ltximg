@@ -40,7 +40,7 @@ and directories is not supported. If the last `[<options>]` take a *list separat
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
--v, --version         Display current version (1.6) and exit        [off]
+-v, --version         Display current version (1.7) and exit        [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
 -b, --bmp             Create .bmp files using ghostscript           [gs]
 -j, --jpg             Create .jpg files using ghostscript           [gs]
@@ -119,48 +119,12 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-07-13.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-08-24.
 
 ## Copyright
 
 Copyright 2013 - 2019 by Pablo González L
 %</readme>
-%<*changues>
-## Changues
-### v1.6 (p)  2019-07-13
-- Add `tar` and `zip` options
-- Add suport for new `Verb` from `fvextra`
-- Update source code and documentation
-### v1.5 (p)  2018-04-12
-- Use GitHub to control version
-- Rewrite and optimize most part of code and options
-- Changue `pdf2svg` for `pdftocairo`
-- Complete support for `pst-exa` packpage
-- `clean` take a optional argument
-### v1.4 (d)  2016-11-29
-- Remove and rewrite code for regex and system call
-- Append `arara` compiler, clean and comment code
-- Append `dvips` and `dvipdfm(x)` for creation images
-- Append `bmp` and `tif` image format
-### v1.3. (d)  2016-10-16
-- All options it's read from command line and input file
-- Rewrite some part of code (`norun`, `nocrop`, `clean`)
-- Suport `minted` and `tcolorbox` packpage
-- Use `/tmp` dir for work process
-- Escape some characters in regex according to v5.2xx
-### v1.2  (p)  2015-04-22
-- Remove unused modules
-### v1.1  (p)  2015-04-21
-- Change `mogrify` to `gs` for image formats
-- Create `output` file
-- Rewrite source code and fix regex
-- Add more image format
-- Change date to iso format
-### v1.0  (p)  2013-12-01
-- First public release
-
-Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID
-%</changues>
 %<*internal>
 \fi
 \def\nameofplainTeX{plain}
@@ -175,7 +139,6 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID
 \nopreamble\nopostamble
 \generate{
   \file{README.md}{\from{\jobname.dtx}{readme}}
-  \file{CHANGUES.md}{\from{\jobname.dtx}{changues}}
 }
 \ifx\fmtname\nameofplainTeX
   \expandafter\endbatchfile
@@ -187,7 +150,7 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID
 \documentclass{ltxdoc}
 \usepackage[top=0.5in, bottom=0.5in, left=2in, right=1in,footskip=0.2in,%
             headsep=10pt]{geometry} % page dimension
-\usepackage{unicode-math}
+\usepackage{unicode-math} %
 \setmathfont[Scale = 0.95]{Latin Modern Math}
 \setmainfont[
    Numbers           = OldStyle,
@@ -252,8 +215,8 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID
 
 % Identification
 \def\myscript{ltximg}
-\def\fileversion{1.6}
-\def\filedate{2019-07-13}
+\def\fileversion{1.7}
+\def\filedate{2019-08-24}
 
 % Logo whit libertuns and fetamono font
 \newsavebox{\logobox}
@@ -484,11 +447,11 @@ Copyright 2013 - 2019 by Pablo González L <pablgonz@yahoo.com>. $ID
   {
     \textsf{\textcolor{SlateBlue}{#1}}
     \SortIndex{packages}{Packages>\small\texttt{#1}}
-    \SortIndex{#1}{\texttt{#1} (package)}
+    \SortIndex{#1}{\texttt{#1} ~ (package)}
   }%
 
 % \pkgopt{m}
-\DeclareDocumentCommand{ \pkgopt}{ m }
+\DeclareDocumentCommand{\pkgopt}{ m }
   {
     \textsf{\textcolor{Orange}{#1}}
     \SortIndex{package ~  options}{Package ~  options>\small\texttt{#1}}
@@ -961,6 +924,7 @@ supported. They are automatically detected the verbatim command generates by
 \item \ics{lstinline}
 \item \ics{pyginline}
 \item \ics{pygment}
+\item \ics{Scontents}
 \item \ics{tcboxverb}
 \item \ics{mintinline}
 \end{itemize}
@@ -1074,6 +1038,7 @@ or \env{VerbatimOut} environments. The following list is considered as %
 \begin{multicols}{3}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
 \ttfamily\small
+\item scontents
 \item filecontents
 \item tcboutputlisting
 \item tcbexternal
@@ -1084,6 +1049,7 @@ or \env{VerbatimOut} environments. The following list is considered as %
 \item verbatimwrite
 \item filecontentsdef
 \item filecontentshere
+\item filecontentsdefmacro
 \end{itemize}
 \end{multicols}
 
@@ -1673,6 +1639,13 @@ versions, both development (devp) and public (ctan).
 \settowidth{\descrwidth}{\textsf{v1.4.5, (ctan), 2013-01-23}}
 \begin{description}[font=\small\sffamily, wide=0pt, style=multiline, leftmargin=\descrwidth,  nosep, noitemsep]
 \item [v\fileversion{} (ctan), \filedate]
+    \begin{itemize}
+        \item Add \texttt{scontents} environment support
+        \item Add \texttt{filecontentsdefmacro} environment support
+        \item Fix regex in source code
+        \item Update documentation
+    \end{itemize}
+\item [v1.6 (ctan), 2019-07-13]
     \begin{itemize}
         \item Add \texttt{zip} and \texttt{tar} options
         \item Add new \texttt{Verb} from \texttt{fvextra}
