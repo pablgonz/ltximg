@@ -8,27 +8,32 @@ to image formats in individual files using `ghostscript` and `poppler-utils`. Ge
 with only extracted environments and other with environments converted to `\includegraphics`.
 
 ## Syntax
+
 ```bash
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
 ## Usage
+
 ```bash
 $ ltximg --latex  [<options>] <file.tex>
 $ ltximg --arara  [<options>] <file.tex>
 $ ltximg [<options>] <file.tex>
 $ ltximg <file.tex>
 ```
+
 If used without `[<compiler>]` and `[<options>]` the extracted environments are converted to `pdf` image format
 and saved in the `/images` directory using `pdflatex` and `preview` package. Relative or absolute `paths` for files
 and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
 
 ## Default environments extract
+
 ```bash
     pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
 ```
+
 ## Options
 
-```bash
+```
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
@@ -76,13 +81,17 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --writenv <env1,...>  Add verbatim write environments               [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
 ```
+
 ## Example
+
 ```bash
 $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 ```
+
 ```bash
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
+
    Create a `/mypics` directory whit all extracted environments converted to
    image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`)
    for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
@@ -91,16 +100,21 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
    for `<output file>`.
 
 ## Documentation
+
    For full documentation use:
+   
 ```bash
 $ texdoc ltximg
 ```
+
    For recreation all documentation use:
+   
 ```bash
 $ arara ltximg-doc.dtx
 ```
 
 ## Licence
+
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation; either version 3 of the License,
 or (at your option) any later version.
