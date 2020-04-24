@@ -555,7 +555,7 @@ my $newverbenv = join "|", map quotemeta, sort { length $a <=> length $b } @new_
 ### Capture new verbatim write environments defined in input file
 my @new_verb_write = qw (
    renewtcbexternalizetcolorbox renewtcbexternalizeenvironment
-   newtcbexternalizeenvironment newtcbexternalizetcolorbox
+   newtcbexternalizeenvironment newtcbexternalizetcolorbox newenvsc
    );
 
 ### Regex to capture names for new verbatim write environments from input file
