@@ -21,9 +21,9 @@ my $null    = devnull();
 
 ### Program identification
 my $program   = "LTXimg";
-my $nv        = 'v1.7';
+my $nv        = 'v1.8';
 my $copyright = <<END_COPYRIGHT ;
-[2019-08-24] (c) 2013-2019 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[2020-04-24] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 ### Default values
@@ -344,9 +344,9 @@ ${title}** Description **
  \$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 
    Create a "/mypics" directory whit all extracted environments converted to
-   image formats (.pdf, .eps, .png), individual files whit source code (.tex)
+   image formats (.pdf, .eps, .png), individual files whit source code (.ltx)
    for all extracted environments, a file "test-out.ltx" whit all extracted
-   environments converted to \\includegraphics and file "test-in-fig-all.tex"
+   environments converted to \\includegraphics and file "test-in-fig-all.ltx"
    with only the extracted environments using latex>dvips>ps2pdf and preview
    package for <input file> and pdflatex for <output file>.
 
@@ -531,6 +531,7 @@ push (@verb_env_tmp, @verb_tmp);
 my @verbw_tmp = qw (
    scontents filecontents tcboutputlisting tcbexternal tcbwritetmp extcolorbox extikzpicture
    VerbatimOut verbatimwrite PSTexample filecontentsdef filecontentshere filecontentsdefmacro
+   filecontentsdefstarred filecontentsgdef filecontentsdefmacro filecontentsgdefmacro
    );
 
 push (@verw_env_tmp, @verbw_tmp);
@@ -791,14 +792,14 @@ my %changes_in = (
     '\graphicspath{'  =>  '\GRAPHICSPATH{',
     );
 
-### Changues \begin... \end in verbatim inline
+### Changes \begin ... \end in verbatim inline
 my %init_end = (
 # begin{ and end{
     '\begin{' => '\BEGIN{',
     '\end{'   => '\END{',
     );
 
-### Changues for \begin{document} ... \end{document}
+### Changes for \begin{document} ... \end{document}
 my %document = (
 # begin/end document for split
     '\begin{document}' => '\BEGIN{document}',
@@ -847,7 +848,7 @@ my %reverse_tag = (
     '%</LTXIMGVERW>' => '%</ltximgverw>',
     );
 
-### Creatate a hash for changues
+### Create a hash for changes
 my %extract_env      = crearhash(@extract);
 my %skiped_env       = crearhash(@skipped);
 my %verb_env         = crearhash(@verbatim);
@@ -856,10 +857,10 @@ my %delete_env       = crearhash(@delete_env);
 my %change_verbw_env = crearhash(@no_verw_env);
 my %change_verb_env  = crearhash(@no_verb_env);
 
-### Join changues in new hash
+### Join changes in new hash
 my %cambios = (%changes_in, %init_end);
 
-### Variables y constantes
+### Variables and constantes
 my $no_del = "\0";
 my $del    = $no_del;
 
@@ -879,7 +880,7 @@ my $comentario  = qr/^ \s* \%+ .+? $                                            
 my $definedel   = qr/\\ (?: DefineShortVerb | lstMakeShortInline| MakeSpecialShortVerb ) [*]? $no_corchete $delimitador /ix;
 my $indefinedel = qr/\\ (?: (Undefine|Delete)ShortVerb | lstDeleteShortInline) $llaves  /ix;
 
-### Changues in input file (in memory)
+### Changes in input file (in memory)
 while ($document =~
         / $marca
         | $comentario
@@ -911,7 +912,7 @@ my $mintedbr   = qr /\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves    
 my $tcbxverb   = qr /\\ (?: tcboxverb [*]?| Scontents [*]? |$verbcmd [*]?|lstinline) $no_corchete /x;
 my $verb_brace = qr /   (?:$tcbxverb|$mintedbr|$fvextra) (?:\s*)? $nestedbr      /x;
 
-### Changue \verb*{code} for verbatim inline
+### Change \verb*{code} for verbatim inline
 while ($document =~ /$verb_brace/pgmx) {
         my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
         my  $encontrado = ${^MATCH};
@@ -922,7 +923,7 @@ while ($document =~ /$verb_brace/pgmx) {
         pos ($document) = $pos_inicial + length $encontrado;
 } # close while
 
-### Changue <*TAGS> to <*tags>
+### Change <*TAGS> to <*tags>
 my $ltxtags  =  join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %reverse_tag;
    $document =~ s/^($ltxtags)/$reverse_tag{$1}/gmsx;
 
@@ -949,7 +950,7 @@ my $delenv = join "|", map quotemeta, sort { length $a <=> length $b } @delt_env
 ### Split file by lines
 my @lineas = split /\n/, $document;
 
-### Hash and Regex for changues
+### Hash and Regex for changes
 my %replace = (%change_verb_env,%changes_in,%document);
 my $find    = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %replace;
 
@@ -1136,7 +1137,7 @@ $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
 ### Split $preamble by lines
 @lineas = split /\n/, $preamble;
 
-### Changues in verbatim write
+### Changes in verbatim write
 for (@lineas) {
     if (/\\begin\{($verbatim_w\*?)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
         s/($find)/$replace{$1}/g; }
@@ -1713,7 +1714,7 @@ $out_file =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\tikzset\{(?:\{.*?\}|[^\{])*\}(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
 } # close clean
 
-### Revert changues in all words in outfile
+### Revert changes in all words in outfile
 $out_file =~ s/\\begin\{nopreview\}\s*(.+?)\s*\\end\{nopreview\}/$1/gmsx;
 $out_file =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 $out_file =~ s/\%<\*noltximg>\n(.+?)\n\%<\/noltximg>/$1/gmsx;
@@ -1788,15 +1789,16 @@ my @savetozt;
 find(\&zip_tar, $imageDir);
 sub zip_tar{
     my $filesto = $_;
-    if (-f $filesto && $filesto =~ m/$name-$prefix-.+?$/) { # buscamos
+    if (-f $filesto && $filesto =~ m/$name-$prefix-.+?$/) { # search
         push @savetozt, $File::Find::name;
     }
-}
+  }
+
 # Write compressed zip file
 if ($zip) {
     say "Creating a file $workdir/$archivetar.zip";
     zip \@savetozt => "$archivetar.zip";
-    }
+  }
 
 # Write compressed tar.gz file
 if ($tar) {
@@ -1804,7 +1806,7 @@ if ($tar) {
     my $imgdirtar = Archive::Tar->new();
     $imgdirtar->add_files( @savetozt );
     $imgdirtar->write( "$archivetar.tar.gz" , 9 );
-    }
+  }
 } #close compress
 
 ### End of script process
