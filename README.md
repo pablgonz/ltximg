@@ -102,13 +102,13 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ## Documentation
 
    For full documentation use:
-   
+
 ```bash
 $ texdoc ltximg
 ```
 
    For recreation all documentation use:
-   
+
 ```bash
 $ arara ltximg-doc.dtx
 ```

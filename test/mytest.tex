@@ -2,8 +2,8 @@
 % arara: dvips
 % arara: ps2pdf
 %<*remove>
-% ltximg : options : {arara,output = salida, imgdir = pics, prefix = env, eps, svg, subenv,force, clean = doc, tar} 
-% ltximg : deltenv : {filecontents} 
+% ltximg : options : {arara,output = salida, imgdir = pics, prefix = env, eps, svg, subenv,force, clean = doc, tar}
+% ltximg : deltenv : {filecontents}
 %</remove>
 \documentclass{article}
 \usepackage{pstricks-add}
@@ -21,7 +21,7 @@ Algo de texto
 (2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
 \end{pspicture}
 \end{filecontents*}
-sigue el entonro 
+sigue el entonro
 
 % verbatim
 \begin{verbatim}
@@ -35,16 +35,16 @@ my $ltxtags = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %r
 
 % filecontents 2
 \begin{filecontents*}{content2.tex}
-Some mo er den indictum 
+Some mo er den indictum
 \end{filecontents*}
 
-% verbatim 
+% verbatim
 \begin{verbatim}
 \begin{filecontents*}{content2.tex}
 \end{verbatim}
 
 Usando noltximg , no debería quitar psset
-%<*noltximg> 
+%<*noltximg>
 \psset{unit=2cm}
 % some code
 \pspicture*(4,6)
@@ -61,12 +61,12 @@ Usando noltximg , no debería quitar psset
 \pslineByHand[linecolor=red](0,0)(0,2)(2,2)
 (2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
 \end{pspicture*}
- 
+
 % verbatim
 \begin{verbatim}
 \end{filecontents*}
 \end{verbatim}
- 
+
 % filecontents 3
 \begin{filecontents*}{joined2.tex}
 \documentclass{article}%
