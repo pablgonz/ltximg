@@ -3,9 +3,29 @@
 % arara: ps2pdf
 % arara: clean: { extensions : [ aux, log, out, ps, dvi,listing] }
 \documentclass{article}
-\usepackage{pstricks-add}
+\usepackage{pstricks-add,graphicx}
+\graphicspath{{images/}}
 \usepackage{scontents}
 \begin{document}
+
+\begin{verbatim}
+       \pspicture o \pspicture*
+\end{verbatim}
+
+
+\begin{filecontents}[overwrite]{testinput.tex}
+Se puede usar \Scontents{
+\{ \{ \}
+       \pspicture o \pspicture*
+       }
+\end{filecontents}
+
+
+Se puede usar \Scontents{
+\{ \{ \}
+       \pspicture o \pspicture*
+       }
+
 Probando el paquete \verb|pstricks-add| junto al entorno \verb|pspicture|
 
 \begin{pspicture}(4,6)
@@ -23,8 +43,8 @@ scontents
 \end{pspicture}
 \end{scontents}
 
-\pstVerb{ 1234321 srand }
 \begin{pspicture}[showgrid](-2,-2)(2,2)
+\pstVerb{ 1234321 srand }
 \psframe*[linecolor=blue,opacity=!Rand](2,2)
 \psframe*[linecolor=red,opacity=!Rand](-1,-1)(1,1)
 \psframe*[linecolor=green,opacity=!Rand](-2,-2)(0,0)
