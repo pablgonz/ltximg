@@ -20,6 +20,9 @@ my $workdir = cwd;
 my $null    = devnull();
 my $status;
 
+### Error in command line
+sub errorUsage { die "@_ (try ltximg --help for more information)\n"; }
+
 ### Program identification
 my $program   = "LTXimg";
 my $nv        = 'v1.8';
@@ -245,11 +248,11 @@ sub SearchRegistry () {
     return $found;
 } # end GS search
 
-### If windows
-if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
-
 ### Call GS
 find_ghostscript();
+
+### If windows
+if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
 
 ### Program identification, options and help for command line
 
@@ -355,9 +358,6 @@ ${title}** Description **
    For extended documentation use:
  \$ texdoc ltximg
 END_OF_USAGE
-
-### Error in command line
-sub errorUsage { die "@_ (try ltximg --help for more information)\n"; }
 
 ### Getopt::Long configuration for command line
 my %opts_cmd;
@@ -661,15 +661,15 @@ while ($atbegindoc =~ /$readoptfile/g) {
             for my $argumento (@argumentos) {
                 if ($argumento =~ /(?<key>\S+) \s* = \s* (?<valor>\S+)/x) {
                     $opts_file{$clave}{$+{'key'}} = $+{'valor'};
-                        } # close for
-                   else {
+                }
+                else {
                     $opts_file{$clave}{$argumento} = 1;
-                        }
+                }
             } # close for
         } # close if
         else {
             push @{ $opts_file{ $clave } }, @argumentos;
-        }
+    }
 } # close while
 
 ### Validate clean
@@ -919,13 +919,13 @@ my $verb_brace = qr /   (?:$tcbxverb|$mintedbr|$fvextra) (?:\s*)? $nestedbr     
 
 ### Change \verb*{code} for verbatim inline/multiline
 while ($document =~ /$verb_brace/pgmx) {
-        my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
-        my  $encontrado = ${^MATCH};
-        while (my($busco, $cambio) = each %cambios) {
-               $encontrado =~ s/\Q$busco\E/$cambio/g;
-        } # close while
-        substr $document, $pos_inicial, $pos_final-$pos_inicial, $encontrado;
-        pos ($document) = $pos_inicial + length $encontrado;
+    my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
+    my  $encontrado = ${^MATCH};
+    while (my($busco, $cambio) = each %cambios) {
+        $encontrado =~ s/\Q$busco\E/$cambio/g;
+    } # close while
+    substr $document, $pos_inicial, $pos_final-$pos_inicial, $encontrado;
+    pos ($document) = $pos_inicial + length $encontrado;
 } # close while
 
 ### We recovered the escaped braces
@@ -967,12 +967,14 @@ my $find    = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %r
 my $DEL;
 for (@lineas) {
     if (/\\begin\{($verbatim\*?)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
-        s/($find)/$replace{$1}/g; }
+        s/($find)/$replace{$1}/g;
+    }
     if (/\\begin\{($verbatim_w\*?)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
-    my %replace = (%change_verbw_env,%changes_in,%document);
-    my $find    = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %replace;
-        s/($find)/$replace{$1}/g; }
-} # close for
+        my %replace = (%change_verbw_env,%changes_in,%document);
+        my $find    = join "|", map {quotemeta} sort { length($a)<=>length($b) } keys %replace;
+        s/($find)/$replace{$1}/g;
+    }
+}
 
 ### Join lines in $document
 $document = join("\n", @lineas);
@@ -1150,7 +1152,7 @@ $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
 for (@lineas) {
     if (/\\begin\{($verbatim_w\*?)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
         s/($find)/$replace{$1}/g; }
-} # close for
+}
 
 ### Join lines in $preamble
 $preamble = join("\n", @lineas);
@@ -1172,10 +1174,10 @@ while ($bodydoc =~ /\\begin\{PSTexample\}(\[.+?\])?/gsm) {
     my $swpl_grap = "graphic=\{\[scale=1\]$imageDir/$name-$prefix-exa";
     my $corchetes = $1;
     my ($pos_inicial, $pos_final) = ($-[1], $+[1]);
-        if (not $corchetes) { $pos_inicial = $pos_final = $+[0]; }
-        if (not $corchetes  or  $corchetes =~ /\[\s*\]/) {
+    if (not $corchetes) { $pos_inicial = $pos_final = $+[0]; }
+    if (not $corchetes  or  $corchetes =~ /\[\s*\]/) {
             $corchetes = "[$swpl_grap-$exaNo}]";
-        }
+    }
     else { $corchetes =~ s/\]/,$swpl_grap-$exaNo}]/; }
     substr($bodydoc, $pos_inicial, $pos_final - $pos_inicial) = $corchetes;
     pos($bodydoc) = $pos_inicial + length $corchetes;
@@ -1189,11 +1191,13 @@ $exaNo = scalar @exa_extract;
 @lineas = split /\n/, $bodydoc;
 
 for (@lineas) {
-    if (/\\begin\{(preview)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) { # range operator
-        s/($find)/$replace{$1}/g; }
+    if (/\\begin\{(preview)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
+        s/($find)/$replace{$1}/g;
+    }
     if (/\\begin\{($verbatim_w\*?)(?{ $DEL = "\Q$^N" })\}/ .. /\\end\{$DEL\}/) {
-        s/($find)/$replace{$1}/g; }
-} # close for
+        s/($find)/$replace{$1}/g;
+    }
+}
 
 ### Join lines in $bodydoc
 $bodydoc = join("\n", @lineas);
@@ -1207,15 +1211,6 @@ my $envNo = scalar @env_extract;
 
 ### Command line script identification
 print "$program $nv $copyright" ;
-
-### Check if enviroment(s) found in input file
-if ($envNo == 0 and $exaNo == 0) {
-    die errorUsage "** Error!!: ltximg can not find any environment to extract in file $name$ext";}
-elsif ($envNo!= 0 and $exaNo!= 0) {
-    say "Found $envNo standard environment(s) and $exaNo PSTexample environment(s) to extract"; }
-elsif ($envNo == 0 and $exaNo!= 0) {
-    say "Found $exaNo PSTexample environment(s) to extract"; }
-else  { say "Found $envNo standard environment(s) to extract"; }
 
 ### Set output file name from input file
 if (exists $opts_file{options}{output}){
@@ -1264,6 +1259,15 @@ if (exists $opts_file{options}{margins}) {
 if (exists $opts_file{options}{dpi}) {
     $DPI = $opts_file{options}{dpi};
 }
+
+### Check if enviroment(s) found in input file
+if ($envNo == 0 and $exaNo == 0) {
+    die errorUsage "** Error!!: ltximg can not find any environment to extract in file $name$ext";}
+elsif ($envNo!= 0 and $exaNo!= 0) {
+    say "Found $envNo standard environment(s) and $exaNo PSTexample environment(s) to extract"; }
+elsif ($envNo == 0 and $exaNo!= 0) {
+    say "Found $exaNo PSTexample environment(s) to extract"; }
+else  { say "Found $envNo standard environment(s) to extract"; }
 
 ### Create /images dir to save image and source code
 -e $imageDir or mkdir($imageDir,0744) or die "** Error!!: Can't create $imageDir: $!\n";
@@ -1367,18 +1371,18 @@ if (!$run) { # Move and rename tmp-exa-rand file to /image dir
 if ($STDenv) {
 open my $OUTfig, '>', "$name-$prefix-$tmp$ext";
     if ($noprew) { # $noprew option
-    say "Creating $name-$prefix-$tmp$ext whit $envNo standard environment(s) extracted";
+        say "Creating $name-$prefix-$tmp$ext whit $envNo standard environment(s) extracted";
         my @env_extract;
         while ( $bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms ) { # search $bodydoc
             push @env_extract, $+{env_src}."\n\\newpage\n";
         } # close while
-    print $OUTfig "$atbegindoc"."$preamble"."$opt_page"."@env_extract\n"."\\end{document}";
+        print $OUTfig "$atbegindoc"."$preamble"."$opt_page"."@env_extract\n"."\\end{document}";
     }
     else { # default
     say "Creating $name-$prefix-$tmp$ext whit $envNo standard environment(s) using preview package";
     print $OUTfig $atbegindoc.$preview.$preamble."\n".$bodydoc."\n\\end{document}";
-         }
-    close $OUTfig;
+    }
+close $OUTfig;
 
 ### Move tmp-rand file to /image dir
 if (!$run) {
