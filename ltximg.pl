@@ -1508,64 +1508,80 @@ opendir(my $DIR, $workdir);
 while (readdir $DIR) {
 if (/(?<name>$name-$prefix(-exa)?)(?<type>-$tmp$ext)/) { # Compiler generate file(s)
     say "Compiling file using $msg_compiler";
-    $status = qx{$compiler $+{name}$+{type} $silence};
+    if ($verbose){ say "* Running: $compiler $+{name}$+{type}"; }
+    else{ say "* Running: $compiler"; }
+    $status = qx{$compiler $+{name}$+{type}};
+    if ($verbose){ print "$status"; }
     if ($? == -1) { die sprintf "* Error!!: $compiler failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: $compiler died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: $compiler with error code %d!\n", $? >> 8;}
-    else { say "* Running: $compiler"; }
 
 if ($dvips or $latex) { # Compiling file using latex>dvips>ps2pdf
-    $status = qx{dvips -q -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi};
+    if ($verbose){ say "* Running: dvips -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi"; }
+    else { say "* Running: dvips $quiet -Ppdf"; }
+    $status = qx{dvips $quiet -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi};
     if ($? == -1) { die sprintf "* Error!!: dvips failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: dvips died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: dvips with error code %d!\n", $? >> 8;}
-    else { say "* Running: dvips -q -Ppdf"; }
+    if ($verbose){ print "$status"; }
+    if ($verbose){ say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $+{name}-$tmp.ps  $+{name}-$tmp.pdf"; }
+    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
     $status = qx{ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $+{name}-$tmp.ps  $+{name}-$tmp.pdf};
     if ($? == -1) { die sprintf "* Error!!: ps2pdf failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: ps2pdf died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: ps2pdf with error code %d!\n", $? >> 8;}
-    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
+    if ($verbose){ print "$status"; }
 }
 
 if ($dvipdf) { # Compiling file using latex>dvipdfmx
-    $status = qx{dvipdfmx -q $+{name}-$tmp.dvi};
+    if ($verbose){ say "* Running: dvipdfmx $quiet $+{name}-$tmp.dvi"; }
+    else { say "* Running: dvipdfmx $quiet"; }
+    $status = qx{dvipdfmx $quiet $+{name}-$tmp.dvi};
     if ($? == -1) { die sprintf "* Error!!: dvipdfmx failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: dvipdfmx died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: dvipdfmx with error code %d!\n", $? >> 8;}
-    else { say "* Running: dvipdfmx -q"; }
+    if ($verbose){ print "$status"; }
 }
 
 # Move tmp-rand.tex file whit all src code for environments to /images
 say "Moving and renaming $+{name}$+{type}";
-say "* Running: mv $+{name}$+{type} $+{name}-all$ext";
+if ($verbose){ say "* Running: mv $workdir/$+{name}$+{type} $imageDir/$+{name}-all$ext"; }
+else { say "* Running: mv $+{name}$+{type} $+{name}-all$ext"; }
 move("$workdir/$+{name}$+{type}", "$imageDir/$+{name}-all$ext")
 or die "* Error!!: Couldn't be renamed $+{name}$+{type} to $imageDir/$+{name}-all$ext";
 
 if ($gray) { # If option gray
     say "Moving and renaming $+{name}-$tmp.pdf [grayscale]";
+    if ($verbose){
+        say "Running: $opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf"; }
+    else {
+        print "* Running: $::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
+        print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
+        say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf"; # fake
+    }
     $status = qx{$opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf};
     if ($? == -1) { die sprintf "* Error!!: $opt_gs_dev{gray} failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: $opt_gs_dev{gray} died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_gs_dev{gray} with error code %d!\n", $? >> 8;}
-    else {
-    print "* Running: $::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
-    print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
-    say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf";} # fake
+    if ($verbose){ print "$status"; }
     move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-$tmp.pdf")
 } else {
     say "Moving and renaming $+{name}-$tmp.pdf";
-    say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf";
+    if ($verbose){say "* Running: mv $workdir/$+{name}-$tmp.pdf $tempDir/$+{name}-all.pdf";}
+    else { say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf"; }
     move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-all.pdf")
     or die "* Error!!: Couldn't be renamed $+{name}-$tmp.pdf to $tempDir/$+{name}-all.pdf";
 }
 
 if ($crop) { # Crop generated file
     say "Cropping the file $+{name}-all.pdf";
-    $status = qx{pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf $silence};
+    if ($verbose){ say "* Running: pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf"; }
+    else { say "* Running: pdfcrop $opt_crop"; }
+    $status = qx{pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf};
     if ($? == -1) { die sprintf "* Error!!: pdfcrop failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: pdfcrop died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: pdfcrop exited with error code %d!\n", $? >> 8;}
-    else { say "* Running: pdfcrop $opt_crop"; }
+    if ($verbose){ print "$status"; }
             }
         } # close if m/.../
     } # close while
@@ -1586,11 +1602,13 @@ while (readdir $DIR) {
 if (/(?<name>$name-$prefix(-exa)?)(?<type>-all\.pdf)/) {
 for my $var (qw(pdf png jpg bmp tif)) {
     if (defined $opts_cmd{$var}) {
+    if ($verbose){ say "* Running [$var]: $opt_gs_dev{$var} -o $workdir/$imageDir/$+{name}-%1d.$var $tempDir/$+{name}$+{type}"; }
+    else { print "* Running: $opt_gs_dev{$var} \r\n"; }
     $status = qx{$opt_gs_dev{$var} -o $workdir/$imageDir/$+{name}-%1d.$var $tempDir/$+{name}$+{type}};
     if ($? == -1) { die sprintf "* Error!!: $opt_gs_dev{$var} failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: $opt_gs_dev{$var} died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_gs_dev{$var} exited with error code %d!\n", $? >> 8;}
-    else { print "* Running: $opt_gs_dev{$var} [$var]\r\n"; }
+    if ($verbose){ print "$status"; }
        }
     }
 }
@@ -1598,34 +1616,43 @@ for my $var (qw(pdf png jpg bmp tif)) {
 if (/(?<name>$name-$prefix-exa)(?<type>-all\.pdf)/) { # pst-exa package
 for my $var (qw(eps ppm svg)) {
     if (defined $opts_cmd{$var}) {
-    for (my $epsNo = 1; $epsNo <= $exaNo; $epsNo++) {
-    $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
-    if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
-    elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
-    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
-           }
-         print "* Running: $opt_poppler{$var} [$var]\r\n";
+        for (my $epsNo = 1; $epsNo <= $exaNo; $epsNo++) {
+            if ($verbose){
+                print "* Running [$var]: $opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var\r\n";
+            }
+            $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
+            if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
+            elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
+            elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
+            if ($verbose){ print "$status"; }
         }
+    if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
     }
+  }
 }
 if (/(?<name>$name-$prefix)(?<type>-all\.pdf)/) {
 for my $var (qw(eps ppm svg)) {
     if (defined $opts_cmd{$var}) {
-    for (my $epsNo = 1; $epsNo <= $envNo; $epsNo++) {
-    $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
-    if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
-    elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
-    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
-           }
-        print "* Running: $opt_poppler{$var} [$var]\r\n";
+        for (my $epsNo = 1; $epsNo <= $envNo; $epsNo++) {
+            if ($verbose){
+                print "* Running [$var]: $opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var\r\n";
+            }
+        $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
+        if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
+        elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
+        elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
+        if ($verbose){ print "$status"; }
         }
+    if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
     }
+  }
 }
 } # close while
 closedir $DIR;
 
 # Renaming PPM image files
 if (defined $opts_cmd{ppm}) {
+    if ($verbose){ say "Renaming PPM image files"; }
     opendir(my $DIR, $imageDir);
         while (readdir $DIR) {
             if (/(?<name>$name-fig(-exa)?-\d+\.ppm)(?<sep>-\d+)(?<ppm>\.ppm)/) {
@@ -1818,33 +1845,42 @@ $msg_compiler = "pdflatex" if $latex;
 
 say "Compiling the file $output$ext using $msg_compiler";
 
-my $status = qx{$compiler $output$ext $silence};
+if ($verbose){ say "* Running: $compiler $output$ext"; }
+else{ say "* Running: $compiler"; }
+my $status = qx{$compiler $output$ext};
 if ($? == -1) { die sprintf "* Error!!: $compiler failed to execute (%s)!\n", exterr; }
 elsif ($? & 127) { die sprintf  "* Error!!: $compiler died with signal %d!\n",($? & 127); }
 elsif ($? != 0 ) {  die sprintf "* Error!!: $compiler exited with error code %d!\n", $? >> 8;}
-else { say "* Running: $compiler"; }
+if ($verbose){ print "$status"; }
 
 # Compiling output file using latex>dvips>ps2pdf
 if ($dvips) {
-    $status = qx{dvips -q -Ppdf $output.dvi};
+    if ($verbose){ say "* Running: dvips $quiet -Ppdf $output.dvi"; }
+    else { say "* Running: dvips $quiet -Ppdf"; }
+    $status = qx{dvips $quiet -Ppdf $output.dvi};
     if ($? == -1) { die sprintf "* Error!!: dvips failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: dvips died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: dvips exited with error code %d!\n", $? >> 8;}
-    else { say "* Running: dvips -q -Ppdf"; }
-    $status = qx{ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf};
+    if ($verbose){ print "$status"; }
+
+    if ($verbose){ say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps $output.pdf"; }
+    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
+    $status = qx{ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps $output.pdf};
     if ($? == -1) { die sprintf "* Error!!: ps2pdf failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: ps2pdf died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: ps2pdf exited with error code %d!\n", $? >> 8;}
-    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
+    if ($verbose){ print "$status"; }
 }
 
 # Compiling output file using latex>dvipdfmx
 if ($dvipdf) {
-    $status = qx{dvipdfmx -q $output.dvi};
+    if ($verbose){ say "* Running: dvipdfmx $quiet $output.dvi"; }
+    else { say "* Running: dvipdfmx $quiet"; }
+    $status = qx{dvipdfmx $quiet $output.dvi};
     if ($? == -1) { die sprintf "* Error!!: dvipdfmx failed to execute (%s)!\n", exterr; }
     elsif ($? & 127) { die sprintf  "* Error!!: dvipdfmx died with signal %d!\n",($? & 127); }
     elsif ($? != 0 ) {  die sprintf "* Error!!: dvipdfmx exited with error code %d!\n", $? >> 8;}
-    else { say "* Running: dvipdfmx -q"; }
+    if ($verbose){ print "$status"; }
     }
   } # close run
 } # close outfile file
