@@ -82,6 +82,7 @@ my $PSTexa   = 0;          # extract PSTexample environments
 my $STDenv   = 0;          # extract standart environments
 my $verbose  = 0;          # verbose
 my $gscmd;                 # ghostscript command name
+my $debug;                 # debug
 
 ### Program identification, options and help for command line
 my $licensetxt = <<END_LICENSE ;
@@ -244,8 +245,8 @@ my $result=GetOptions (
     'pdf!'           => \$pdf,     # no pdf image format
     'clean=s{1}'     => \@clean,   # clean output file
     'run!'           => \$run,     # no run compiler
-    'debug!',                      # debug mode
-    'verbose!'       => \$verbose, # verbose mode,
+    'debug!'         => \$debug,   # debug mode
+    'verbose!'       => \$verbose, # verbose mode
     ) or die usage(0);
 
 ### Help
@@ -331,7 +332,7 @@ $archname = 'unknown' unless defined $Config{'archname'};
 # Get ghostscript command name
 sub find_ghostscript () {
     return if $gscmd;
-    if ($::opt_debug) {
+    if ($debug) {
         print "* Perl executable: $^X\n";
         if ($] < 5.006) {
             print "* Perl version: $]\n";
@@ -355,9 +356,9 @@ sub find_ghostscript () {
     $system = "cygwin" if $^O =~ /cygwin/i;
     $system = "miktex" if defined($ENV{"TEXSYSTEM"}) and
                           $ENV{"TEXSYSTEM"} =~ /miktex/i;
-    print "* OS name: $^O\n" if $::opt_debug;
-    print "* Arch name: $archname\n" if $::opt_debug;
-    print "* System: $system\n" if $::opt_debug;
+    print "* OS name: $^O\n" if $debug;
+    print "* Arch name: $archname\n" if $debug;
+    print "* System: $system\n" if $debug;
     my %candidates = (
         'unix' => [qw|gs gsc|],
         'dos' => [qw|gs386 gs|],
@@ -395,10 +396,10 @@ sub find_ghostscript () {
             if (-x $file) {
                 $gscmd = $candidate;
                 $found = 1;
-                print "* Found ($candidate): $file\n" if $::opt_debug;
+                print "* Found ($candidate): $file\n" if $debug;
                 last;
             }
-            print "* Not found ($candidate): $file\n" if $::opt_debug;
+            print "* Not found ($candidate): $file\n" if $debug;
         }
         last if $found;
     }
@@ -406,11 +407,11 @@ sub find_ghostscript () {
         $found = SearchRegistry();
     }
     if ($found) {
-        print "* Autodetected ghostscript command: $gscmd\n" if $::opt_debug;
+        print "* Autodetected ghostscript command: $gscmd\n" if $debug;
     }
     else {
         $gscmd = $$candidates_ref[0];
-        print "* Default ghostscript command: $gscmd\n" if $::opt_debug;
+        print "* Default ghostscript command: $gscmd\n" if $debug;
     }
 }
 
@@ -418,7 +419,7 @@ sub SearchRegistry () {
     my $found = 0;
     eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|;';
     if ($@) {
-        if ($::opt_debug) {
+        if ($debug) {
             print "* Registry lookup for Ghostscript failed:\n";
             my $msg = $@;
             $msg =~ s/\s+$//;
@@ -434,24 +435,24 @@ sub SearchRegistry () {
     my $software = new Win32::TieRegistry $current_key, $open_params;
     if (not $software) {
         print "* Cannot find or access registry key `$current_key'!\n"
-                if $::opt_debug;
+                if $debug;
         return $found;
     }
-    print "* Search registry at `$current_key'.\n" if $::opt_debug;
+    print "* Search registry at `$current_key'.\n" if $debug;
     my %list;
     foreach my $key_name_gs (grep /Ghostscript/i, $software->SubKeyNames()) {
         $current_key = "$key_name_software$key_name_gs/";
-        print "* Registry entry found: $current_key\n" if $::opt_debug;
+        print "* Registry entry found: $current_key\n" if $debug;
         my $key_gs = $software->Open($key_name_gs, $open_params);
         if (not $key_gs) {
-            print "* Cannot open registry key `$current_key'!\n" if $::opt_debug;
+            print "* Cannot open registry key `$current_key'!\n" if $debug;
             next;
         }
         foreach my $key_name_version ($key_gs->SubKeyNames()) {
             $current_key = "$key_name_software$key_name_gs/$key_name_version/";
-            print "* Registry entry found: $current_key\n" if $::opt_debug;
+            print "* Registry entry found: $current_key\n" if $debug;
             if (not $key_name_version =~ /^(\d+)\.(\d+)$/) {
-                print "  The sub key is not a version number!\n" if $::opt_debug;
+                print "  The sub key is not a version number!\n" if $debug;
                 next;
             }
             my $version_main = $1;
@@ -459,13 +460,13 @@ sub SearchRegistry () {
             $current_key = "$key_name_software$key_name_gs/$key_name_version/";
             my $key_version = $key_gs->Open($key_name_version, $open_params);
             if (not $key_version) {
-                print "* Cannot open registry key `$current_key'!\n" if $::opt_debug;
+                print "* Cannot open registry key `$current_key'!\n" if $debug;
                 next;
             }
             $key_version->FixSzNulls(1);
             my ($value, $type) = $key_version->GetValue('GS_DLL');
             if ($value and $type == REG_SZ()) {
-                print "  GS_DLL = $value\n" if $::opt_debug;
+                print "  GS_DLL = $value\n" if $debug;
                 $value =~ s|([\\/])([^\\/]+\.dll)$|$1gswin32c.exe|i;
                 my $value64 = $value;
                 $value64 =~ s/gswin32c\.exe$/gswin64c.exe/;
@@ -473,10 +474,10 @@ sub SearchRegistry () {
                     $value = $value64;
                 }
                 if (-f $value) {
-                    print "EXE found: $value\n" if $::opt_debug;
+                    print "EXE found: $value\n" if $debug;
                 }
                 else {
-                    print "EXE not found!\n" if $::opt_debug;
+                    print "EXE not found!\n" if $debug;
                     next;
                 }
                 my $sortkey = sprintf '%02d.%03d %s',
@@ -484,13 +485,13 @@ sub SearchRegistry () {
                 $list{$sortkey} = $value;
             }
             else {
-                print "Missing key `GS_DLL' with type `REG_SZ'!\n" if $::opt_debug;
+                print "Missing key `GS_DLL' with type `REG_SZ'!\n" if $debug;
             }
         }
     }
     foreach my $entry (reverse sort keys %list) {
         $gscmd = $list{$entry};
-        print "* Found (via registry): $gscmd\n" if $::opt_debug;
+        print "* Found (via registry): $gscmd\n" if $debug;
         $found = 1;
         last;
     }
