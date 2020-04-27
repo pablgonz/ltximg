@@ -81,6 +81,7 @@ my $outsrc   = 0;          # enable write src env files
 my $PSTexa   = 0;          # extract PSTexample environments
 my $STDenv   = 0;          # extract standart environments
 my $verbose  = 0;          # verbose
+my $gscmd;                 # ghostscript command name
 
 ### Program identification, options and help for command line
 my $licensetxt = <<END_LICENSE ;
@@ -129,10 +130,10 @@ ${title}** Description **
 -h, --help            Display command line help and exit            [off]
 -l, --license         Display GPL license and exit                  [off]
 -v, --version         Display current version ($nv) and exit       [off]
--t, --tif             Create .tif files using ghostscript           [$::gscmd]
--b, --bmp             Create .bmp files using ghostscript           [$::gscmd]
--j, --jpg             Create .jpg files using ghostscript           [$::gscmd]
--p, --png             Create .png files using ghostscript           [$::gscmd]
+-t, --tif             Create .tif files using ghostscript           [$gscmd]
+-b, --bmp             Create .bmp files using ghostscript           [$gscmd]
+-j, --jpg             Create .jpg files using ghostscript           [$gscmd]
+-p, --png             Create .png files using ghostscript           [$gscmd]
 -e, --eps             Create .eps files using poppler-utils         [pdftops]
 -s, --svg             Create .svg files using poppler-utils         [pdftocairo]
 -P, --ppm             Create .ppm files using poppler-utils         [pdftoppm]
@@ -328,9 +329,8 @@ my $archname = $Config{'archname'};
 $archname = 'unknown' unless defined $Config{'archname'};
 
 # Get ghostscript command name
-$::gscmd = '';
 sub find_ghostscript () {
-    return if $::gscmd;
+    return if $gscmd;
     if ($::opt_debug) {
         print "* Perl executable: $^X\n";
         if ($] < 5.006) {
@@ -393,7 +393,7 @@ sub find_ghostscript () {
         foreach my $dir (@path) {
             my $file = File::Spec->catfile($dir, "$candidate$exe");
             if (-x $file) {
-                $::gscmd = $candidate;
+                $gscmd = $candidate;
                 $found = 1;
                 print "* Found ($candidate): $file\n" if $::opt_debug;
                 last;
@@ -406,11 +406,11 @@ sub find_ghostscript () {
         $found = SearchRegistry();
     }
     if ($found) {
-        print "* Autodetected ghostscript command: $::gscmd\n" if $::opt_debug;
+        print "* Autodetected ghostscript command: $gscmd\n" if $::opt_debug;
     }
     else {
-        $::gscmd = $$candidates_ref[0];
-        print "* Default ghostscript command: $::gscmd\n" if $::opt_debug;
+        $gscmd = $$candidates_ref[0];
+        print "* Default ghostscript command: $gscmd\n" if $::opt_debug;
     }
 }
 
@@ -489,8 +489,8 @@ sub SearchRegistry () {
         }
     }
     foreach my $entry (reverse sort keys %list) {
-        $::gscmd = $list{$entry};
-        print "* Found (via registry): $::gscmd\n" if $::opt_debug;
+        $gscmd = $list{$entry};
+        print "* Found (via registry): $gscmd\n" if $::opt_debug;
         $found = 1;
         last;
     }
@@ -501,7 +501,7 @@ sub SearchRegistry () {
 find_ghostscript();
 
 ### If windows
-if ($Win and $::gscmd =~ /\s/) { $::gscmd = "\"$::gscmd\"";}
+if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
 
 ### Funtion uniq
 sub uniq {
@@ -1480,12 +1480,12 @@ my $msg_compiler = $xetex  ? 'xelatex'
 
 ### Options for ghostscript in command line
 my %opt_gs_dev = (
-   pdf  => "$::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress",
-   gray => "$::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray",
-   png  => "$::gscmd $quiet -dNOSAFER -sDEVICE=pngalpha -r$DPI",
-   bmp  => "$::gscmd $quiet -dNOSAFER -sDEVICE=bmp32b -r$DPI",
-   jpg  => "$::gscmd $quiet -dNOSAFER -sDEVICE=jpeg -r$DPI -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
-   tif  => "$::gscmd $quiet -dNOSAFER -sDEVICE=tiff32nc -r$DPI",
+   pdf  => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress",
+   gray => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray",
+   png  => "$gscmd $quiet -dNOSAFER -sDEVICE=pngalpha -r$DPI",
+   bmp  => "$gscmd $quiet -dNOSAFER -sDEVICE=bmp32b -r$DPI",
+   jpg  => "$gscmd $quiet -dNOSAFER -sDEVICE=jpeg -r$DPI -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
+   tif  => "$gscmd $quiet -dNOSAFER -sDEVICE=tiff32nc -r$DPI",
    );
 
 ### Options for poppler-utils in command line
@@ -1555,7 +1555,7 @@ if ($gray) { # If option gray
     if ($verbose){
         say "Running: $opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf"; }
     else {
-        print "* Running: $::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
+        print "* Running: $gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
         print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
         say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf"; # fake
     }
