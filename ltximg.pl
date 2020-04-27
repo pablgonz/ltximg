@@ -33,6 +33,18 @@ my $title = "$program $nv $copyright";
 ### Error in command line
 sub errorUsage { die "@_ (run ltximg --help for more information)\n"; }
 
+### Extended error messages
+sub exterr () {
+    chomp(my $msg_errno = $!);
+    chomp(my $msg_extended_os_error = $^E);
+    if ($msg_errno eq $msg_extended_os_error) {
+        $msg_errno;
+    }
+    else {
+        "$msg_errno/$msg_extended_os_error";
+    }
+}
+
 ### Default values
 my $prefix   = 'fig';      # defaul prefix for extract files
 my $skiptag  = 'noltximg'; # internal tag for regex
@@ -286,11 +298,6 @@ if (grep( /(^\-|^\.).*?/, @delt_env_tmp )) {
 
 ### Set tmp random name for name-fig-tmp (temp files)
 my $tmp = "$$";
-
-### Check --srcenv and --subenv option from command line
-if ($srcenv && $subenv) {
-    die errorUsage "* Error!!: --srcenv and --subenv options are mutually exclusive";
-}
 
 ### Check the input file from command line
 @ARGV > 0 or errorUsage "* Error!!: Input filename missing";
@@ -1220,8 +1227,22 @@ my $EP = '\\\\end\{preview\}';
 my @env_extract = $bodydoc =~ m/\\begin\{PSTexample\}.+?\\end\{PSTexample\}(*SKIP)(*F)|(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
-### Command line identification message
-print "$title";
+### Append image format options
+$opts_cmd{pdf} = 'pdf' if $pdf;                        # ghostscript
+$opts_cmd{eps} = 1 if exists $opts_file{options}{eps}; # pdftops
+$opts_cmd{ppm} = 1 if exists $opts_file{options}{ppm}; # pdftoppm
+$opts_cmd{svg} = 1 if exists $opts_file{options}{svg}; # pdftocairo
+$opts_cmd{png} = 1 if exists $opts_file{options}{png}; # ghostscript
+$opts_cmd{jpg} = 1 if exists $opts_file{options}{jpg}; # ghostscript
+$opts_cmd{bmp} = 1 if exists $opts_file{options}{bmp}; # ghostscript
+$opts_cmd{tif} = 1 if exists $opts_file{options}{tif}; # ghostscript
+
+### Suported format
+my %format = (%opts_cmd);
+my $format = join ", ",grep { defined $format{$_} } keys %format;
+if ($run and $format eq "") {
+    die errorUsage "* Error!!: --nopdf need --norun or an image option";
+}
 
 ### Set output file name from input file
 if (exists $opts_file{options}{output}){
@@ -1246,6 +1267,11 @@ if ($output =~ /.*?$ext/) { $output =~ s/(.+?)$ext/$1/gms;}
 
 ### If output name are ok, then $outfile = 1
 if (defined($output)) { $outfile = 1; }
+
+### Check --srcenv and --subenv option from command line
+if ($srcenv && $subenv) {
+    die errorUsage "* Error!!: --srcenv and --subenv options are mutually exclusive";
+}
 
 ### If --srcenv or --subenv option are OK then execute script
 if ($srcenv) { $outsrc = 1; $subenv = 0; }
@@ -1274,7 +1300,11 @@ if (exists $opts_file{options}{dpi}) {
 ### Check if enviroment(s) found in input file
 if ($envNo == 0 and $exaNo == 0) {
     die errorUsage "* Error!!: ltximg can not find any environment to extract in file $name$ext";}
-elsif ($envNo!= 0 and $exaNo!= 0) {
+
+### Command line identification message
+print "$title";
+
+if ($envNo!= 0 and $exaNo!= 0) {
     say "Found $envNo standard environment and $exaNo PSTexample environment to extract"; }
 elsif ($envNo == 0 and $exaNo!= 0) {
     say "Found $exaNo PSTexample environment to extract"; }
@@ -1285,7 +1315,6 @@ else  { say "Found $envNo standard environment to extract"; }
 
 ### Check if standart environment found, , 1 = run script
 if ($envNo!=0) { $STDenv=1; }
-
 
 ### Options for \pagestyle{empty} ($crop)
 my $opt_page = $crop ? "\n\\pagestyle\{empty\}\n\\begin\{document\}"
@@ -1479,78 +1508,74 @@ opendir(my $DIR, $workdir);
 while (readdir $DIR) {
 if (/(?<name>$name-$prefix(-exa)?)(?<type>-$tmp$ext)/) { # Compiler generate file(s)
     say "Compiling file using $msg_compiler";
-    $status = system("$compiler $+{name}$+{type} $silence");
-    if ($status != 0) {
-      die sprintf "* Error!!: $compiler $+{name}$+{type} failed with value %d!\n",($? >> 8); }
+    $status = qx{$compiler $+{name}$+{type} $silence};
+    if ($? == -1) { die sprintf "* Error!!: $compiler failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: $compiler died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: $compiler with error code %d!\n", $? >> 8;}
     else { say "* Running: $compiler"; }
 
 if ($dvips or $latex) { # Compiling file using latex>dvips>ps2pdf
-    $status = system("dvips -q -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi");
-    if ($status != 0) {
-      die sprintf "* Error!!: dvips -q -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi failed with value %d!\n",($? >> 8); }
+    $status = qx{dvips -q -Ppdf -o $+{name}-$tmp.ps $+{name}-$tmp.dvi};
+    if ($? == -1) { die sprintf "* Error!!: dvips failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: dvips died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: dvips with error code %d!\n", $? >> 8;}
     else { say "* Running: dvips -q -Ppdf"; }
-    $status = system("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $+{name}-$tmp.ps  $+{name}-$tmp.pdf");
-    if ($status != 0) {
-      die sprintf "* Error!!: ps2pdf  -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $+{name}-$tmp.ps  $+{name}-$tmp.pdf failed with value %d!\n",($? >> 8); }
+    $status = qx{ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $+{name}-$tmp.ps  $+{name}-$tmp.pdf};
+    if ($? == -1) { die sprintf "* Error!!: ps2pdf failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: ps2pdf died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: ps2pdf with error code %d!\n", $? >> 8;}
     else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
 }
 
 if ($dvipdf) { # Compiling file using latex>dvipdfmx
-    $status = system("dvipdfmx -q $+{name}-$tmp.dvi");
-    if ($status != 0) {
-      die sprintf "* Error!!: dvipdfmx -q $+{name}-$tmp.dvi failed with value %d!\n",($? >> 8); }
+    $status = qx{dvipdfmx -q $+{name}-$tmp.dvi};
+    if ($? == -1) { die sprintf "* Error!!: dvipdfmx failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: dvipdfmx died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: dvipdfmx with error code %d!\n", $? >> 8;}
     else { say "* Running: dvipdfmx -q"; }
 }
 
 # Move tmp-rand.tex file whit all src code for environments to /images
-say "Moving and renaming generated file(s)";
+say "Moving and renaming $+{name}$+{type}";
 say "* Running: mv $+{name}$+{type} $+{name}-all$ext";
 move("$workdir/$+{name}$+{type}", "$imageDir/$+{name}-all$ext")
 or die "* Error!!: Couldn't be renamed $+{name}$+{type} to $imageDir/$+{name}-all$ext";
 
 if ($gray) { # If option gray
-    say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf [gray scale]";
-    $status = system("$opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf");
-    if ($status != 0) {
-       die sprintf "* Error!!: $opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf failed with value %d!\n",($? >> 8);
-      }
-    }
+    say "Moving and renaming $+{name}-$tmp.pdf [grayscale]";
+    $status = qx{$opt_gs_dev{gray} -o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf};
+    if ($? == -1) { die sprintf "* Error!!: $opt_gs_dev{gray} failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: $opt_gs_dev{gray} died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_gs_dev{gray} with error code %d!\n", $? >> 8;}
     else {
-      say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf";
-      move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-all.pdf")
-      or die "* Error!!: Couldn't be renamed $+{name}-$tmp.pdf to $tempDir/$+{name}-all.pdf";
-    }
+    print "* Running: $::gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
+    print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
+    say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf";} # fake
+    move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-$tmp.pdf")
+} else {
+    say "Moving and renaming $+{name}-$tmp.pdf";
+    say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf";
+    move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-all.pdf")
+    or die "* Error!!: Couldn't be renamed $+{name}-$tmp.pdf to $tempDir/$+{name}-all.pdf";
+}
 
 if ($crop) { # Crop generated file
     say "Cropping the file $+{name}-all.pdf";
-    $status = system("pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf $silence");
-    if ($status != 0) {
-      die sprintf "* Error!!: pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf failed with value %d!\n",($? >> 8); }
+    $status = qx{pdfcrop $opt_crop $tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf $silence};
+    if ($? == -1) { die sprintf "* Error!!: pdfcrop failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: pdfcrop died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: pdfcrop exited with error code %d!\n", $? >> 8;}
     else { say "* Running: pdfcrop $opt_crop"; }
-}
-} # close if m/.../
-} # close while
+            }
+        } # close if m/.../
+    } # close while
 closedir $DIR;
 } # close run
-
-### Append image format options
-$opts_cmd{pdf} = 'pdf' if $pdf;                        # ghostscript
-$opts_cmd{eps} = 1 if exists $opts_file{options}{eps}; # pdftops
-$opts_cmd{ppm} = 1 if exists $opts_file{options}{ppm}; # pdftoppm
-$opts_cmd{svg} = 1 if exists $opts_file{options}{svg}; # pdftocairo
-$opts_cmd{png} = 1 if exists $opts_file{options}{png}; # ghostscript
-$opts_cmd{jpg} = 1 if exists $opts_file{options}{jpg}; # ghostscript
-$opts_cmd{bmp} = 1 if exists $opts_file{options}{bmp}; # ghostscript
-$opts_cmd{tif} = 1 if exists $opts_file{options}{tif}; # ghostscript
-
-### Suported format
-my %format = (%opts_cmd);
-my $format = join " ",grep { defined $format{$_} } keys %format;
 
 ### Create image formats in separate files
 if ($run) {
 if ($envNo!= 0 and $exaNo!= 0) {
-    say "Creating image(s) from $name-$prefix-all.pdf and $name-$prefix-exa-all.pdf";}
+    say "Creating image(s) from $name-$prefix-all.pdf and $name-$prefix-exa-all.pdf"; }
 elsif ($envNo == 0 and $exaNo!= 0) {
     say "Creating image(s) from $name-$prefix-exa-all.pdf"; }
 else { say "Creating image(s) from $name-$prefix-all.pdf"; }
@@ -1561,9 +1586,10 @@ while (readdir $DIR) {
 if (/(?<name>$name-$prefix(-exa)?)(?<type>-all\.pdf)/) {
 for my $var (qw(pdf png jpg bmp tif)) {
     if (defined $opts_cmd{$var}) {
-    $status = system("$opt_gs_dev{$var} -o $workdir/$imageDir/$+{name}-%1d.$var $tempDir/$+{name}$+{type}");
-    if ($status != 0) {
-      die sprintf "* Error!!: $opt_gs_dev{$var} failed with value %d!\n",($? >> 8); }
+    $status = qx{$opt_gs_dev{$var} -o $workdir/$imageDir/$+{name}-%1d.$var $tempDir/$+{name}$+{type}};
+    if ($? == -1) { die sprintf "* Error!!: $opt_gs_dev{$var} failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: $opt_gs_dev{$var} died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_gs_dev{$var} exited with error code %d!\n", $? >> 8;}
     else { print "* Running: $opt_gs_dev{$var} [$var]\r\n"; }
        }
     }
@@ -1573,10 +1599,12 @@ if (/(?<name>$name-$prefix-exa)(?<type>-all\.pdf)/) { # pst-exa package
 for my $var (qw(eps ppm svg)) {
     if (defined $opts_cmd{$var}) {
     for (my $epsNo = 1; $epsNo <= $exaNo; $epsNo++) {
-    my $status = system("$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var");
-    if ($status != 0) { die sprintf "* Error!!: $opt_poppler{$var} failed with value %d!\n",($? >> 8); }
-       } # close for C style
-    print "* Running: $opt_poppler{$var} [$var]\r\n";
+    $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
+    if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
+           }
+         print "* Running: $opt_poppler{$var} [$var]\r\n";
         }
     }
 }
@@ -1584,12 +1612,14 @@ if (/(?<name>$name-$prefix)(?<type>-all\.pdf)/) {
 for my $var (qw(eps ppm svg)) {
     if (defined $opts_cmd{$var}) {
     for (my $epsNo = 1; $epsNo <= $envNo; $epsNo++) {
-    my $status = system("$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var");
-    if ($status != 0) { die sprintf "* Error!!: $opt_poppler{$var} failed with value %d!\n",($? >> 8); }
-         } # close for C style
-    print "* Running: $opt_poppler{$var} [$var]\r\n";
-      }
-   }
+    $status = qx{$opt_poppler{$var} -f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var};
+    if ($? == -1) { die sprintf "* Error!!: $opt_poppler{$var} failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: $opt_poppler{$var} died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: $opt_poppler{$var} exited with error code %d!\n", $? >> 8;}
+           }
+        print "* Running: $opt_poppler{$var} [$var]\r\n";
+        }
+    }
 }
 } # close while
 closedir $DIR;
@@ -1628,7 +1658,7 @@ foreach (@findgraphicx) { s/.+?(graphicx\.sty)\s+|\s+$/$1/g; }
 
 ### Create a output file
 if ($outfile) {
-say "Creating the file $output$ext in $workdir";
+say "Creating the file $output$ext";
 
 ### Convert extracted environments to \includegraphics
 my $grap  =  "\\includegraphics[scale=1]{$name-$prefix-";
@@ -1782,38 +1812,72 @@ close $OUTfile;
 
 ### Process the output file
 if ($run) {
-### Set correct $compiler, if input use  latex then output use pdflatex
+# Set correct $compiler, if input use  latex then output use pdflatex
 $compiler     = "pdflatex $opt_compiler" if $latex;
 $msg_compiler = "pdflatex" if $latex;
 
 say "Compiling the file $output$ext using $msg_compiler";
 
-my $status= system("$compiler $output$ext $silence");
-if ($status != 0) {
-    die sprintf "* Error!!: $compiler failed with value %d!\n",($? >> 8); }
+my $status = qx{$compiler $output$ext $silence};
+if ($? == -1) { die sprintf "* Error!!: $compiler failed to execute (%s)!\n", exterr; }
+elsif ($? & 127) { die sprintf  "* Error!!: $compiler died with signal %d!\n",($? & 127); }
+elsif ($? != 0 ) {  die sprintf "* Error!!: $compiler exited with error code %d!\n", $? >> 8;}
 else { say "* Running: $compiler"; }
 
-### Compiling output file using latex>dvips>ps2pdf
+# Compiling output file using latex>dvips>ps2pdf
 if ($dvips) {
-    $status = system("dvips -q -Ppdf $output.dvi");
-    if ($status != 0) {
-      die sprintf "* Error!!: dvips -q -Ppdf $output.dvi failed with value %d!\n",($? >> 8); }
-    else { say "* Running: dvips -q -Ppdf $output.dvi"; }
-    $status = system("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf");
-    if ($status != 0) {
-      die sprintf "* Error!!: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf failed with value %d!\n",($? >> 8); }
-    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf"; }
+    $status = qx{dvips -q -Ppdf $output.dvi};
+    if ($? == -1) { die sprintf "* Error!!: dvips failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: dvips died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: dvips exited with error code %d!\n", $? >> 8;}
+    else { say "* Running: dvips -q -Ppdf"; }
+    $status = qx{ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None $output.ps  $output.pdf};
+    if ($? == -1) { die sprintf "* Error!!: ps2pdf failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: ps2pdf died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: ps2pdf exited with error code %d!\n", $? >> 8;}
+    else { say "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None"; }
 }
 
-### Compiling output file using latex>dvipdfmx
+# Compiling output file using latex>dvipdfmx
 if ($dvipdf) {
-    $status = system("dvipdfmx -q $output.dvi");
-    if ($status != 0) {
-       die sprintf "* Error!!: dvipdfmx -q $output.dvi failed with value %d!\n",($? >> 8); }
-    else { say "* Running: dvipdfmx -q $output.dvi"; }
+    $status = qx{dvipdfmx -q $output.dvi};
+    if ($? == -1) { die sprintf "* Error!!: dvipdfmx failed to execute (%s)!\n", exterr; }
+    elsif ($? & 127) { die sprintf  "* Error!!: dvipdfmx died with signal %d!\n",($? & 127); }
+    elsif ($? != 0 ) {  die sprintf "* Error!!: dvipdfmx exited with error code %d!\n", $? >> 8;}
+    else { say "* Running: dvipdfmx -q"; }
     }
   } # close run
 } # close outfile file
+
+### Compress images dir with generated files
+my $archivetar;
+if ($zip or $tar) {
+my $stamp = strftime('%Y-%m-%d', localtime);
+$archivetar = "$imageDir-$stamp";
+
+my @savetozt;
+find(\&zip_tar, $imageDir);
+sub zip_tar{
+    my $filesto = $_;
+    if (-f $filesto && $filesto =~ m/$name-$prefix-.+?$/) { # search
+        push @savetozt, $File::Find::name;
+    }
+  }
+
+# Write compressed zip file
+if ($zip) {
+    say "Creating $archivetar.zip";
+    zip \@savetozt => "$archivetar.zip";
+  }
+
+# Write compressed tar.gz file
+if ($tar) {
+    say "Creating $archivetar.tar.gz";
+    my $imgdirtar = Archive::Tar->new();
+    $imgdirtar->add_files( @savetozt );
+    $imgdirtar->write( "$archivetar.tar.gz" , 9 );
+  }
+} #close compress
 
 ### Remove temporary files
 if ($run) {
@@ -1847,37 +1911,23 @@ my @delfiles = array_minus(@tmpfiles, @protected);
 foreach my $tmpfile (@delfiles) { move("$tmpfile", "$tempDir"); }
 } # close clean tmp files
 
-### Compress images dir with generated files
-if ($zip or $tar) {
-my $stamp = strftime('%Y-%m-%d', localtime);
-my $archivetar = "$imageDir-$stamp";
-
-my @savetozt;
-find(\&zip_tar, $imageDir);
-sub zip_tar{
-    my $filesto = $_;
-    if (-f $filesto && $filesto =~ m/$name-$prefix-.+?$/) { # search
-        push @savetozt, $File::Find::name;
-    }
-  }
-
-# Write compressed zip file
-if ($zip) {
-    say "Creating $workdir/$archivetar.zip";
-    zip \@savetozt => "$archivetar.zip";
-  }
-
-# Write compressed tar.gz file
-if ($tar) {
-    say "Creating $workdir/$archivetar.tar.gz";
-    my $imgdirtar = Archive::Tar->new();
-    $imgdirtar->add_files( @savetozt );
-    $imgdirtar->write( "$archivetar.tar.gz" , 9 );
-  }
-} #close compress
-
 ### End of script process
-if ($run) { say "Finish, image formats: $format are in $workdir/$imageDir/"; }
-     else { say "Done"; }
+if ($run and ($srcenv or $subenv)) {
+say "The image file(s): $format and subfile(s) are in $workdir/$imageDir";}
+
+if ($run and (!$srcenv and !$subenv)) {
+say "The image file(s): $format are in $workdir/$imageDir";}
+
+if (!$run and ($srcenv or $subenv)) {
+say "The subfile(s) are in $workdir/$imageDir"; }
+
+if ($outfile) {
+say "The file: $output$ext are in $workdir";}
+
+if ($zip) {
+say "The file: $archivetar.zip are in $workdir";}
+
+if ($tar) {
+say "The file: $archivetar.tar.gz are in $workdir";}
 
 __END__
