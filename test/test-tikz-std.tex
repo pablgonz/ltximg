@@ -3,8 +3,15 @@
 % arara: ps2pdf
 % arara: clean: { extensions : [ aux, log, out, ps, dvi,listing] }
 \documentclass{article}
+%\usepackage{graphicx}
+% \tikzpicture
 \usepackage{pstricks-add}
+
 \begin{document}
+
+No tocar \verb|\begin{pspicture}| junto a \verb|\end{pspicture}| y no reemplazar
+% \tikzpicture
+%\graphicspath{
 Probando el paquete \verb|pstricks-add| junto al entorno \verb|pspicture|
 
 \begin{pspicture}(4,6)
