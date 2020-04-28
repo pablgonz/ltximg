@@ -12,6 +12,11 @@ with only extracted environments and other with environments converted to `\incl
 ```bash
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
+
+Relative or absolute `paths` for files and directories is not supported. Options that accept a value require either a blank
+space or `=` between the option and the value. Multiple short options can be bundling and if the last option takes a _comma
+separated list_ you need `--` at the end.
+
 ## Usage
 
 ```bash
@@ -22,8 +27,7 @@ $ ltximg <file.tex>
 ```
 
 If used without `[<compiler>]` and `[<options>]` the extracted environments are converted to `pdf` image format
-and saved in the `/images` directory using `pdflatex` and `preview` package. Relative or absolute `paths` for files
-and directories is not supported. If the last `[<options>]` take a *list separated by commas*, you need `--` at the end.
+and saved in the `/images` directory using `pdflatex` and `preview` package.
 
 ## Default environments extract
 
