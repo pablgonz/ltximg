@@ -57,7 +57,6 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --tar                 Compress files generated in .tar.gz format    [off]
 -o <filename>, --output <filename>
                       Create output file                            [off]
---verbose             Verbose printing                              [off]
 --srcenv              Create files whit only code environment       [off]
 --subenv              Create files whit preamble and code           [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
@@ -68,7 +67,7 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --xetex               Using xelatex for compiler input and output   [off]
 --dvipdf              Using dvipdfmx for compiler input and output  [off]
 --luatex              Using lualatex for compiler input and output  [off]
---prefix <string>     Set prefix append to each image file          [off]
+--prefix <string>     Set prefix append to each generated files     [fig]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
 --nocrop              Don't run pdfcrop                             [off]
@@ -80,6 +79,8 @@ and directories is not supported. If the last `[<options>]` take a *list separat
 --verbenv <env1,...>  Add verbatim environments                     [empty]
 --writenv <env1,...>  Add verbatim write environments               [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
+--verbose             Verbose printing                              [off]
+--debug               Debug information and write log file          [off]
 ```
 
 ## Example
@@ -93,21 +94,21 @@ $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
 ```
 
    Create a `/mypics` directory whit all extracted environments converted to
-   image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.tex`)
+   image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.ltx`)
    for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
-   and file `test-in-fig-all.tex` with only the extracted environments using
+   and file `test-in-fig-all.ltx` with only the extracted environments using
    `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
    for `<output file>`.
 
 ## Documentation
 
-   For full documentation use:
+For full documentation use:
 
 ```bash
 $ texdoc ltximg
 ```
 
-   For recreation all documentation use:
+For recreation all documentation use:
 
 ```bash
 $ arara ltximg-doc.dtx
@@ -125,8 +126,8 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2019-08-24.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-04-28.
 
 ## Copyright
 
-Copyright 2013 - 2019 by Pablo González L
+Copyright 2013 - 2020 by Pablo González L
