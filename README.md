@@ -56,7 +56,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       Dots per inch resolution for images           [150]
 -m <integer>, --margin <integer>
                       Set margins for pdfcrop                       [0]
---imgdir <dirname>    Set name of directory to save images          [images]
+--imgdir <dirname>    Set name of directory to save images/files    [images]
 --zip                 Compress files generated in .zip format       [off]
 --tar                 Compress files generated in .tar.gz format    [off]
 -o <filename>, --output <filename>
@@ -80,11 +80,11 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       Removes specific text in output file          [doc]
 --extrenv <env1,...>  Add new environments to extract               [empty]
 --skipenv <env1,...>  Skip environments to extract                  [empty]
---verbenv <env1,...>  Add verbatim environments                     [empty]
---writenv <env1,...>  Add verbatim write environments               [empty]
+--verbenv <env1,...>  Add new verbatim environments                 [empty]
+--writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
 --verbose             Verbose printing                              [off]
---debug               Debug information and write log file          [off]
+--debug               Write .log file with debug information        [off]
 ```
 
 ## Example
