@@ -1398,12 +1398,20 @@ if (defined $output) {
     if ($output =~ /(^\-|^\.).*?/) {
         die errorUsage "* Error!!: $output it is not a valid name for output file";
     }
-    # The name of the output file must be different that $name
-    if ($output eq "$name") { $output = "$name-out$ext"; }
-    # The name of the output file must be different that $name.ext
-    if ($output eq "$name$ext") { $output = "$name-out$ext"; }
-    # Remove .ltx or .tex extension
-    if ($output =~ /.*?$ext/) { $output =~ s/(.+?)$ext/$1/gms;}
+    if ($output eq "$name") {
+        Log("The name of the output file must be different that $name");
+        Log("Rename output file to $name-out");
+        $output = "$name-out$ext";
+    }
+    if ($output eq "$name$ext") {
+        Log("The name of the output file must be different that $name$ext");
+        Log("Rename output file to $name-out$ext");
+        $output = "$name-out$ext";
+    }
+    if ($output =~ /.*?$ext/) {
+        Log("Remove extension of the output file");
+        $output =~ s/(.+?)$ext/$1/gms;
+    }
 }
 
 ### If output name are ok, then $outfile = 1
@@ -1467,16 +1475,104 @@ my $opt_page = $crop ? "\n\\pagestyle\{empty\}\n\\begin\{document\}"
 ### Add options to preamble for subfiles
 my $sub_prea = "$atbegindoc$preamble$opt_page";
 
-Log('Delete <*remove> ... </remove> tags in preamble');
+Log('Delete <*remove> ... </remove> tags in preamble for subfiles');
 $sub_prea =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
 
-### Options for preview packpage
-my $opt_prew = $xetex ? 'xetex,'
-             : $latex ? ''
-             : $dvips ? ''
-             : $arara ? ''
-             :          'pdftex,'
+### Define --shell-escape for TeXLive and MikTeX
+my $write18 = '-shell-escape'; # TeXLive
+$write18 = '-enable-write18' if defined($ENV{"TEXSYSTEM"}) and $ENV{"TEXSYSTEM"} =~ /miktex/i;
+
+### Define --interaction=mode for compilers
+my $opt_compiler = $verbose ? "$write18 -interaction=nonstopmode -recorder"
+                 :            "$write18 -interaction=batchmode -recorder"
+                 ;
+
+### Append -q for system command line (gs, poppler-utils, dvipsm dvipdfmx)
+my $quiet = $verbose ? ''
+          :            '-q'
+          ;
+
+### Capture araracompiler write names in input file
+if ($arara) {
+    Log('Capturing compiler for arara');
+    my $arararx = qr/^(?:\%arara\:)(latex|lualatex|xelatex|pdflatex) /x;
+    my @araracheck = $atbegindoc;
+    s/^\s*|\s*//mg foreach @araracheck; # del white space
+    my $araracheck = join '', @araracheck;
+    my @araracompiler = $araracheck =~ m/$arararx/xg;
+    my %araracompiler = map { $_ => 1 } @araracompiler; # anon hash
+    if (exists($araracompiler{latex})) {
+        Log('The latex ruler was found in arara');
+        $latex = 1;
+    }
+    elsif (exists($araracompiler{lualatex})) {
+        Log('The lualatex ruler was found in arara');
+        $luatex = 1;
+    }
+    elsif (exists($araracompiler{xelatex})) {
+        Log('The xelatex ruler was found in arara');
+        $xetex = 1;
+    }
+    elsif (exists($araracompiler{pdflatex})) {
+        Log('The pdflatex ruler was found in arara');
+    }
+    else {
+        Log('No rule was found in arara, we used lualatex');
+        $luatex = 1;
+    }
+}
+
+### Compilers
+my $compiler = $xetex  ? "xelatex"
+             : $luatex ? "lualatex"
+             : $latex  ? "latex"
+             : $dvips  ? "latex"
+             : $dvipdf ? "latex"
+             :           "pdflatex"
              ;
+
+### Message in command line for compilers
+my $msg_compiler = $xetex  ? 'xelatex'
+                 : $luatex ? 'lualatex'
+                 : $latex  ? 'latex>dvips>ps2pdf'
+                 : $dvips  ? 'latex>dvips>ps2pdf'
+                 : $dvipdf ? 'latex>dvipdfmx'
+                 :           'pdflatex'
+                 ;
+
+$msg_compiler = 'arara' if $arara;
+
+### Option for pdfcrop in command line
+my $opt_crop = $xetex  ? "--xetex  --margins $margins"
+             : $luatex ? "--luatex --margins $margins"
+             : $latex  ? "--margins $margins"
+             :           "--pdftex --margins $margins"
+             ;
+
+### Options for preview packpage
+my $opt_prew = $xetex  ? 'xetex,'
+             : $latex  ? ''
+             : $dvipdf ? ''
+             : $dvips  ? ''
+             :           'pdftex,'
+             ;
+
+### Options for ghostscript in command line
+my %opt_gs_dev = (
+    pdf  => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress",
+    gray => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray",
+    png  => "$gscmd $quiet -dNOSAFER -sDEVICE=pngalpha -r$DPI",
+    bmp  => "$gscmd $quiet -dNOSAFER -sDEVICE=bmp32b -r$DPI",
+    jpg  => "$gscmd $quiet -dNOSAFER -sDEVICE=jpeg -r$DPI -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
+    tif  => "$gscmd $quiet -dNOSAFER -sDEVICE=tiff32nc -r$DPI",
+    );
+
+### Options for poppler-utils in command line
+my %opt_poppler = (
+    eps => "pdftops $quiet -eps",
+    ppm => "pdftoppm $quiet -r $DPI",
+    svg => "pdftocairo $quiet -svg",
+    );
 
 ### Lines to add at begin input file
 my $preview = <<"EXTRA";
@@ -1579,71 +1675,14 @@ if ($STDenv) {
     }
 }
 
-### Define --shell-escape for TeXLive and MikTeX
-my $write18 = '-shell-escape'; # TeXLive
-$write18 = '-enable-write18' if defined($ENV{"TEXSYSTEM"}) and $ENV{"TEXSYSTEM"} =~ /miktex/i;
-
-### Define --interaction=mode for compilers
-my $opt_compiler = $verbose ? "$write18 -interaction=nonstopmode -recorder"
-                 :            "$write18 -interaction=batchmode -recorder"
-                 ;
-
-### Append -q for system command line (gs, poppler-utils, dvipsm dvipdfmx)
-my $quiet = $verbose ? ''
-          :            '-q'
-          ;
-
-### Compilers
-my $compiler = $xetex  ? "xelatex $opt_compiler"
-             : $luatex ? "lualatex $opt_compiler"
-             : $latex  ? "latex $opt_compiler"
-             : $dvips  ? "latex $opt_compiler"
-             : $dvipdf ? "latex $opt_compiler"
-             : $arara  ? 'arara'
-             :           "pdflatex $opt_compiler"
-             ;
-
-### Message in command line for compilers
-my $msg_compiler = $xetex  ? 'xelatex'
-                 : $luatex ? 'lualatex'
-                 : $latex  ? 'latex>dvips>ps2pdf'
-                 : $dvips  ? 'latex>dvips>ps2pdf'
-                 : $dvipdf ? 'latex>dvipdfmx'
-                 : $arara  ? 'arara'
-                 :           'pdflatex'
-                 ;
-
-### Options for ghostscript in command line
-my %opt_gs_dev = (
-    pdf  => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress",
-    gray => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray",
-    png  => "$gscmd $quiet -dNOSAFER -sDEVICE=pngalpha -r$DPI",
-    bmp  => "$gscmd $quiet -dNOSAFER -sDEVICE=bmp32b -r$DPI",
-    jpg  => "$gscmd $quiet -dNOSAFER -sDEVICE=jpeg -r$DPI -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
-    tif  => "$gscmd $quiet -dNOSAFER -sDEVICE=tiff32nc -r$DPI",
-    );
-
-### Options for poppler-utils in command line
-my %opt_poppler = (
-    eps => "pdftops $quiet -eps",
-    ppm => "pdftoppm $quiet -r $DPI",
-    svg => "pdftocairo $quiet -svg",
-    );
-
-### Option for pdfcrop in command line
-my $opt_crop = $xetex  ? "--xetex  --margins $margins"
-             : $luatex ? "--luatex --margins $margins"
-             : $latex  ? "--margins $margins"
-             :           "--pdftex --margins $margins"
-             ;
-
 if ($run) {
 Log("Compiler generate file(s) whit all environment extracted");
 opendir(my $DIR, $workdir);
     while (readdir $DIR) {
         if (/(?<name>$name-$prefix(-exa)?)(?<type>-$tmp$ext)/) {
             Infoline("Compiling the file $+{name}$+{type} using $msg_compiler");
-            RUNOSCMD($compiler, "$+{name}$+{type}");
+            #$opt_compiler ="" if $arara;
+            RUNOSCMD($compiler, "$opt_compiler $+{name}$+{type}");
             # Compiling file using latex>dvips>ps2pdf
             if ($dvips or $latex) {
                 RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi");
@@ -1748,96 +1787,47 @@ if ($run) {
     }
 } # close run
 
-Log("Capture graphicx.sty if load in input file");
-my $exafilelog = "$name-$prefix-exa-$tmp.log";
-my $stdfilelog = "$name-$prefix-$tmp.log";
-my $searchline = "graphicx.sty";
-my @searchlog;
-my @findgraphicx;
+### Constant
+my $USEPACK     = quotemeta('\usepackage');
+my $GRAPHICPATH = quotemeta('\graphicspath{');
+my $CORCHETES = qr/\[ [^]]*? \]/x;
 
-if (-e $exafilelog) { push @searchlog,"$name-$prefix-exa-$tmp.log"; }
-if (-e $stdfilelog) { push @searchlog,"$name-$prefix-$tmp.log"; }
+my $findgraphicx = "true";
 
-for my $filename(@searchlog){
-    open my $READlog, '<', "$filename";
-        push @findgraphicx, grep /$searchline/,<$READlog>;
-    close $READlog;
-}
-@findgraphicx = uniq(@findgraphicx);
+### pst-exa package
+my $pstexa = qr/(?:\\ usepackage) \[\s*(.+?)\s*\] (?:\{\s*(pst-exa)\s*\} ) /x;
+my @pst_exa;
+my %pst_exa;
 
-foreach (@findgraphicx) { s/.+?(graphicx\.sty)\s+|\s+$/$1/g; }
+### graphicx package
+my $graphicxpkg = qr/(?:\\ usepackage) (?:$CORCHETES)? (?:\{\s*(graphicx)\s*\} ) /x; #\usepackage{graphicx}
+my @graphicxpkg;
 
-### Create a output file
+### \graphicspath
+my $graphicspath= qr/\\ graphicspath \{ ((?: $llaves )+) \}/ix;
+my @graphicspath;
+
+### Replacing the extracted environments with \\includegraphics
 if ($outfile) {
-    Infoline("Creating the file $output$ext");
-    # Convert extracted environments to \includegraphics
+    Log('Convert standard extracted environments to \includegraphics');
     my $grap  =  "\\includegraphics[scale=1]{$name-$prefix-";
     my $close =  '}';
     my $imgNo =  1;
-    $bodydoc  =~ s/$BP.+?$EP/$grap@{[$imgNo++]}$close/msg; # changes
-    # Constant
-    my $USEPACK     = quotemeta('\usepackage');
-    my $GRAPHICPATH = quotemeta('\graphicspath{');
-    # Precompiled regex
-    my $CORCHETES = qr/\[ [^]]*? \]/x;
-    # Regex to capture pst-exa package
-    my $pstexa = qr/(?:\\ usepackage) \[\s*(.+?)\s*\] (?:\{\s*(pst-exa)\s*\} )   /x;
-    # Capture pst-exa package
-    my (@pst_exa) = $preamble =~ m/$pstexa/xg;
-    # Comment pst-exa package
-    $preamble =~ s/(\\usepackage\[)\s*(swpl|tcb)\s*(\]\{pst-exa\})/\%$1$2,pdf$3/msxg;
-    # Search [option] in pst-exa package
-    my %pst_exa = map { $_ => 1 } @pst_exa;
-    # Clean file (pst/tags)
-    if ($clean{pst}) {
-        my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
-        my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
-        # Remove pst packages lines
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-               ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
-        # Delete package words
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-        (?: ^ $USEPACK \{ | \G) [^}]*? \K (,?) \s* $PALABRAS (\s*) (,?) /$1 and $3 ? ',' : $1 ? $2 : ''/gemsx;
-        # Delete \psset
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-               \\psset\{(?:\{.*?\}|[^\{])*\}(?:[\t ]*(?:\r?\n|\r))+//gmsx;
-        # Delete \SpecialCoor
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-               \\SpecialCoor(?:[\t ]*(?:\r?\n|\r))+//gmsx;
-    } # close clean{pst}
-    # Uncomment pst-exa package
-    $preamble =~ s/(?:\%)(\\usepackage\[\s*)(swpl|tcb)(,pdf\s*\]\{pst-exa\})/$1$2$3/msxg;
-    # Suport for \usepackage[tcb]{pst-exa}
-    if (exists($pst_exa{tcb})) {
-        $bodydoc =~ s/(graphic=\{)\[(scale=\d*)\]($imageDir\/$name-$prefix-exa-\d*)\}/$1$2\}\{$3\}/gsmx;
+    $bodydoc  =~ s/$BP.+?$EP/$grap@{[$imgNo++]}$close/msg;
+    Log('Delete <*remove> ... </remove> in preamble for output file');
+    $preamble = "$atbegindoc$preamble";
+    $preamble =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
+    # First search graphicx
+    @graphicxpkg = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|^($graphicxpkg)/msx;
+    if (!@graphicxpkg == 0) {
+        Log('Found explicit graphicx pkg in output file');
+        $findgraphicx = "false";
     }
-    # Regex to capture \graphicspath
-    my $graphicspath= qr/\\ graphicspath \{ ((?: $llaves )+) \}/ix;
-    my (@graphicspath) = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-                                    ($graphicspath)/msx;
-    if ($run and !@findgraphicx != 0) {
-        $preamble .= <<~"EXTRA";
-        \\usepackage{graphicx}
-        EXTRA
-    }
-    if (!$run and !@pst_exa != 0 and !@graphicspath != 0) {
-        # Remove graphicx package
-        my $PALABRAS  = qr/\b (?: graphicx )/x;
-        my $FAMILIA   = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-               ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
-        $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
-        (?: ^ $USEPACK \{ | \G) [^}]*? \K (,?) \s* $PALABRAS (\s*) (,?) /$1 and $3 ? ',' : $1 ? $2 : ''/gemsx;
-        # Add graphicx package at end of preamble
-        $preamble .= <<~"EXTRA";
-
-        \\usepackage{graphicx}
-        EXTRA
-    }
-    # Delete empty package line \usepackage{}
-    $preamble =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
-    # If preamble contain \graphicspath
+    # Second search graphicspath
+    @graphicspath = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|^($graphicspath)/msx;
     if (!@graphicspath == 0) {
+        Log('Found \graphicspath in output file');
+        $findgraphicx = "false";
         while ($preamble =~ /$graphicspath /pgmx) {
             my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
             my $encontrado = ${^MATCH};
@@ -1851,23 +1841,95 @@ if ($outfile) {
                     }
             }
         } #close while
-    } else {
-       $preamble .= <<~"EXTRA";
-
-       \\graphicspath\{\{$imageDir/\}\}
-       EXTRA
     }
-    # Add last lines
-    $preamble .= <<~"EXTRA";
+    # Third search pst-exa
+    @pst_exa  = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|$pstexa/xg;
+    %pst_exa = map { $_ => 1 } @pst_exa;
+    if (!@pst_exa == 0) {
+        Log('Comment pst-exa package in preamble for output file');
+        $findgraphicx = "false";
+        $preamble =~ s/(\\usepackage\[)\s*(swpl|tcb)\s*(\]\{pst-exa\})/\%$1$2,pdf$3/msxg;
+    }
+    if (exists($pst_exa{tcb})) {
+        Log('Suport for \usepackage[tcb,pdf]{pst-exa}');
+        $bodydoc =~ s/(graphic=\{)\[(scale=\d*)\]($imageDir\/$name-$prefix-exa-\d*)\}/$1$2\}\{$3\}/gsmx;
+    }
+}
 
-    \\usepackage{grfext}
-    \\PrependGraphicsExtensions*{.pdf}
-    EXTRA
-    $preamble =~ s/^(?:[\t ]*(?:\r?\n|\r))+//gmsx;
+### Capture graphicx.sty latex log file
+if ($findgraphicx eq "true") {
+    Log("Capture graphicx.sty from .log of output file");
+    Log("Creating $name-$prefix-$tmp.log");
+    open my $OUTfile, '>', "$name-$prefix-$tmp$ext";
+    print $OUTfile "$preamble\n\\stop";
+    close $OUTfile;
+    $compiler = "pdflatex" if $latex;
+    my $captured = "$compiler -interaction=batchmode $name-$prefix-$tmp$ext";
+    Logrun("$captured");
+    $captured = qx{$captured};
+    unlink ("$name-$prefix-$tmp$ext");
+    Log("Read $name-$prefix-$tmp.log");
+    open my $LaTeXlog, '<', "$name-$prefix-$tmp.log";
+        my $ltxlog;
+            {
+                local $/;
+                $ltxlog = <$LaTeXlog>;
+            }
+    close $LaTeXlog;
+    my @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg;
+    if (!@graphicx == 0) {
+        Log("Found graphicx pkg in $name-$prefix-$tmp.log");
+    }
+    else {
+        Log("Not found graphicx pkg in $name-$prefix-$tmp.log");
+        Log("Add \\usepackage\{graphicx\} to output file");
+        $preamble= "$preamble\n\\usepackage\{graphicx\}";
+    }
+}
 
+
+# Clean file (pst) in preamble
+my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
+my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
+
+if ($clean{pst}) {
+    Log('Delete pstricks packages in preamble for output file');
+    $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
+                   ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
+    $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
+                   (?: ^ $USEPACK \{ | \G) [^}]*? \K (,?) \s* $PALABRAS (\s*) (,?) /$1 and $3 ? ',' : $1 ? $2 : ''/gemsx;
+    $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
+                   \\psset\{(?:\{.*?\}|[^\{])*\}(?:[\t ]*(?:\r?\n|\r))+//gmsx;
+    $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
+                   \\SpecialCoor(?:[\t ]*(?:\r?\n|\r))+//gmsx;
+    $preamble =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
+}
+
+if (!@pst_exa == 0) {
+    Log('Uncomment pst-exa package in preamble for output file');
+    $preamble =~ s/(?:\%)(\\usepackage\[\s*)(swpl|tcb)(,pdf\s*\]\{pst-exa\})/$1$2$3/msxg;
+}
+
+### Add last lines
+if ($outfile) {
+    if (!@graphicspath != 0) {
+        Log("Add \\graphicspath\{\{$imageDir/\}\} to output file");
+        $preamble= "$preamble\n\\graphicspath\{\{$imageDir/\}\}";
+    }
+    Log("Add \\usepackage\{grfext\} to output file");
+    $preamble = "$preamble\n\\usepackage\{grfext\}";
+    Log("Add \\PrependGraphicsExtensions\*\{\.pdf\} to output file");
+    $preamble = "$preamble\n\\PrependGraphicsExtensions\*\{\.pdf\}";
+    $preamble =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
+    $preamble =~ s/^(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
+}
+
+### Create a output file
+if ($outfile) {
+    Infoline("Creating the file $output$ext");
     # Options for out_file (add $end to outfile)
-    my $out_file = $clean{doc} ? "$atbegindoc$preamble$bodydoc\n\\end\{document\}"
-                :               "$atbegindoc$preamble$bodydoc\n$enddoc"
+    my $out_file = $clean{doc} ? "$preamble\n$bodydoc\n\\end\{document\}"
+                :                "$preamble\n$bodydoc\n$enddoc"
                 ;
     # Clean \psset content in output file
     if ($clean{pst}) {
@@ -1888,16 +1950,21 @@ if ($outfile) {
     $out_file =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))+//gmsx;
     $out_file =~ s/($delt_env)(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
     $out_file =~ s/($find)/$replace{$1}/g;
-    # Write output file
+    Log("Write the output file $output$ext");
     open my $OUTfile, '>', "$output$ext";
         print $OUTfile "$out_file";
     close $OUTfile;
     # Process the output file
     if ($run) {
-        $compiler     = "pdflatex $opt_compiler" if $latex;
+        $compiler     = "pdflatex" if $latex;
         $msg_compiler = "pdflatex" if $latex;
+        if ($arara) {
+			$compiler     = 'arara';
+			$msg_compiler = 'arara';
+			$opt_compiler = '-H';
+		}
         Infoline("Compiling the file $output$ext using $msg_compiler");
-        RUNOSCMD($compiler, "$output$ext");
+        RUNOSCMD($compiler, "$opt_compiler $output$ext");
         if ($dvips) {
             RUNOSCMD("dvips $quiet -Ppdf", "$output.dvi");
             RUNOSCMD("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None", "$output.ps $output.pdf");
@@ -1945,7 +2012,7 @@ if ($run) {
 
     if ($PSTexa) { push @flsfile,"$name-$prefix-exa-$tmp.fls"; }
     if ($STDenv) { push @flsfile,"$name-$prefix-$tmp.fls"; }
-    push (@flsfile,"$output.fls") if defined $output;
+    if (-e "$output.fls") { push @flsfile,"$output.fls"; }
 
     my @tmpfiles;
     for my $filename(@flsfile){
@@ -1956,8 +2023,10 @@ if ($run) {
 
     foreach (@tmpfiles) { s/^$flsline\s+|\s+$//g; }
 
-    if ($latex or $dvips) { push @tmpfiles,"$name-$prefix-$tmp.ps"; }
+    #if ($latex or $dvips) { push @tmpfiles,"$name-$prefix-$tmp.ps"; }
     if (-e "$name-$prefix-$tmp.ps") { push @tmpfiles,"$name-$prefix-$tmp.ps"; }
+    if (-e "$name-$prefix-$tmp.dvi") { push @tmpfiles,"$name-$prefix-$tmp.dvi"; }
+    if (-e "$name-$prefix-$tmp.aux") { push @tmpfiles,"$name-$prefix-$tmp.aux"; }
     if ($PSTexa) { push @tmpfiles,"$name-$prefix-exa-$tmp.ps"; }
     if (-e "$output.ps") { push @tmpfiles,"$output.ps"; }
     push @tmpfiles,@flsfile,"$name-$prefix-$tmp$ext","$name-$prefix-$tmp.pdf";
@@ -1989,3 +2058,22 @@ if ($tar) {
 Log("The execution of the script has been successfully completed");
 
 __END__
+
+
+#my $exafilelog = "$name-$prefix-exa-$tmp.log";
+#my $stdfilelog = "$name-$prefix-$tmp.log";
+#my $searchline = "graphicx.sty";
+#my @searchlog;
+#my @findgraphicx;
+
+#if (-e $exafilelog) { push @searchlog,"$name-$prefix-exa-$tmp.log"; }
+#if (-e $stdfilelog) { push @searchlog,"$name-$prefix-$tmp.log"; }
+
+#for my $filename(@searchlog){
+    #open my $READlog, '<', "$filename";
+        #push @findgraphicx, grep /$searchline/,<$READlog>;
+    #close $READlog;
+#}
+#@findgraphicx = uniq(@findgraphicx);
+
+#foreach (@findgraphicx) { s/.+?(graphicx\.sty)\s+|\s+$/$1/g; }
