@@ -31,7 +31,7 @@ my $LogTime = strftime ("%y/%m/%d %H:%M:%S", localtime);
 ### Program identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-04-26';
+my $date      = '2020-05-01';
 my $copyright = <<END_COPYRIGHT ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -89,10 +89,10 @@ my $outsrc   = 0;          # enable write src env files
 my $PSTexa   = 0;          # extract PSTexample environments
 my $STDenv   = 0;          # extract standart environments
 my $verbose  = 0;          # verbose
-my $gscmd;                 # ghostscript command name
+my $gscmd;                 # ghostscript name
 my $debug    = 0;          # debug
 
-### Program identification, options and help for command line
+### License, options and help for command line
 my $licensetxt = <<END_LICENSE ;
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -258,7 +258,7 @@ my $result=GetOptions (
     'run!'           => \$run,     # no run compiler
     'debug!'         => \$debug,   # debug mode
     'verbose!'       => \$verbose, # verbose mode
-    ) or die usage(0);
+    ) or do { $debug = 0 ; die usage(0); };
 
 ### Write Log line and print msg (common)
 sub Infoline {
@@ -291,7 +291,7 @@ sub Log {
 }
 
 ### Write array env in Log
-sub Logenv {
+sub Logarray {
     my ($env_ref) = @_;
     my @env_tmp = @{ $env_ref }; # dereferencing and copying each array
     if ($debug) {
@@ -351,6 +351,9 @@ sub RUNOSCMD {
 if ($debug) {
     my $tempname = $ARGV[0];
     $tempname =~ s/\.(tex|ltx)$//;
+    if ($tempname eq "") {
+        errorUsage "* Error!!: Input filename missing";
+    }
     if ($LogFile eq "$tempname.log") {
         $LogFile = "$scriptname-log.log";
     }
@@ -358,7 +361,7 @@ if ($debug) {
 }
 
 ### Init log file
-Log("The script was started in $workdir");
+Log("$scriptname was started in $workdir");
 Log("Creating the temporary directory $tempDir");
 
 Log("General information about the Perl and Ghostscript");
@@ -681,9 +684,9 @@ my @new_verb = qw (
 
 ### Regex to capture names for new verbatim environments from input file
 my $newverbenv = join "|", map quotemeta, sort { length $a <=> length $b } @new_verb;
-   $newverbenv = qr/\b(?:$newverbenv) $no_corchete $braces/msx;
+$newverbenv = qr/\b(?:$newverbenv) $no_corchete $braces/msx;
 
-### Capture new verbatim write environments defined in input file
+### Array for capture new verbatim write environments defined in input file
 my @new_verb_write = qw (
    renewtcbexternalizetcolorbox renewtcbexternalizeenvironment
    newtcbexternalizeenvironment newtcbexternalizetcolorbox newenvsc
@@ -701,7 +704,7 @@ my $mintcshrt = qr/\\ newmint $braquet (?:\{.+?\})       /x;
 my $mintdline = qr/\\ newmintinline $braces (?:\{.+?\})  /x;
 my $mintcline = qr/\\ newmintinline $braquet (?:\{.+?\}) /x;
 
-Log('Filter input file (remove % and comments)');
+Log("Filter $name$ext \(remove \% and comments\)");
 my @filecheck = $ltxfile;
 s/%.*\n//mg foreach @filecheck; # del comments
 s/^\s*|\s*//mg foreach @filecheck; # del white space
@@ -780,7 +783,7 @@ my $readoptfile = qr/
 ### Split input file in $atbegindoc and contain % ltximg : <argument>
 my ($atbegindoc, $document) = $ltxfile =~ m/\A (\s* .*? \s*) (\\documentclass.*)\z/msx;
 
-Log("Process options from input file");
+Log("Process options from $name$ext");
 my %opts_file;
 while ($atbegindoc =~ /$readoptfile/g) {
     my ($clave, $argumentos) = @+{qw(clave argumentos)};
@@ -821,41 +824,46 @@ if ($clean{off}) { undef %clean; }
 
 ### Add extract options from input file
 if (exists $opts_file{extract}) {
-    Log('Found % ltximg : extrenv { ...} in input file');
+    Log("Found \% ltximg \: extrenv \{...\} in $name$ext");
+    Logarray(\@{ $opts_file{extract}});
     push @extr_env_tmp, @{ $opts_file{extract} };
 }
 
 ### Add skipenv options from input file
 if (exists $opts_file{skipenv}) {
-    Log('Found % ltximg : skipenv { ...} in input file');
+    Log("Found \% ltximg \: skipenv \{...\} in $name$ext");
+    Logarray(\@{ $opts_file{skipenv}});
     push @skip_env_tmp, @{ $opts_file{skipenv} };
 }
 
 ### Add verbenv options from input file
 if (exists $opts_file{verbenv}) {
-    Log('Found % ltximg : verbenv { ...} in input file');
+    Log("Found \% ltximg \: verbenv \{...} in $name$ext");
+    Logarray(\@{ $opts_file{verbenv}});
     push @verb_env_tmp, @{ $opts_file{verbenv} };
 }
 
 ### Add writenv options from input file
 if (exists $opts_file{writenv}) {
-    Log('Found % ltximg : writenv { ...} in input file');
+    Log("Found \% ltximg \: writenv \{...\} in $name$ext");
+    Logarray(\@{ $opts_file{writenv}});
     push @verw_env_tmp, @{ $opts_file{writenv} };
 }
 
 ### Add deltenv options from input file
 if (exists $opts_file{deltenv}) {
-    Log('Found % ltximg : deltenv { ...} in input file');
+    Log("Found \% ltximg \: deltenv \{...\} in $name$ext");
+    Logarray(\@{ $opts_file{deltenv}});
     push @delt_env_tmp, @{ $opts_file{deltenv} };
 }
 
 ### Set \myverb|<code>| options from input file
 if (exists $opts_file{options}{verbcmd}) {
     $verbcmd = $opts_file{options}{verbcmd};
-    Log("Set verbcmd = $verbcmd from in input file");
+    Log("Set \$verbcmd = $verbcmd from $name$ext");
 }
 
-### Create  @env_all_tmp contain all environments
+### Create @env_all_tmp contain all environments
 my @env_all_tmp;
 push(@env_all_tmp,@extr_env_tmp,@skip_env_tmp,@verb_env_tmp,@verw_env_tmp,@delt_env_tmp);
 @env_all_tmp = uniq(@env_all_tmp);
@@ -870,7 +878,7 @@ my @extract = array_minus(@env_all_tmp,@no_env_all_tmp);
 @extract = uniq(@extract);
 
 Log("The environments that will be extracted:");
-Logenv(\@extract);
+Logarray(\@extract);
 
 ### The operation return @no_extract
 my @no_extract = array_minus(@env_all_tmp,@extract);
@@ -880,7 +888,7 @@ my @skipped = array_minus(@no_extract,@no_skip);
 @skipped = uniq(@skipped);
 
 Log("The environments that will be skiped:");
-Logenv(\@skipped);
+Logarray(\@skipped);
 
 ### The operation return @delte_env environment
 my @no_ext_skip = array_minus(@no_extract,@skipped);
@@ -890,20 +898,20 @@ my @delete_env = array_minus(@no_ext_skip,@no_del);
 @delete_env = uniq(@delete_env);
 
 Log("The environments that will be removed:");
-Logenv(\@delete_env);
+Logarray(\@delete_env);
 
 ### The operation return @verbatim environment
 my @no_ext_skip_del = array_minus(@no_ext_skip,@delete_env);
 my @verbatim = array_minus(@no_ext_skip_del,@verw_env_tmp);
 
 Log("The environments that are considered verbatim:");
-Logenv(\@verbatim);
+Logarray(\@verbatim);
 
 ### The operation return @verbatim write environment
 my @verbatim_w = array_minus(@no_ext_skip_del,@verbatim);
 
 Log("The environments that are considered verbatim write:");
-Logenv(\@verbatim_w);
+Logarray(\@verbatim_w);
 
 ### Create @env_all for hash and replace in while
 my @no_verb_env;
@@ -1030,7 +1038,7 @@ my $comentario  = qr/^ \s* \%+ .+? $                                            
 my $definedel   = qr/\\ (?: DefineShortVerb | lstMakeShortInline| MakeSpecialShortVerb ) [*]? $no_corchete $delimitador /ix;
 my $indefinedel = qr/\\ (?: (Undefine|Delete)ShortVerb | lstDeleteShortInline) $llaves  /ix;
 
-### Changes in input file (in memory) for verbatim inline/multiline
+### Changes in input file for verbatim inline/multiline
 while ($document =~
         / $marca
         | $comentario
@@ -1189,7 +1197,7 @@ my $skip_env = qr /
 Log('Pass %<*noltximg> ... %</noltximg> to \begin{nopreview} ... \end{nopreview}');
 $bodydoc =~ s/^\%<\*$skiptag>(.+?)\%<\/$skiptag>/\\begin\{nopreview\}$1\\end\{nopreview\}/gmsx;
 
-Log('Pass skip envvironments to \begin{nopreview} ... \end{nopreview}');
+Log('Pass skip environments to \begin{nopreview} ... \end{nopreview}');
 $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
               \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
               ($skip_env)/\\begin\{nopreview\}\n$1\n\\end\{nopreview\}\n/gmsx;
@@ -1315,14 +1323,25 @@ my $EE = '\\\\end\{PSTexample\}';
 my @exa_extract = $bodydoc =~ m/(\\begin\{PSTexample\}.+?\\end\{PSTexample\})/gms;
 my $exaNo = scalar @exa_extract;
 
+my $envEXA;
+my $fileEXA;
+if ($exaNo > 1) {
+    $envEXA   = 'PSTexample environments';
+    $fileEXA  = 'files';
+}
+else {
+    $envEXA   = 'PSTexample environment';
+    $fileEXA  = 'file';
+}
+
 ### Check if PSTexample environment found, 1 = run script
 if ($exaNo!=0) {
     $PSTexa = 1;
-    Log('Found PSTexample environment in input file');
+    Log("Found $exaNo $envEXA in $name$ext");
 }
 
 if ($PSTexa) {
-    Log('Append [graphic={[...]...} to \begin{PSTexample}[...]');
+    Log('Append [graphic={[...]...}] to \begin{PSTexample}[...]');
     $exaNo = 1;
     while ($bodydoc =~ /\\begin\{PSTexample\}(\[.+?\])?/gsm) {
         my $swpl_grap = "graphic=\{\[scale=1\]$imageDir/$name-$prefix-exa";
@@ -1336,7 +1355,7 @@ if ($PSTexa) {
         substr($bodydoc, $pos_inicial, $pos_final - $pos_inicial) = $corchetes;
         pos($bodydoc) = $pos_inicial + length $corchetes;
     }
-    continue { $exaNo++; } # increment counter
+    continue { $exaNo++; }
 }
 
 ### Reset exaNo
@@ -1365,6 +1384,17 @@ my $EP = '\\\\end\{preview\}';
 my @env_extract = $bodydoc =~ m/\\begin\{PSTexample\}.+?\\end\{PSTexample\}(*SKIP)(*F)|(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
+my $envSTD;
+my $fileSTD;
+if ($envNo > 1) {
+    $envSTD   = 'standard environments';
+    $fileSTD  = 'files';
+}
+else {
+    $envSTD   = 'standard environment';
+    $fileSTD  = 'file';
+}
+
 ### Append image format options
 $opts_cmd{pdf} = 'pdf' if $pdf;                        # ghostscript
 $opts_cmd{eps} = 1 if exists $opts_file{options}{eps}; # pdftops
@@ -1379,6 +1409,10 @@ $opts_cmd{tif} = 1 if exists $opts_file{options}{tif}; # ghostscript
 my %format = (%opts_cmd);
 my $format = join ", ",grep { defined $format{$_} } keys %format;
 
+if ($run) {
+    Log("Defined image formats for creating: $format");
+}
+
 ### Check run and no images
 if ($run and $format eq "") {
     die errorUsage "* Error!!: --nopdf need --norun or an image option";
@@ -1390,7 +1424,7 @@ if ($dvips and $opts_cmd{eps} == 0 and $run) {
 
 if (exists $opts_file{options}{output}){
     $output = $opts_file{options}{output};
-    Log("Set output file to $output from input file");
+    Log("Set output file name to $output from $name$ext");
 }
 
 if (defined $output) {
@@ -1448,21 +1482,29 @@ if (exists $opts_file{options}{dpi}) {
 
 ### Check if enviroment(s) found in input file
 if ($envNo == 0 and $exaNo == 0) {
-    die errorUsage "* Error!!: ltximg can not find any environment to extract in file $name$ext";
+    die errorUsage "* Error!!: $scriptname can not find any environment to extract in $name$ext";
 }
 
 ### Command line identification message
 print "$title";
 
 if ($envNo!= 0 and $exaNo!= 0) {
-    Infoline("Found $envNo standard environment and $exaNo PSTexample environment to extract");
+    Log("Found $envNo $envSTD and $exaNo $envEXA to extract");
 }
 elsif ($envNo == 0 and $exaNo!= 0) {
-    Infoline("Found $exaNo PSTexample environment to extract");
-} else { Infoline("Found $envNo standard environment to extract"); }
+    Log("Found $exaNo $envEXA to extract");
+}
+else { Log("Found $envNo $envSTD to extract"); }
 
--e $imageDir or mkdir($imageDir,0744) or die "* Error!!: Can't create $imageDir: $!\n";
-Log("Set up the directory $imageDir to save generated files");
+### Set directory to save generated files
+if (-e $imageDir) {
+    Log("The generated files will be saved in $imageDir");
+}
+else {
+    Log("Creating the $imageDir/ to save the generated files");
+    Logline("[perl] mkdir($imageDir,0744)");
+    mkdir($imageDir,0744) or die errorUsage "* Error!!: Can't create the directory $imageDir: $!\n";
+}
 
 ### Check if standart environment found, , 1 = run script
 if ($envNo!=0) { $STDenv=1; }
@@ -1481,6 +1523,7 @@ $sub_prea =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))?+//gms
 ### Define --shell-escape for TeXLive and MikTeX
 my $write18 = '-shell-escape'; # TeXLive
 $write18 = '-enable-write18' if defined($ENV{"TEXSYSTEM"}) and $ENV{"TEXSYSTEM"} =~ /miktex/i;
+Log("Set write18 = $write18 for compilation");
 
 ### Define --interaction=mode for compilers
 my $opt_compiler = $verbose ? "$write18 -interaction=nonstopmode -recorder"
@@ -1492,9 +1535,9 @@ my $quiet = $verbose ? ''
           :            '-q'
           ;
 
-### Capture araracompiler write names in input file
+### Capture arara compiler write names in input file
 if ($arara) {
-    Log('Capturing compiler for arara');
+    Log("Capturing compiler for arara");
     my $arararx = qr/^(?:\%arara\:)(latex|lualatex|xelatex|pdflatex) /x;
     my @araracheck = $atbegindoc;
     s/^\s*|\s*//mg foreach @araracheck; # del white space
@@ -1588,7 +1631,7 @@ if ($outsrc) {
     if ($srcenv) {
         Log('Extract source code of environments without preamble');
         if ($STDenv) {
-            Infoline("Creating $envNo file(s) with source code for all standard environments");
+            Infoline("Creating $envNo $fileSTD $ext with source code for $envSTD");
             while ($bodydoc =~ m/$BP\s*(?<env_src>.+?)\s*$EP/gms) {
                 open my $OUTsrc, '>', "$imageDir/$src_name$srcNo$ext";
                     print $OUTsrc $+{env_src};
@@ -1597,7 +1640,7 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Infoline("Creating $exaNo file(s) with source code for all PSTexample environments");
+            Infoline("Creating $exaNo $fileEXA $ext with source code for $envEXA");
             while ($bodydoc =~ m/$BE\[.+?(?<pst_exa_name>$imageDir\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $OUTexa, '>', "$+{'pst_exa_name'}$ext";
                     print $OUTexa $+{'exa_src'};
@@ -1608,16 +1651,16 @@ if ($outsrc) {
     if ($subenv) {
         Log('Extract source code of environments with preamble');
         if ($STDenv) {
-            Infoline("Creating a $envNo file(s) whit source code and preamble for all standard environments");
+            Infoline("Creating a $envNo $fileSTD $ext whit source code and preamble for $envSTD");
             while ($bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms) {
-            open my $OUTsub, '>', "$imageDir/$src_name$srcNo$ext";
-                print $OUTsub "$sub_prea$+{'env_src'}\\end\{document\}";
-            close $OUTsub;
+                open my $OUTsub, '>', "$imageDir/$src_name$srcNo$ext";
+                    print $OUTsub "$sub_prea$+{'env_src'}\\end\{document\}";
+                close $OUTsub;
             }
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Infoline("Creating a $exaNo file(s) whit source code and preamble for all PSTexample environments");
+            Infoline("Creating a $exaNo $fileEXA $ext whit source code and preamble for $envEXA");
             while ($bodydoc =~ m/$BE\[.+?(?<pst_exa_name>$imageDir\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $OUTsub, '>', "$+{'pst_exa_name'}$ext";
                     print $OUTsub "$sub_prea\n$+{'exa_src'}\n\\end\{document\}";
@@ -1629,7 +1672,7 @@ if ($outsrc) {
 
 ### Create a one file whit "all" PSTexample environments extracted
 if ($PSTexa) {
-    Infoline("Creating a temporary file whit $exaNo PSTexample environment(s) extracted");
+    Infoline("Creating the file $name-$prefix-exa-$tmp$ext whit $exaNo $envEXA extracted");
     @exa_extract = undef;
     while ( $bodydoc =~ m/$BE\[.+? $imageDir\/.+?-\d+\}\](?<exa_src>.+?)$EE/gmsx ) { # search $bodydoc
         push @exa_extract, $+{exa_src}."\n\\newpage\n";
@@ -1648,9 +1691,14 @@ if ($PSTexa) {
 
 ### Create a one file whit "all" standard environments extracted
 if ($STDenv) {
+    if ($noprew) {
+        Infoline("Creating the file $name-$prefix-$tmp$ext whit $envNo $envSTD extracted [no preview]");
+    }
+    else {
+        Infoline("Creating the file $name-$prefix-$tmp$ext whit $envNo $envSTD extracted [preview]");
+    }
     open my $OUTfig, '>', "$name-$prefix-$tmp$ext";
     if ($noprew) {
-        Infoline("Creating a temporary file whit $envNo standard environment(s) extracted [no preview]");
         my @env_extract;
         while ( $bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms ) { # search $bodydoc
             push @env_extract, $+{env_src}."\n\\newpage\n";
@@ -1658,7 +1706,6 @@ if ($STDenv) {
         print $OUTfig "$atbegindoc"."$preamble"."$opt_page"."@env_extract\n"."\\end{document}";
     }
     else {
-        Infoline("Creating a temporary file whit $envNo standard environment(s) extracted [preview]");
         my $bodyout  = $bodydoc;
         my $preamout = $preamble;
         $bodyout  =~ s/($find)/$replace{$1}/g;
@@ -1676,23 +1723,26 @@ if ($STDenv) {
 }
 
 if ($run) {
-Log("Compiler generate file(s) whit all environment extracted");
+Log("Compiler generate files whit all environment extracted");
 opendir(my $DIR, $workdir);
     while (readdir $DIR) {
         if (/(?<name>$name-$prefix(-exa)?)(?<type>-$tmp$ext)/) {
             Infoline("Compiling the file $+{name}$+{type} using $msg_compiler");
-            #$opt_compiler ="" if $arara;
+            if (!$verbose){ print "* Running: $compiler $opt_compiler\r\n"; }
             RUNOSCMD($compiler, "$opt_compiler $+{name}$+{type}");
             # Compiling file using latex>dvips>ps2pdf
             if ($dvips or $latex) {
+                if (!$verbose){ print "* Running: dvips $quiet -Ppdf\r\n"; }
                 RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi");
+                if (!$verbose){ print "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None\r\n"; }
                 RUNOSCMD("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf");
             }
             # Compiling file using latex>dvipdfmx
             if ($dvipdf) {
-            RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi");
+                if (!$verbose){ print "* Running: dvipdfmx $quiet\r\n"; }
+                RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi");
             }
-            Log("Move $+{name}$+{type} file whit all src code to  $imageDir");
+            Log("Move $+{name}$+{type} file whit all src code to $imageDir");
             Infoline("Moving and renaming $+{name}$+{type}");
             if ($verbose){
                 say "* Running: mv $workdir/$+{name}$+{type} $imageDir/$+{name}-all$ext";
@@ -1708,10 +1758,6 @@ opendir(my $DIR, $workdir);
                     print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
                 }
                 RUNOSCMD("$opt_gs_dev{gray}","-o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf");
-                if (-e "$name-$prefix-exa-$tmp.pdf") {
-                    Log("Moving file $name-$prefix-exa-$tmp.pdf to $tempDir");
-                    move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-$tmp.pdf");
-                }
             }
             else {
                 Infoline("Creating the file $+{name}-all.pdf");
@@ -1725,6 +1771,7 @@ opendir(my $DIR, $workdir);
                 }
             if ($crop) {
                 Infoline("Cropping the file $+{name}-all.pdf");
+                if (!$verbose){ print "* Running: pdfcrop $opt_crop\r\n"; }
                 RUNOSCMD("pdfcrop $opt_crop", "$tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf");
             }
         }
@@ -1734,17 +1781,15 @@ closedir $DIR;
 
 ### Create image formats in separate files
 if ($run) {
-    if ($envNo!= 0 and $exaNo!= 0) {
-        Infoline("Creating image(s) from $name-$prefix-all.pdf and $name-$prefix-exa-all.pdf");
-    } elsif ($envNo == 0 and $exaNo!= 0) {
-        Infoline("Creating image(s) from $name-$prefix-exa-all.pdf");
-    } else { Infoline("Creating image(s) from $name-$prefix-all.pdf"); }
+    Log("Creating the image formats: $format");
     opendir(my $DIR, $tempDir);
         while (readdir $DIR) {
             # PDF/PNG/JPG/BMP/TIFF format suported by ghostscript
             if (/(?<name>$name-$prefix(-exa)?)(?<type>-all\.pdf)/) {
                 for my $var (qw(pdf png jpg bmp tif)) {
                     if (defined $opts_cmd{$var}) {
+                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
+                        if (!$verbose){ print "* Running: $opt_gs_dev{$var} \r\n"; }
                         RUNOSCMD("$opt_gs_dev{$var}", "-o $workdir/$imageDir/$+{name}-%1d.$var $tempDir/$+{name}$+{type}");
                     }
                 }
@@ -1753,20 +1798,22 @@ if ($run) {
             if (/(?<name>$name-$prefix-exa)(?<type>-all\.pdf)/) { # pst-exa package
                 for my $var (qw(eps ppm svg)) {
                     if (defined $opts_cmd{$var}) {
+                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
+                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
                         for (my $epsNo = 1; $epsNo <= $exaNo; $epsNo++) {
                             RUNOSCMD("$opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var");
                         }
-                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
                     }
                 }
             }
             if (/(?<name>$name-$prefix)(?<type>-all\.pdf)/) {
                 for my $var (qw(eps ppm svg)) {
                     if (defined $opts_cmd{$var}) {
+                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
+                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
                         for (my $epsNo = 1; $epsNo <= $envNo; $epsNo++) {
                             RUNOSCMD("$opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$imageDir/$+{name}-$epsNo.$var");
                         }
-                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
                     }
                 }
             }
@@ -1777,7 +1824,7 @@ if ($run) {
         Infoline("Renaming PPM image file(s)");
         opendir(my $DIR, $imageDir);
             while (readdir $DIR) {
-                if (/(?<name>$name-fig(-exa)?-\d+\.ppm)(?<sep>-\d+)(?<ppm>\.ppm)/) {
+                if (/(?<name>$name-$prefix(-exa)?-\d+\.ppm)(?<sep>-\d+)(?<ppm>\.ppm)/) {
                     Logline("[perl] move($imageDir/$+{name}$+{sep}$+{ppm}, $imageDir/$+{name})");
                     move("$imageDir/$+{name}$+{sep}$+{ppm}", "$imageDir/$+{name}")
                     or die "* Error!!: Couldn't be renamed $+{name}$+{sep}$+{ppm} to $+{name}";
@@ -1789,9 +1836,7 @@ if ($run) {
 
 ### Constant
 my $USEPACK     = quotemeta('\usepackage');
-my $GRAPHICPATH = quotemeta('\graphicspath{');
 my $CORCHETES = qr/\[ [^]]*? \]/x;
-
 my $findgraphicx = "true";
 
 ### pst-exa package
@@ -1800,7 +1845,7 @@ my @pst_exa;
 my %pst_exa;
 
 ### graphicx package
-my $graphicxpkg = qr/(?:\\ usepackage) (?:$CORCHETES)? (?:\{\s*(graphicx)\s*\} ) /x; #\usepackage{graphicx}
+my $graphicxpkg = qr/(?:\\ usepackage) (?:$CORCHETES)? (?:\{\s*(graphicx)\s*\} ) /x;
 my @graphicxpkg;
 
 ### \graphicspath
@@ -1809,24 +1854,24 @@ my @graphicspath;
 
 ### Replacing the extracted environments with \\includegraphics
 if ($outfile) {
-    Log('Convert standard extracted environments to \includegraphics');
+    Log("Convert standard extracted environments to \\includegraphics for $output$ext");
     my $grap  =  "\\includegraphics[scale=1]{$name-$prefix-";
     my $close =  '}';
     my $imgNo =  1;
     $bodydoc  =~ s/$BP.+?$EP/$grap@{[$imgNo++]}$close/msg;
-    Log('Delete <*remove> ... </remove> in preamble for output file');
+    Log("Delete <*remove> ... </remove> tags in preamble for $output$ext");
     $preamble = "$atbegindoc$preamble";
     $preamble =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
     # First search graphicx
     @graphicxpkg = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|^($graphicxpkg)/msx;
     if (!@graphicxpkg == 0) {
-        Log('Found explicit graphicx pkg in output file');
+        Log("Found explicit graphicx package in preamble for $output$ext");
         $findgraphicx = "false";
     }
     # Second search graphicspath
     @graphicspath = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|^($graphicspath)/msx;
     if (!@graphicspath == 0) {
-        Log('Found \graphicspath in output file');
+        Log("Found \\graphicspath in preamble for $output$ext");
         $findgraphicx = "false";
         while ($preamble =~ /$graphicspath /pgmx) {
             my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
@@ -1846,28 +1891,32 @@ if ($outfile) {
     @pst_exa  = $preamble =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|$pstexa/xg;
     %pst_exa = map { $_ => 1 } @pst_exa;
     if (!@pst_exa == 0) {
-        Log('Comment pst-exa package in preamble for output file');
+        Log("Comment pst-exa package in preamble for $output$ext");
         $findgraphicx = "false";
         $preamble =~ s/(\\usepackage\[)\s*(swpl|tcb)\s*(\]\{pst-exa\})/\%$1$2,pdf$3/msxg;
     }
     if (exists($pst_exa{tcb})) {
-        Log('Suport for \usepackage[tcb,pdf]{pst-exa}');
+        Log("Suport for \\usepackage[tcb,pdf]\{pst-exa\} for $output$ext");
         $bodydoc =~ s/(graphic=\{)\[(scale=\d*)\]($imageDir\/$name-$prefix-exa-\d*)\}/$1$2\}\{$3\}/gsmx;
     }
 }
 
 ### Capture graphicx.sty latex log file
 if ($findgraphicx eq "true") {
-    Log("Capture graphicx.sty from .log of output file");
-    Log("Creating $name-$prefix-$tmp.log");
+    Log("Couldn't capture the graphicx package for $output$ext in preamble");
+    if (-e "$name-$prefix-$tmp$ext") {
+        Log("Recreating $name-$prefix-$tmp$ext with only preamble");
+    }
+    else {
+        Log("Creating $name-$prefix-$tmp$ext with only preamble");
+    }
     open my $OUTfile, '>', "$name-$prefix-$tmp$ext";
     print $OUTfile "$preamble\n\\stop";
     close $OUTfile;
     $compiler = "pdflatex" if $latex;
-    my $captured = "$compiler -interaction=batchmode $name-$prefix-$tmp$ext";
+    my $captured = "$compiler $write18 -interaction=batchmode $name-$prefix-$tmp$ext";
     Logrun("$captured");
     $captured = qx{$captured};
-    unlink ("$name-$prefix-$tmp$ext");
     Log("Read $name-$prefix-$tmp.log");
     open my $LaTeXlog, '<', "$name-$prefix-$tmp.log";
         my $ltxlog;
@@ -1878,22 +1927,21 @@ if ($findgraphicx eq "true") {
     close $LaTeXlog;
     my @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg;
     if (!@graphicx == 0) {
-        Log("Found graphicx pkg in $name-$prefix-$tmp.log");
+        Log("Found graphicx package in $name-$prefix-$tmp.log");
     }
     else {
-        Log("Not found graphicx pkg in $name-$prefix-$tmp.log");
-        Log("Add \\usepackage\{graphicx\} to output file");
+        Log("Not found graphicx package in $name-$prefix-$tmp.log");
+        Log("Add \\usepackage\{graphicx\} to preamble of $output$ext");
         $preamble= "$preamble\n\\usepackage\{graphicx\}";
     }
 }
-
 
 # Clean file (pst) in preamble
 my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
 my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
 
 if ($clean{pst}) {
-    Log('Delete pstricks packages in preamble for output file');
+    Log("Delete pstricks packages in preamble for $output$ext");
     $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                    ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
     $preamble =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
@@ -1906,19 +1954,19 @@ if ($clean{pst}) {
 }
 
 if (!@pst_exa == 0) {
-    Log('Uncomment pst-exa package in preamble for output file');
+    Log("Uncomment pst-exa package in preamble for $output$ext");
     $preamble =~ s/(?:\%)(\\usepackage\[\s*)(swpl|tcb)(,pdf\s*\]\{pst-exa\})/$1$2$3/msxg;
 }
 
 ### Add last lines
 if ($outfile) {
     if (!@graphicspath != 0) {
-        Log("Add \\graphicspath\{\{$imageDir/\}\} to output file");
+        Log("Add \\graphicspath\{\{$imageDir/\}\} to preamble for $output$ext");
         $preamble= "$preamble\n\\graphicspath\{\{$imageDir/\}\}";
     }
-    Log("Add \\usepackage\{grfext\} to output file");
+    Log("Add \\usepackage\{grfext\} to preamble for $output$ext");
     $preamble = "$preamble\n\\usepackage\{grfext\}";
-    Log("Add \\PrependGraphicsExtensions\*\{\.pdf\} to output file");
+    Log("Add \\PrependGraphicsExtensions\*\{\.pdf\} to preamble for $output$ext");
     $preamble = "$preamble\n\\PrependGraphicsExtensions\*\{\.pdf\}";
     $preamble =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
     $preamble =~ s/^(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
@@ -1926,7 +1974,6 @@ if ($outfile) {
 
 ### Create a output file
 if ($outfile) {
-    Infoline("Creating the file $output$ext");
     # Options for out_file (add $end to outfile)
     my $out_file = $clean{doc} ? "$preamble\n$bodydoc\n\\end\{document\}"
                 :                "$preamble\n$bodydoc\n$enddoc"
@@ -1950,7 +1997,12 @@ if ($outfile) {
     $out_file =~ s/^\%<\*remove>\s*(.+?)\s*\%<\/remove>(?:[\t ]*(?:\r?\n|\r))+//gmsx;
     $out_file =~ s/($delt_env)(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
     $out_file =~ s/($find)/$replace{$1}/g;
-    Log("Write the output file $output$ext");
+    if (-e "$output$ext") {
+        Infoline("Rewriting the file $output$ext");
+    }
+    else{
+        Infoline("Creating the file $output$ext");
+    }
     open my $OUTfile, '>', "$output$ext";
         print $OUTfile "$out_file";
     close $OUTfile;
@@ -1959,17 +2011,21 @@ if ($outfile) {
         $compiler     = "pdflatex" if $latex;
         $msg_compiler = "pdflatex" if $latex;
         if ($arara) {
-			$compiler     = 'arara';
-			$msg_compiler = 'arara';
-			$opt_compiler = '-H';
-		}
+            $compiler     = 'arara';
+            $msg_compiler = 'arara';
+            $opt_compiler = '-H';
+        }
         Infoline("Compiling the file $output$ext using $msg_compiler");
+        if (!$verbose){ print "* Running: $compiler $opt_compiler\r\n"; }
         RUNOSCMD($compiler, "$opt_compiler $output$ext");
         if ($dvips) {
+            if (!$verbose){ print "* Running: dvips $quiet -Ppdf\r\n"; }
             RUNOSCMD("dvips $quiet -Ppdf", "$output.dvi");
+            if (!$verbose){ print "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None\r\n"; }
             RUNOSCMD("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None", "$output.ps $output.pdf");
         }
         if ($dvipdf) {
+            if (!$verbose){ print "* Running: dvipdfmx $quiet\r\n"; }
             RUNOSCMD("dvipdfmx $quiet", "$output.dvi");
         }
     }
@@ -1989,6 +2045,8 @@ if ($zip or $tar) {
             push @savetozt, $File::Find::name;
         }
     }
+    Log("The files are compress are:");
+    Logarray(\@savetozt);
     if ($zip) {
         Infoline("Creating  the file $archivetar.zip");
         zip \@savetozt => "$archivetar.zip";
@@ -2002,78 +2060,61 @@ if ($zip or $tar) {
 } #close compress
 
 ### Remove temporary files
-if ($run) {
-    Infoline("Deleting (most) temporary files created in $workdir");
-    my @protected = qw();
-    push (@protected,"$output$ext","$output.pdf") if defined $output;
+my @tmpfiles;
+my @protected = qw();
+my $flsline = "OUTPUT";
+my @flsfile;
+push (@protected,"$output$ext","$output.pdf") if defined $output;
 
-    my $flsline = "OUTPUT";
-    my @flsfile;
-
-    if ($PSTexa) { push @flsfile,"$name-$prefix-exa-$tmp.fls"; }
-    if ($STDenv) { push @flsfile,"$name-$prefix-$tmp.fls"; }
-    if (-e "$output.fls") { push @flsfile,"$output.fls"; }
-
-    my @tmpfiles;
-    for my $filename(@flsfile){
-        open my $RECtmp, '<', "$filename";
-            push @tmpfiles, grep /^$flsline/,<$RECtmp>;
-        close $RECtmp;
+find(\&aux_files, $workdir);
+sub aux_files{
+    my $findtmpfiles = $_;
+    if (-f $findtmpfiles && $findtmpfiles =~ m/$name-$prefix(-exa)?-$tmp.+?$/) { # search
+        push @tmpfiles, $_;
     }
+}
 
-    foreach (@tmpfiles) { s/^$flsline\s+|\s+$//g; }
+if (-e "$name-$prefix-$tmp.fls") { push @flsfile,"$name-$prefix-$tmp.fls"; }
+if (-e "$name-$prefix-exa-$tmp.fls") { push @flsfile,"$name-$prefix-exa-$tmp.fls"; }
+if (-e "$output.fls") { push @flsfile,"$output.fls"; }
 
-    #if ($latex or $dvips) { push @tmpfiles,"$name-$prefix-$tmp.ps"; }
-    if (-e "$name-$prefix-$tmp.ps") { push @tmpfiles,"$name-$prefix-$tmp.ps"; }
-    if (-e "$name-$prefix-$tmp.dvi") { push @tmpfiles,"$name-$prefix-$tmp.dvi"; }
-    if (-e "$name-$prefix-$tmp.aux") { push @tmpfiles,"$name-$prefix-$tmp.aux"; }
-    if ($PSTexa) { push @tmpfiles,"$name-$prefix-exa-$tmp.ps"; }
-    if (-e "$output.ps") { push @tmpfiles,"$output.ps"; }
-    push @tmpfiles,@flsfile,"$name-$prefix-$tmp$ext","$name-$prefix-$tmp.pdf";
+for my $filename(@flsfile){
+    open my $RECtmp, '<', "$filename";
+        push @tmpfiles, grep /^$flsline/,<$RECtmp>;
+    close $RECtmp;
+}
 
-    my @delfiles = array_minus(@tmpfiles, @protected);
-    foreach my $tmpfile (@delfiles) { move("$tmpfile", "$tempDir"); }
-} # close clean tmp files
+foreach (@tmpfiles) { s/^$flsline\s+|\s+$//g; }
+push @tmpfiles,@flsfile;
+
+@tmpfiles = uniq(@tmpfiles);
+@tmpfiles = array_minus(@tmpfiles, @protected);
+
+Log("The files that will be deleted are:");
+Logarray(\@tmpfiles);
+Infoline("Remove temporary files created in $workdir");
+foreach my $tmpfiles (@tmpfiles) { move("$tmpfiles", "$tempDir"); }
 
 ### End of script process
 if ($run and ($srcenv or $subenv)) {
-    Infoline("The image file(s): $format and subfile(s) are in $workdir/$imageDir");
+    Log("The image file(s): $format and subfile(s) are in $workdir/$imageDir");
 }
 if ($run and (!$srcenv and !$subenv)) {
-    Infoline("The image file(s): $format are in $workdir/$imageDir");
+    Log("The image file(s): $format are in $workdir/$imageDir");
 }
 if (!$run and ($srcenv or $subenv)) {
-    Infoline("The subfile(s) are in $workdir/$imageDir");
+    Log("The subfile(s) are in $workdir/$imageDir");
 }
 if ($outfile) {
-    Infoline("The file $output$ext are in $workdir");
+    Log("The file $output$ext are in $workdir");
 }
 if ($zip) {
-    Infoline("The file $archivetar.zip are in $workdir");
+    Log("The file $archivetar.zip are in $workdir");
 }
 if ($tar) {
-    Infoline("The file $archivetar.tar.gz are in $workdir");
+    Log("The file $archivetar.tar.gz are in $workdir");
 }
 
-Log("The execution of the script has been successfully completed");
+Infoline("The execution of $scriptname has been successfully completed");
 
 __END__
-
-
-#my $exafilelog = "$name-$prefix-exa-$tmp.log";
-#my $stdfilelog = "$name-$prefix-$tmp.log";
-#my $searchline = "graphicx.sty";
-#my @searchlog;
-#my @findgraphicx;
-
-#if (-e $exafilelog) { push @searchlog,"$name-$prefix-exa-$tmp.log"; }
-#if (-e $stdfilelog) { push @searchlog,"$name-$prefix-$tmp.log"; }
-
-#for my $filename(@searchlog){
-    #open my $READlog, '<', "$filename";
-        #push @findgraphicx, grep /$searchline/,<$READlog>;
-    #close $READlog;
-#}
-#@findgraphicx = uniq(@findgraphicx);
-
-#foreach (@findgraphicx) { s/.+?(graphicx\.sty)\s+|\s+$/$1/g; }
