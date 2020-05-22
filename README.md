@@ -9,17 +9,17 @@ with only extracted environments and other with environments converted to `\incl
 
 ## Syntax
 
-```bash
+```
 $ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
 ```
 
-Relative or absolute `paths` for files and directories is not supported. Options that accept a value require either a blank
-space or `=` between the option and the value. Multiple short options can be bundling and if the last option takes a _comma
+Relative or absolute `paths` for directories and files is not supported. Options that accept a _value_ require either a blank
+space or `=` between the option and the _value_. Multiple short options can be bundling and if the last option takes a _comma
 separated list_ you need `--` at the end.
 
 ## Usage
 
-```bash
+```
 $ ltximg --latex  [<options>] <file.tex>
 $ ltximg --arara  [<options>] <file.tex>
 $ ltximg [<options>] <file.tex>
@@ -31,8 +31,8 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 
 ## Default environments extract
 
-```bash
-    pspicture    tikzpicture    pgfpicture    psgraph    postscript    PSTexample
+```
+ preview  pspicture  tikzpicture  pgfpicture  psgraph  postscript  PSTexample
 ```
 
 ## Options
@@ -40,8 +40,9 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 ```
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
--l, --license         Display GPL license and exit                  [off]
--v, --version         Display current version (1.7) and exit        [off]
+-v, --version         Display current version (1.8) and exit        [off]
+-V, --verbose         Verbose printing information                  [off]
+-l, --log             Write .log file with debug information        [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
 -b, --bmp             Create .bmp files using ghostscript           [gs]
 -j, --jpg             Create .jpg files using ghostscript           [gs]
@@ -55,12 +56,13 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 -d <integer>, --dpi <integer>
                       Dots per inch resolution for images           [150]
 -m <integer>, --margin <integer>
-                      Set margins for pdfcrop                       [0]
+                      Set margins in bp for pdfcrop                 [0]
+-o <filename>, --output <filename>
+                      Create output file                            [off]
 --imgdir <dirname>    Set name of directory to save images/files    [images]
 --zip                 Compress files generated in .zip format       [off]
 --tar                 Compress files generated in .tar.gz format    [off]
--o <filename>, --output <filename>
-                      Create output file                            [off]
+
 --srcenv              Create files whit only code environment       [off]
 --subenv              Create files whit preamble and code           [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
@@ -75,46 +77,41 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
 --nocrop              Don't run pdfcrop                             [off]
---verbcmd <cmdname>   Set "\cmdname" verbatim command               [myverb]
+--myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
-                      Removes specific text in output file          [doc]
+                      Removes specific block text in output file    [doc]
 --extrenv <env1,...>  Add new environments to extract               [empty]
 --skipenv <env1,...>  Skip environments to extract                  [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
---verbose             Verbose printing                              [off]
---debug               Write .log file with debug information        [off]
 ```
 
 ## Example
 
-```bash
+```
 $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
+$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 ```
 
-```bash
-$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out  test-in.ltx
-```
-
-   Create a `/mypics` directory whit all extracted environments converted to
-   image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.ltx`)
-   for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
-   and file `test-in-fig-all.ltx` with only the extracted environments using
-   `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
-   for `<output file>`.
+Create a `/mypics` directory whit all extracted environments converted to
+image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.ltx`)
+for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
+and file `test-in-fig-all.ltx` with only the extracted environments using
+`latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
+for `<output file>`.
 
 ## Documentation
 
 For full documentation use:
 
-```bash
+```
 $ texdoc ltximg
 ```
 
 For recreation all documentation use:
 
-```bash
+```
 $ arara ltximg-doc.dtx
 ```
 
@@ -130,7 +127,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-04-28.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-05-22.
 
 ## Copyright
 

@@ -2,6 +2,9 @@
 % arara: dvips
 % arara: ps2pdf
 % arara: clean: { extensions : [ aux, log, out, ps, dvi,listing] }
+% ltximg: extrenv: {chao}
+% ltximg: deltenv: {hola}
+% ltximg: options: {xetex,force, clean = tkz, prefix=clip}
 \begin{filecontents*}{images/content1.tex}
 \begin{pspicture}(4,6)
 \psset{unit=2cm}
@@ -22,9 +25,20 @@
 
 \begin{document}
 
+\begin{itemize}
+  \item The individual entries are indicated with a black dot, a so-called bullet.
+  \item The text in the entries may be of any length.
+\end{itemize}
+
 No tocar \verb|\begin{pspicture}| junto a \verb|\end{pspicture}| y no reemplazar
 % \tikzpicture
 %\graphicspath{
+
+\begin{enumerate}
+  \item The labels consists of sequential numbers.
+  \item The numbers starts at 1 with every call to the enumerate environment.
+\end{enumerate}
+
 Probando el paquete \verb|pstricks-add| junto al entorno \verb|pspicture|
 
 \begin{pspicture}(4,6)
