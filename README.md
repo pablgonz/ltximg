@@ -60,9 +60,12 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 -o <filename>, --output <filename>
                       Create output file                            [off]
 --imgdir <dirname>    Set name of directory to save images/files    [images]
+--prefix <string>     Set prefix append to each generated files     [fig]
+--myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
+--clean (doc|pst|tkz|all|off)
+                      Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip format       [off]
 --tar                 Compress files generated in .tar.gz format    [off]
-
 --srcenv              Create files whit only code environment       [off]
 --subenv              Create files whit preamble and code           [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
@@ -73,13 +76,9 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 --xetex               Using xelatex for compiler input and output   [off]
 --dvipdf              Using dvipdfmx for compiler input and output  [off]
 --luatex              Using lualatex for compiler input and output  [off]
---prefix <string>     Set prefix append to each generated files     [fig]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
 --nocrop              Don't run pdfcrop                             [off]
---myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
---clean (doc|pst|tkz|all|off)
-                      Removes specific block text in output file    [doc]
 --extrenv <env1,...>  Add new environments to extract               [empty]
 --skipenv <env1,...>  Skip environments to extract                  [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]

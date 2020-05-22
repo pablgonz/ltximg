@@ -247,6 +247,10 @@ ${title}** Description
 -o <filename>, --output <filename>
                       Create output file                            [off]
 --imgdir <dirname>    Set name of directory to save images/files    [images]
+--prefix <string>     Set prefix append to each generated files     [fig]
+--myverb <macroname>  Add "\\macroname" to verbatim inline search    [myverb]
+--clean (doc|pst|tkz|all|off)
+                      Removes specific block text in output file    [doc]
 --zip                 Compress files generated in /imgdir in .zip   [off]
 --tar                 Compress files generated in /imgdir .tar.gz   [off]
 --srcenv              Create files whit only code environment       [off]
@@ -262,10 +266,6 @@ ${title}** Description
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
---prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\\macroname" to verbatim inline search    [myverb]
---clean (doc|pst|tkz|all|off)
-                      Removes specific block text in output file    [doc]
 --extrenv <env1,...>  Add new environments to extract               [empty]
 --skipenv <env1,...>  Skip default environments to extract          [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]
@@ -875,12 +875,12 @@ my $outext; # save extension of output file
 if (defined $opts_cmd{string}{output}) {
     Log('Validating name and extension for output file');
     # Capture and split
-    my ($outname,$outpath,$tmpext) = fileparse($opts_cmd{string}{output}, @SuffixList);
+    my ($outname, $outpath, $tmpext) = fileparse($opts_cmd{string}{output}, @SuffixList);
     if ($outname =~ /(^\-|^\.).*?/) {
         Log('The name of output file begin with dash -');
         die errorUsage "* Error!!: $opts_cmd{string}{output} it is not a valid name for output file";
     }
-    if ( $tmpext eq q{}) { # Check and set extension
+    if ($tmpext eq q{}) { # Check and set extension
         Log("Set extension for output file to $ext");
         $outext = $ext;
     }
@@ -2110,9 +2110,9 @@ if ($outfile) {
     # verbatim write environment we make the changes using the hash and
     # range operator in a copy
     my %tmpreplace = (
-        'graphicx'      =>  'TMPGRAPHICXTMP',
-        'pst-exa'       =>  'TMPPSTEXATMP',
-        'graphicspath'  =>  'TMPGRAPHICSPATHTMP',
+        'graphicx'     => 'TMPGRAPHICXTMP',
+        'pst-exa'      => 'TMPPSTEXATMP',
+        'graphicspath' => 'TMPGRAPHICSPATHTMP',
     );
     my $findtmp    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %tmpreplace;
     my $preambletmp = $preamble;
@@ -2132,13 +2132,13 @@ if ($outfile) {
     @graphicxpkg = $preambletmp =~ m/($pkgcandidates)/gmsx;
     if (@graphicxpkg) {
         Log("Found graphicx package in preamble for $opts_cmd{string}{output}$outext");
-        $findgraphicx = "false";
+        $findgraphicx = 'false';
     }
     # Second search graphicspath
     @graphicspath = $preambletmp =~ m/graphicspath/msx;
     if (@graphicspath) {
         Log("Found \\graphicspath in preamble for $opts_cmd{string}{output}$outext");
-        $findgraphicx = "false";
+        $findgraphicx = 'false';
         while ($preamble =~ /$graphicspath /pgmx) {
             my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
             my $encontrado = ${^MATCH};
@@ -2158,7 +2158,7 @@ if ($outfile) {
     %pst_exa = map { $_ => 1 } @pst_exa;
     if (@pst_exa) {
         Log("Comment pst-exa package in preamble for $opts_cmd{string}{output}$outext");
-        $findgraphicx = "false";
+        $findgraphicx = 'false';
         $preamble =~ s/(\\usepackage\[)\s*(swpl|tcb)\s*(\]\{pst-exa\})/\%$1$2,pdf$3/msxg;
     }
     if (exists $pst_exa{tcb}) {
@@ -2168,7 +2168,7 @@ if ($outfile) {
 }
 
 ### Capture graphicx.sty latex log file
-if ($findgraphicx eq "true" and $outfile) {
+if ($findgraphicx eq 'true' and $outfile) {
     Log("Couldn't capture the graphicx package for $opts_cmd{string}{output}$ext in preamble");
     my $ltxlog;
     my @graphicx;
@@ -2417,12 +2417,12 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
         $imgdirtar->write( "$archivetar.tar.gz" , 9 );
         Log("The file $archivetar.tar.gz are in $workdir");
     }
-} #close compress
+}
 
 ### Remove temporary files
 my @tmpfiles;
 my @protected = qw();
-my $flsline = "OUTPUT";
+my $flsline = 'OUTPUT';
 my @flsfile;
 
 if (defined $opts_cmd{string}{output}) {
@@ -2478,8 +2478,8 @@ if (@tmpfiles) {
 my @deldirs;
 my $mintdir    = "\_minted\-$name-$opts_cmd{string}{prefix}-$tmp";
 my $mintdirexa = "\_minted\-$name-$opts_cmd{string}{prefix}-exa-$tmp";
-if (-e  $mintdir) { push @deldirs, $mintdir; }
-if (-e  $mintdirexa) { push @deldirs, $mintdirexa; }
+if (-e $mintdir) { push @deldirs, $mintdir; }
+if (-e $mintdirexa) { push @deldirs, $mintdirexa; }
 
 Log('The directory that will be deleted are:');
 Logarray(\@deldirs);
