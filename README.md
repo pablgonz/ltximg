@@ -111,7 +111,7 @@ $ texdoc ltximg
 For recreation all documentation use:
 
 ```
-$ arara ltximg-doc.dtx
+$ arara ltximg-doc.dtx -H
 ```
 
 ## Licence
@@ -126,7 +126,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-05-22.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-05-23.
 
 ## Copyright
 
