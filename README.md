@@ -4,8 +4,8 @@
 
 **ltximg** is a perl *script* that automates the process of extracting and converting
 environments provided by **tikz**, **pstricks** and other packages from input file
-to image formats in individual files using `ghostscript` and `poppler-utils`. Generates a file
-with only extracted environments and other with environments converted to `\includegraphics`.
+to image formats and standalone files using `ghostscript` and `poppler-utils`. Generates a
+file with only extracted environments and another with all extracted environments converted to `\includegraphics`.
 
 ## Syntax
 
@@ -59,7 +59,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
---imgdir <dirname>    Set name of directory to save images/files    [images]
+--imgdir <dirname>    Set name of directory to save generated files [images]
 --prefix <string>     Set prefix append to each generated files     [fig]
 --myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
@@ -93,10 +93,9 @@ $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 ```
 
-Create a `/mypics` directory whit all extracted environments converted to
-image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.ltx`)
-for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
-and file `test-in-fig-all.ltx` with only the extracted environments using
+Create a `./mypics` directory (if it doesn’t exist) wwhit all extracted environments
+converted to individual files (`.pdf`, `.eps`, `.png`, `.ltx`), a file `test-out.ltx`
+whit all environments converted to `\includegraphics` and file `test-in-fig-all.ltx` with only the extracted environments using
 `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
 for `<output file>`.
 

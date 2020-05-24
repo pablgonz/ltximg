@@ -218,7 +218,7 @@ ${title}** Description
 \$ ltximg <file.tex>
 
    If used without [<compiler>] and [<options>] the extracted environments
-   are converted to pdf image format and saved in the "/images" directory
+   are converted to pdf image format and saved in the "./images" directory
    using "pdflatex" and "preview" package.
 
 ** Default environments extract
@@ -251,8 +251,8 @@ ${title}** Description
 --myverb <macroname>  Add "\\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
                       Removes specific block text in output file    [doc]
---zip                 Compress files generated in /imgdir in .zip   [off]
---tar                 Compress files generated in /imgdir .tar.gz   [off]
+--zip                 Compress files generated in .zip              [off]
+--tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files whit only code environment       [off]
 --subenv              Create files whit preamble and code           [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
@@ -276,12 +276,12 @@ ${title}** Description
 \$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 \$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 
-   Create a "/mypics" directory whit all extracted environments converted to
-   image formats (.pdf, .eps, .png), individual files whit source code (.ltx)
-   for all extracted environments, a file "test-out.ltx" whit all extracted
-   environments converted to \\includegraphics and file "test-in-fig-all.ltx"
-   with only the extracted environments using latex>dvips>ps2pdf and preview
-   package for <input file> and pdflatex for <output file>.
+   Create a "./mypics" directory (if it doesn’t exist) whit all extracted
+   environments converted to individual files (.pdf, .eps, .png, .ltx), a
+   file "test-in-fig-all.ltx" whit all extracted environments and the file
+   "test-out.ltx" with all environments converted to \\includegraphics using
+   latex>dvips>ps2pdf and preview package for <input file> and pdflatex for
+   <output file>.
 
 ** Documentation
 For full documentation use:
@@ -1026,7 +1026,7 @@ if (@mint_cline) {
 }
 
 ### Add standart mint, mintinline and lstinline
-my @mint_tmp = qw (mint  mintinline lstinline);
+my @mint_tmp = qw(mint  mintinline lstinline);
 
 ### Join all inline verbatim macros captured
 push @mintline, @mint_tmp;
@@ -1771,9 +1771,9 @@ my $quiet = $verbose ? q{}
           :            '-q'
           ;
 
-### Option for pdfcrop in command line
+### Option for pdfcrop in command line, --luatex problem for now
 my $opt_crop = $opts_cmd{compiler}{xetex}  ? "--xetex  --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{luatex} ? "--luatex --margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{luatex} ? "--pdftex --margins $opts_cmd{string}{margin}"
              : $opts_cmd{compiler}{latex}  ? "--margins $opts_cmd{string}{margin}"
              :                               "--pdftex --margins $opts_cmd{string}{margin}"
              ;

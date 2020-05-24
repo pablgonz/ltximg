@@ -12,8 +12,8 @@
 
 **ltximg** is a perl *script* that automates the process of extracting and converting
 environments provided by **tikz**, **pstricks** and other packages from input file
-to image formats in individual files using `ghostscript` and `poppler-utils`. Generates a file
-with only extracted environments and other with environments converted to `\includegraphics`.
+to image formats and standalone files using `ghostscript` and `poppler-utils`. Generates a
+file with only extracted environments and another with all extracted environments converted to `\includegraphics`.
 
 ## Syntax
 
@@ -67,7 +67,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
---imgdir <dirname>    Set name of directory to save images/files    [images]
+--imgdir <dirname>    Set name of directory to save generated files [images]
 --prefix <string>     Set prefix append to each generated files     [fig]
 --myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
@@ -101,10 +101,9 @@ $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 ```
 
-Create a `/mypics` directory whit all extracted environments converted to
-image formats (`.pdf`, `.eps`, `.png`), individual files whit source code (`.ltx`)
-for all extracted environments, a file `test-out.ltx` whit all environments converted to `\includegraphics`
-and file `test-in-fig-all.ltx` with only the extracted environments using
+Create a `./mypics` directory (if it doesn’t exist) wwhit all extracted environments
+converted to individual files (`.pdf`, `.eps`, `.png`, `.ltx`), a file `test-out.ltx`
+whit all environments converted to `\includegraphics` and file `test-in-fig-all.ltx` with only the extracted environments using
 `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
 for `<output file>`.
 
@@ -203,6 +202,7 @@ Copyright 2013 - 2020 by Pablo González L
 \newfontfamily\fetamono{ffmw10.otf}[
    Scale             = 0.95,%
    RawFeature        ={+latn,+rand,+kern,+size},%
+   FontFace          = {bx}{n}{ffmw10.otf},
    ]
 \newfontfamily\fetamontotf{ffmw10.otf}[
    Scale             = 0.95,%
@@ -220,8 +220,7 @@ Copyright 2013 - 2020 by Pablo González L
 \usepackage{adjustbox,multicol,hyperref,xparse,listings,accsupp}
 \usepackage{csquotes}
 \usepackage{hyperxmp,imakeidx}%
-\PageIndex
-\EnableCrossrefs
+% Hyperref number in index
 \newcommand{\HP}[1]{\emph{\hyperpage{#1}}\normalsize}
 \def\SortIndex#1#2{\index{#1\actualchar#2|HP}}
 \indexsetup{level=\section,firstpagestyle=myheader}
@@ -288,7 +287,7 @@ Copyright 2013 - 2020 by Pablo González L
   \href{mailto:#1@#2}{{\emailfont #1\emailampersat #2}}%
 }%
 \newcommand\emailfont{\sffamily}%
-\newcommand\emailampersat{{\color{NavyBlue}\footnotesize@}}%
+\newcommand\emailampersat{{\color{pkgcolor}\footnotesize@}}%
 \catcode`\_=8\relax% %
 
 % Config hyperref
@@ -333,18 +332,18 @@ Copyright 2013 - 2020 by Pablo González L
 
 % Table of contents
 \titlecontents{section}[0mm]{}%
-    {\bfseries\contentspush{\makebox[4mm][l]{\thecontentslabel\hfill}}}%
-    {\hspace*{-4mm}}% numberless
+    {\bfseries\contentspush{\makebox[5mm][l]{\thecontentslabel\hfill}}}%
+    {\hspace*{-5mm}}% numberless
     {\hspace{0.25em}\titlerule*[6pt]{.}\contentspage}%
 
-\titlecontents{subsection}[4mm]{}%
+\titlecontents{subsection}[5mm]{}%
     {\contentspush{\makebox[6mm][l]{\thecontentslabel\hfill}}}
-    {\hspace*{-10mm}}% numberless
+    {\hspace*{-11mm}}% numberless
     {\hspace{0.25em}\titlerule*[6pt]{.}\contentspage}%
 
-\titlecontents{subsubsection}[10mm]{}%
+\titlecontents{subsubsection}[11mm]{}%
     {\contentspush{\makebox[8mm][l]{\thecontentslabel\hfill}}}
-    {\hspace*{-18mm}}% numberless
+    {\hspace*{-19mm}}% numberless
     {\hspace{0.25em}\titlerule*[6pt]{.}\contentspage}%
 
 \makeatletter
@@ -457,13 +456,13 @@ Copyright 2013 - 2020 by Pablo González L
   }
 
 % \ltximg for body document
-\DeclareDocumentCommand{\ltximg}{}
+\NewDocumentCommand{\ltximg}{}
   {
    \normalsize\texttt{\bfseries\textcolor{NavyBlue}{ltximg}}
   }
 
 % \prgname{sm} : #1 index compiler, #2 index programs:
-\DeclareDocumentCommand{\prgname}{sm}
+\NewDocumentCommand{\prgname}{sm}
   {%
     \IfBooleanTF{#1}
      {
@@ -477,7 +476,7 @@ Copyright 2013 - 2020 by Pablo González L
   }%
 
 % \prgopt{sm} : #1 compiler opt, #2 program opt:
-\DeclareDocumentCommand{\prgopt}{sm}
+\NewDocumentCommand{\prgopt}{sm}
   {%
     \IfBooleanTF{#1}
       {
@@ -491,21 +490,21 @@ Copyright 2013 - 2020 by Pablo González L
   }
 
 % \scriptname*{m}
-\DeclareDocumentCommand{\scriptname}{m}
+\NewDocumentCommand{\scriptname}{m}
   {
     \textcolor{ForestGreen}{\ttfamily\bfseries{#1}}
     \SortIndex{scripts}{Scripts>\small\texttt{#1}}%
   }
 
 % \scriptopt{m}
-\DeclareDocumentCommand{\scriptopt}{m}
+\NewDocumentCommand{\scriptopt}{m}
   {
     \mbox{\texttt{#1}}
     \SortIndex{script ~ option}{Script ~ options>\small\texttt{#1}}%
   }
 
 % \pkgname{m}
-\DeclareDocumentCommand{\pkgname}{ m }
+\NewDocumentCommand{\pkgname}{ m }
   {
     \textsf{\textcolor{SlateBlue}{#1}}
     \SortIndex{packages}{Packages>\small\texttt{#1}}
@@ -513,62 +512,62 @@ Copyright 2013 - 2020 by Pablo González L
   }%
 
 % \pkgopt{m}
-\DeclareDocumentCommand{\pkgopt}{ m }
+\NewDocumentCommand{\pkgopt}{ m }
   {
-    \textsf{\textcolor{Orange}{#1}}
+    \textsf{\textcolor{gray}{#1}}
     \SortIndex{package ~  options}{Package ~  options>\small\texttt{#1}}
     \SortIndex{#1}{\texttt{#1} (package  ~ option)}
   }
 
 % \env{sm}, #1 not used now
-\DeclareDocumentCommand{\env}{m}
+\NewDocumentCommand{\env}{m}
   {
-    \textcolor{optcolor}{\texttt{#1}}%
+    \textcolor{pkgcolor}{\texttt{#1}}%
     \SortIndex{environment}{Environments>\small\texttt{#1}}%
   }
 
-% \ics{sm}, #1 not used now
-\DeclareDocumentCommand{\ics}{sm}
+% \ics{sm}, #1 not used now \color{optcolor}
+\NewDocumentCommand{\ics}{sm}
   {
-    \textcolor{optcolor}{\ttfamily{\textbackslash#2}}%
+    \textcolor{blue!75}{\ttfamily{\textbackslash#2}}%
     \SortIndex{#2}{\texttt{\small\textbackslash#2}}
   }
 
 % file extention
-\DeclareDocumentCommand{\fext}{m}
+\NewDocumentCommand{\fext}{m}
   {
-    \mbox{\textcolor{optcolor}{\ttfamily\bfseries{.#1}}}%
+    \mbox{\textcolor{MediumPurple}{\ttfamily\bfseries{.#1}}}%
     \SortIndex{files  ~ extention}{File  ~ extentions >\small\texttt{.#1}}%
   }
 
 % image format/extention
-\DeclareDocumentCommand{\iext}{m}
+\NewDocumentCommand{\iext}{m}
   {%
     \textcolor{optcolor}{\ttfamily\bfseries{#1}}%
     \SortIndex{Image format}{Image formats>\small\texttt{#1}}%
   }
 
 % \sysydir{m}
-\DeclareDocumentCommand{\sysdir}{m}
+\NewDocumentCommand{\sysdir}{m}
   {
-    \mbox{\textcolor{NavyBlue}{\ttfamily{/#1}}}%
+    \mbox{\textcolor{OrangeRed}{\ttfamily{#1}}}%
   }
 
 % \sysfile{m} ...only for color in some examples
-\DeclareDocumentCommand{\sysfile}{m}
+\NewDocumentCommand{\sysfile}{m}
   {
-    \mbox{\textcolor{gray}{\ttfamily{#1}}}
+    \mbox{\textcolor{MediumPurple}{\ttfamily{#1}}}
   }
 
 % \OSsystem{m} ...only for color in some examples
-\DeclareDocumentCommand{\OSsystem}{m}
+\NewDocumentCommand{\OSsystem}{m}
   {
     \mbox{\textcolor{NavyBlue}{\ttfamily\bfseries{#1}}}%
     \SortIndex{Operating ~ system}{Operating ~ system>\small\texttt{#1}}
   }
 
 % \cmdopt[short]{long}
-\DeclareDocumentCommand{\cmdopt}{om}
+\NewDocumentCommand{\cmdopt}{om}
   {
     \IfNoValueTF{#1}
       {
@@ -597,28 +596,28 @@ Copyright 2013 - 2020 by Pablo González L
       \ignorespaces%
   }%
 
-% \myenv{environ}
-\DeclareDocumentCommand\myenv{m}
+% \myenv{environ} for margin
+\NewDocumentCommand\myenv{m}
   {
     \moveright 0.0pt \hbox{%
     \begin{minipage}[t]{\marginparwidth}%
         \raggedleft\ttfamily%\small%
-        {\textcolor{gray}{\textbackslash begin\{}}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{\}}\par%
-        \meta[ac=gray,cf=gray]{env content}\par%
-        {\textcolor{gray}{\textbackslash end\{}}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{\}}%
+        {\textcolor{gray}{\textbackslash begin\{}}{\bfseries\textcolor{pkgcolor}{#1}}\textcolor{gray}{\}}\par%
+        \meta[ac=lightgray,cf=gray]{env content}\par%
+        {\textcolor{gray}{\textbackslash end\{}}{\bfseries\textcolor{pkgcolor}{#1}}\textcolor{gray}{\}}%
     \end{minipage}%
                     } % close hbox
     \SortIndex{Environment}{Environments suport by default>\small\texttt{#1}}%
   }
 
 % \mytag{dtxtag}
-\DeclareDocumentCommand\mytag{m}{%
+\NewDocumentCommand\mytag{m}{%
 \moveright 0.0pt \hbox{%
     \begin{minipage}[t]{\marginparwidth}%
         \raggedleft\ttfamily%\small%
-        \textcolor{gray}{\%<*}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{>}\par%
-        \meta[ac=gray,cf=gray]{content}\par%
-        \textcolor{gray}{\%</}{\bfseries\textcolor{optcolor}{#1}}\textcolor{gray}{>}%
+        \textcolor{gray}{\%<*}{\bfseries\textcolor{pkgcolor}{#1}}\textcolor{gray}{>}\par%
+        \meta[ac=lightgray,cf=gray]{content}\par%
+        \textcolor{gray}{\%</}{\bfseries\textcolor{pkgcolor}{#1}}\textcolor{gray}{>}%
     \end{minipage}%
                     } % close hbox
     \SortIndex{docstrip}{Docstrip tag>\small\texttt{#1}}%
@@ -644,20 +643,19 @@ Copyright 2013 - 2020 by Pablo González L
 \begin{lrbox}{\optinfile}%
    \begin{minipage}[t]{\marginparwidth}%
         \raggedleft\ttfamily\bfseries%
-        \textcolor{optcolor}{\%{#4}\myscript}\textcolor{red}{\texttt{:}}%
+        \textcolor{gray}{\%}\textcolor{optcolor}{{#4}\myscript}\textcolor{gray}{\texttt{:}}%
     \end{minipage}%
 \end{lrbox}%
 \leavevmode%
 \lapbox[0pt]{-\marginparwidth-0.5\marginparsep}{\usebox{\optinfile}}%
 \textcolor{optcolor}{\bfseries\texttt{{#2}}}%
-\textcolor{red}{\texttt{:}}\space%
-\marg[type=tt,cbc=optcolor,ac=lightgray,cf=gray]{#3}%
+\textcolor{gray}{\texttt{:}}\space%
+\marg[type=tt,cbc=gray,ac=lightgray,cf=optcolor!85]{#3}%
 \vspace*{2pt}\par%
-\IfNoValueTF{#1}
-{}%%
-{%
-\SortIndex{options}{\textsf{\myscript}\ options in input file>\small\texttt{#2}}%
-}%
+\IfBooleanF{#1}
+  {%
+    \SortIndex{options}{\textsf{\myscript}\ options in input file>\small\texttt{#2}}%
+  }%
 }
 
 % \DescribeCmd[...]{...}{...}{...}, need changue to \DescribeOptCmd
@@ -687,32 +685,44 @@ Copyright 2013 - 2020 by Pablo González L
     showstringspaces=false,%
     extendedchars=true, %
     stringstyle = {\color{red}},%
+    alsoletter={\-,.},%
 % comments
     morecomment=[l]{\%},%
     commentstyle=\lmmitalic\color{lightgray},%
 % Important words 1
     keywordstyle=[1]{\color{NavyBlue}},%
-    keywords=[1]{AtBeginDocument,begin,end,documentclass,BEGIN,END},%
-% Other words 2
+    keywords=[1]{AtBeginDocument,documentclass,usepackage},%
+% Important words 2 (macros)
     keywordstyle=[2]{\color{blue!75}},%
-    keywords=[2]{usepackage,graphicspath,RequirePackage,renewcommand,%
+    keywords=[2]{graphicspath,RequirePackage,renewcommand,includegraphics,%
     PreviewBbAdjust,usetikzlibrary,tikzexternalize,psset,tikzset,PrependGraphicsExtensions,%
-    DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb},%
-% Other words 3
+    DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb,verb,myverb,macro,put,line},%
+% Important words 3, options in input file
     keywordstyle=[3]{\color{optcolor!85}},%
-    keywords=[3]{document,graphicx,preview,active,tightpage,article,grfext,description,filecontents,%
-    external,tikz,clean,pst,tkz,eps,pdf,xetex,latex,luatex,dvips,png,srcenv,noprew,imgdir,prefix,output},%
-% Reserved words 4(inputfile options)
-    keywordstyle=[4]{\color{optcolor}},%
-    keywords=[4]{ltximg,noltximg,remove,options,pspicture,endpspicture,%
-    PSTexample,pgfpicture, endpgfpicture, tikzpicture, endtikzpicture, %
-    psgraph, endpsgraph,nopreview,postscript, arara,extrenv,deltenv,skipenv},%
-% Reserved in orange
+    keywords=[3]{extrenv,deltenv,skipenv,options,arara,extensions,luatex,env,%
+    clean,pst,tkz,eps,pdf,xetex,latex,luatex,dvips,png,srcenv,noprew,imgdir,prefix,output},%
+% Important words 4, environments and tags
+    keywordstyle=[4]{\color{pkgcolor}},%
+    keywords=[4]{ltximg,noltximg,remove,pspicture,endpspicture,%
+    description,filecontents,PSTexample,pgfpicture, endpgfpicture, tikzpicture, endtikzpicture, %
+    psgraph, endpsgraph,nopreview,postscript,picture},%
+% Important words 5, directory
     keywordstyle=[5]{\color{OrangeRed}},%
-    keywords=[5]{images,includegraphics,env,file-out,pics,doc},%
-% Reserved in orange
-    keywordstyle=[6]{\color{red}},%
-    keywords=[6]{verb,myverb},%
+    keywords=[5]{images,pics},%
+% Important words 6, begin, end and other
+    keywordstyle=[6]{\color{gray}},% replace this color
+    keywords=[6]{begin,end,-recorder,doc,active,tightpage,BEGIN,END,%
+    -shell-escape,osf,--output-format,--exact-bbox,-o,dvi},%
+% Important words 7, reserved for arara
+    keywordstyle=[7]{\color{araracolor}},%
+    keywords=[7]{lualatex,dvisvgm},%
+% Important words 8, pkg and others load in examples
+    keywordstyle=[8]{\color{SlateBlue}},%
+    keywords=[8]{graphicx,grfext,tikz,article,document,preview,libertinus,calc,tikzmark},%
+% Important words 9, files used in examples
+    keywordstyle=[10]{\color{MediumPurple}},%
+    keywords=[10]{test-fig-1981.tex,test-fig-1,test-fig-2,test-out,test-in.ltx,%
+    test-fig-1981.tex,test-out.tex,file-in.tex,file-out,test.tex,test-fig-all.dvi,test-fig-1.svg,test-fig-all.tex},%
 }[keywords,tex,comments,strings]% end languaje
 
 % \begin{examplecode}[optlst]...\end{examplecode}
@@ -731,22 +741,22 @@ Copyright 2013 - 2020 by Pablo González L
 % literateee
     literate=*{\{}{{\bfseries\textcolor{gray}{\{}}}{1}
               {\}}{{\bfseries\textcolor{gray}{\}}}}{1}
-              {[}{{\bfseries\textcolor{optcolor}{[}}}{1}
-              {]}{{\bfseries\textcolor{optcolor}{]}}}{1}
+              {[}{{\textcolor{gray}{[}}}{1}
+              {]}{{\textcolor{gray}{]}}}{1}
               {*}{{\bfseries\textcolor{red}{*}}}{1}
-              {:}{{\textcolor{red}{:}}}{1}
+              {:}{{\textcolor{gray}{:}}}{1}
               {,}{{\textcolor{gray}{,}}}{1}
               {=}{{\textcolor{gray}{=}}}{1}
-              {/}{{\textcolor{gray}{/}}}{1}
-              {\%\ ltximg}{{\textcolor{gray}{\%}\space\bfseries\textcolor{optcolor}{ltximg}}}{8}
-              {\%\ arara}{{\textcolor{gray}{\%}\space\bfseries\textcolor{optcolor}{arara}}}{7}
-              {\{arara}{{\textcolor{gray}{\{arara}}}{6}
-              {\%<*remove>}{{\bfseries\textcolor{gray}{\%<*remove>}}}{10}
-              {\%</remove>}{{\bfseries\textcolor{gray}{\%</remove>}}}{10}
-              {\%<*ltximg>}{{\bfseries\textcolor{gray}{\%<*ltximg>}}}{10}
-              {\%</ltximg>}{{\bfseries\textcolor{gray}{\%</ltximg>}}}{10}
-              {\%<*noltximg>}{{\bfseries\textcolor{gray}{\%<*noltximg>}}}{12}
-              {\%</noltximg>}{{\bfseries\textcolor{gray}{\%</noltximg>}}}{12},%
+              {/}{{\textcolor{OrangeRed}{/}}}{1}
+              {scale=1}{{\textcolor{gray}{scale=1}}}{7}
+              {\%\ ltximg}{{\textcolor{gray}{\%}\space\textcolor{optcolor}{ltximg}}}{8}
+              {\%\ arara}{{\textcolor{gray}{\%}\space\textcolor{araracolor}{arara}}}{7}
+              {\%<*remove>}{{\textcolor{gray}{\%<*}\textcolor{pkgcolor}{remove}\textcolor{gray}{>}}}{10}
+              {\%</remove>}{{\textcolor{gray}{\%</}\textcolor{pkgcolor}{remove}\textcolor{gray}{>}}}{10}
+              {\%<*ltximg>}{{\textcolor{gray}{\%<*}\textcolor{pkgcolor}{ltximg}\textcolor{gray}{>}}}{10}
+              {\%</ltximg>}{{\textcolor{gray}{\%</}\textcolor{pkgcolor}{ltximg}\textcolor{gray}{>}}}{10}
+              {\%<*noltximg>}{{\textcolor{gray}{\%<*}\textcolor{pkgcolor}{noltximg}\textcolor{gray}{>}}}{12}
+              {\%</noltximg>}{{\textcolor{gray}{\%</}\textcolor{pkgcolor}{noltximg}\textcolor{gray}{>}}}{12},%
           #1,%
     }% close lstset
 }%
@@ -758,19 +768,23 @@ Copyright 2013 - 2020 by Pablo González L
     language=ltximg-doc,%
     basicstyle=\ttfamily\small,%
     frame=single,%
+    alsoletter={\-,.,\-\-},%
     rulecolor=\color{gray!50},%
     framesep=\fboxsep,%
     framerule=\fboxrule,%
     xleftmargin=\dimexpr\fboxsep+\fboxrule\relax,%
     xrightmargin=\dimexpr\fboxsep+\fboxrule\relax,%
+    keywordstyle=[20]{\color{gray}},% replace this color
+    keywords=[20]{-recorder,-shell-escape,--latex,-s,-o,--arara,--norun,--luatex},%
 % Reserved words (cmd line options)
+    deletekeywords=[4]{ltximg},%
     classoffset=7,%
-    keywordstyle=\bfseries\color{optcolor},%
+    keywordstyle=\bfseries\color{NavyBlue},%
     morekeywords={ltximg},%
 % % Reserved words (cmd line options)
     classoffset=8,%
     keywordstyle={\bfseries\color{ForestGreen}},%
-    morekeywords={gs,pdftoppm,pdftocairo,pdftops},%
+    morekeywords={gs,pdftoppm,pdftocairo,pdftops,cd},%
 % Only for command line options
     classoffset=5,%
     keywordstyle=\color{blue},%
@@ -793,6 +807,8 @@ Copyright 2013 - 2020 by Pablo González L
    basicstyle=\ttfamily\color{gray},%
    escapechar=`,%
    upquote=true,%
+   deletekeywords=[8]{preview},%
+   morekeywords =[4]{preview},%
    literate=*{\%}{{\bfseries\textcolor{gray}{\%}}}{1}
   }
 
@@ -811,7 +827,7 @@ Copyright 2013 - 2020 by Pablo González L
     \author{%
     \large%
     \raisebox{-1pt}{\textcopyright}{}2013--2020 by Pablo González L%
-    \thanks{E-mail: \texttt{\guillemotleft}\email{pablgonz@yahoo.com}\texttt{\guillemotright}}
+    \thanks{E-mail: \textcolor{optcolor}{\textsf{\guillemotleft}}\email{pablgonz@yahoo.com}\textcolor{optcolor}{\textsf{\guillemotright}}}
     }%
 \small
 \textsc{ctan}: \url{https://www.ctan.org/pkg/ltximg}\\
@@ -824,10 +840,10 @@ Copyright 2013 - 2020 by Pablo González L
 \begin{abstract}
 \ltximg{} is a \prgname{perl} \emph{script} that automates the process of
 extracting and converting environments provided by \pkgname{tikz}, %
-\pkgname{pstricks} and other packages from \meta{input file} to image
-formats in individual files using \prgname{ghostscript} and %
+\pkgname{pstricks} and other packages from \meta[cf=optcolor]{input file} to image
+formats and standalone files using \prgname{ghostscript} and %
 \prgname{poppler-utils}. Generates a file with only extracted environments
-and another with environments converted to \ics{includegraphics}.
+and another with all extracted environments converted to \ics{includegraphics}.
 \end{abstract}
 
 \tableofcontents
@@ -847,11 +863,11 @@ for more details.
 
 \section{Motivation and Acknowledgments}
 
-The original idea was to extend the functionality of the \scriptname{pst2pdf}
+The original idea was to extend the functionality of the \scriptname{pst2pdf}\cite{pst2pdf}
 script (only for \env{pspicture} and \env{postscript}) to work with %
 \env{tikzpicture} and other environments.
 
-The \pkgname{tikz} package allows to externalize the environments, but, the
+The \pkgname{tikz}\cite{tikz} package allows to externalize the environments, but, the
 idea was to be able to extend this to any type of environment covering three
 central points:
 
@@ -869,8 +885,8 @@ central points:
 \pagestyle{myheader}
 
 From the side of \hologo{TeX} there are some packages that cover several of these
-points such as the \pkgname{preview}, \pkgname{xcomment}, \pkgname{external}
-and \pkgname{cachepic} packages among others, but none covered all points.
+points such as the \pkgname{preview}\cite{preview}, \pkgname{xcomment}\cite{xcomment}, \pkgname{extract}\cite{extract}
+and \pkgname{cachepic}\cite{cachepic} packages among others, but none covered all points.
 
 In the network there are some solutions in \texttt{bash} that were able to
 extract and convert environments, but in general they presented problems
@@ -890,8 +906,17 @@ Finding the correct \emph{\enquote{regular expressions}}
 and writing a \emph{\enquote{good documentation}} would be the great mission (which does not
 end yet).
 
-\section{Required Software}
-\label{sec:software}
+\section{How it works}
+\label{sec:howtowork}
+
+It is important to have a general idea of how the \emph{\enquote{extraction and conversion}}
+process works and the requirements that must be fulfilled so
+that everything works correctly, for this we must be clear about some
+concepts related to how to work with the \meta[cf=optcolor]{input file}, the \meta{verbatim content}
+and the \meta{steps process}.
+
+\section{Requirements for operation}
+\label{sec:requirements}
 
 For the complete operation of \ltximg{} you need to have a modern %
 \hologo{TeX} distribution such as \hologo{TeX}Live or \hologo{MiKTeX}, have
@@ -910,39 +935,28 @@ The script has been tested on \OSsystem{Windows} (version 10) and %
 \liningnums{v0.84} and \prgname{perl} from \liningnums{v5.28} to %
 \liningnums{v5.30}.
 
-\section{How it works}
-\label{sec:howtowork}
-
-It is important to have a general idea of \enquote{how} the \emph{extraction and
-conversion} process works and the requirements that must be fulfilled so
-that everything works correctly, for this we must be clear about some
-concepts related to how to work with the \meta{input file}, the \meta{verbatim content}
-and the \meta{steps process}.
-
-\subsection{The input file}
+\section{The input file}
 \label{sec:inputfile}
 
-The \meta{input file} must comply with certain characteristics in order to
+The \meta[cf=optcolor]{input file} must comply with certain characteristics in order to
 be processed, the content at the beginning and at the end of the \meta{input
-file} is treated in a special way, before \lstinline|\documentclass| can only be
-commented lines and after \lstinline|\end{document}| can go any type of content,
-internally will \emph{\enquote{split}} the \meta{input file} at this points.
+file} is treated in a special way, before \lstinline|\documentclass| and after
+\lstinline|\end{document}| can go any type of content, internally the script will
+\emph{\enquote{split}} the \meta[cf=optcolor]{input file} at this points.
 
-If the \meta{input file} contains files using \ics{input} or \ics{include}
+If the \meta[cf=optcolor]{input file} contains files using \ics{input} or \ics{include}
 these will not be processed, from the side of the \emph{script} they only
 represent lines within the file, if you want them to be processed it is
 better to use the \scriptname{latexpand}\footnote{\url{https://www.ctan.org/pkg/latexpand}}
 first and then process the file.
 
 Like \ics{input} or \ics{include}, blank lines, vertical spaces and tab
-characters are treated literally, for the \emph{script} the \meta{input file}
+characters are treated literally, for the \emph{script} the \meta[cf=optcolor]{input file}
 is just a set of characters, as if it was a simple text file. It is
-advisable to format the source code \meta{input file} using utilities such
+advisable to format the source code \meta[cf=optcolor]{input file} using utilities such
 as \prgname{chktex}\footnote{\url{https://www.ctan.org/pkg/chktex}} and
 \scriptname{latexindent}\footnote{\url{https://www.ctan.org/pkg/latexindent}}, especially if you want to
-extract the source code of the environments.
-
-An example of the \meta{input file}:
+extract the source code of the environments. An example of \meta[cf=optcolor]{input file}:
 
 \begin{examplecode}[numbers=left,frame=single]
 % some commented lines at begin document
@@ -962,7 +976,7 @@ Some text
 \end{document}
 \end{examplecode}
 
-\subsection{Verbatim contents}
+\section{Verbatim contents}
 \label{sec:verbatim}
 
 One of the greatest capabilities of this script is to \emph{\enquote{skip}}
@@ -978,15 +992,15 @@ three types:
     \item Verbatim write.
 \end{itemize}
 
-\subsubsection{Verbatim in line}
+\subsection{Verbatim in line}
 \label{sec:verbatim:inline}
 
-The small pieces of code written using a \emph{\enquote{verbatim macro}} (including a starred \texttt{\small\bfseries\textcolor{red}{*}} argument)
+The small pieces of code written using a \emph{\enquote{verbatim macro}} (including \texttt{\small\bfseries\textcolor{red}{*}} argument)
 are considered \meta{verbatim in line}, such as \lstinline+\verb|+\meta{code}\lstinline+|+
 or \lstinline+\macro+\marg[type=tt]{code}.
 
-Most \emph{\enquote{verbatim macro}} provide by packages \pkgname{minted}, %
-\pkgname{fancyvrb} and \pkgname{listings} have been tested and are fully
+Most \emph{\enquote{verbatim macro}} provide by packages \pkgname{minted}\cite{minted}, %
+\pkgname{fancyvrb}\cite{fancyvrb} and \pkgname{listings}\cite{listings} have been tested and are fully
 supported. They are automatically detected the \emph{verbatim macro} generates by
 \ics{newmint} and \ics{newmintinline} and the following list:
 
@@ -1011,14 +1025,14 @@ supported. They are automatically detected the \emph{verbatim macro} generates b
 Some packages define abbreviated versions for \emph{\enquote{verbatim macro}} as %
 \ics{DefineShortVerb}, \ics{lstMakeShortInline} and %
 \ics{MakeSpecialShortVerb}, will be detected automatically if are declared
-explicitly in \meta{input file}.
+explicitly in \meta[cf=optcolor]{input file}.
 
 The following consideration should be kept in mind for some packages that
-use abbreviations for verbatim macros, such as \pkgname{shortvrb} or %
-\pkgname{doc} for example in which there is no explicit macro in the
+use abbreviations for verbatim macros, such as \pkgname{shortvrb}\cite{doc} or %
+\pkgname{doc}\cite{doc} for example in which there is no explicit macro in the
 document by means of which the abbreviated form can be detected, for
 automatic detection need to find \ics{DefineShortVerb} explicitly to process
-it correctly. The solution is quite simple, just add in \meta{input file}:
+it correctly. The solution is quite simple, just add in \meta[cf=optcolor]{input file}:
 
 \begin{examplecode}
 \UndefineShortVerb{\|}
@@ -1029,56 +1043,57 @@ depending on the package you are using. If your \emph{\enquote{verbatim macro}} 
 supported by default or can not detect, use the options described in \ref%
 {sec:optline} and \ref{sec:optfile}.
 
-\subsubsection{Verbatim standard}
+\subsection{Verbatim standard}
 \label{sec:verbatim:std}
 
 These are the \emph{\enquote{classic}} environments for \emph{\enquote{writing code}} are considered %
 \meta{verbatim standard}, such as \env{verbatim} and \env{lstlisting}
-environments. The following list (including a starred \texttt{\small\bfseries\textcolor{red}{*}} argument)
+environments. The following list (including \texttt{\small\bfseries\textcolor{red}{*}} argument)
 is considered as \meta{verbatim standard} environments:
 
 \begin{multicols}{4}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
-\ttfamily\small
-\item Example
-\item CenterExample
-\item SideBySideExample
-\item PCenterExample
-\item PSideBySideExample
-\item verbatim
-\item Verbatim
-\item BVerbatim
-\item LVerbatim
-\item SaveVerbatim
-\item PSTcode
-\item LTXexample
-\item tcblisting
-\item spverbatim
-\item minted
-\item listing
-\item lstlisting
-\item alltt
-\item comment
-\item chklisting
-\item verbatimtab
-\item listingcont
-\item boxedverbatim
-\item demo
-\item sourcecode
-\item xcomment
-\item pygmented
-\item pyglist
-\item program
-\item programl
-\item programL
-\item programs
-\item programf
-\item programsc
-\item programt
+\small
+\item \env{Example}
+\item \env{CenterExample}
+\item \env{SideBySideExample}
+\item \env{PCenterExample}
+\item \env{PSideBySideExample}
+\item \env{verbatim}
+\item \env{Verbatim}
+\item \env{BVerbatim}
+\item \env{LVerbatim}
+\item \env{SaveVerbatim}
+\item \env{PSTcode}
+\item \env{LTXexample}
+\item \env{tcblisting}
+\item \env{spverbatim}
+\item \env{minted}
+\item \env{listing}
+\item \env{lstlisting}
+\item \env{alltt}
+\item \env{comment}
+\item \env{chklisting}
+\item \env{verbatimtab}
+\item \env{listingcont}
+\item \env{boxedverbatim}
+\item \env{demo}
+\item \env{sourcecode}
+\item \env{xcomment}
+\item \env{pygmented}
+\item \env{pyglist}
+\item \env{program}
+\item \env{programl}
+\item \env{programL}
+\item \env{programs}
+\item \env{programf}
+\item \env{programsc}
+\item \env{programt}
 \end{itemize}
 \end{multicols}
 
-They are automatically detected \meta{verbatim standard} environments (including a starred \texttt{\small\bfseries\textcolor{red}{*}} argument)
+They are automatically detected \meta{verbatim standard} environments
+(including \texttt{\small\bfseries\textcolor{red}{*}} argument)
 generates by commands:
 
 \begin{multicols}{2}
@@ -1104,38 +1119,39 @@ If any of the \meta{verbatim standard} environments is not supported by
 default or can not detected, you can use the options described in \ref%
 {sec:optline} and \ref{sec:optfile}.
 
-\subsubsection{Verbatim write}
+\subsection{Verbatim write}
 \label{sec:verbatim:write}
 
 Some environments have the ability to write \emph{\enquote{external files}}
 or \emph{\enquote{store content}} in memory, these environments are
 considered \meta{verbatim write}, such as \env{scontents}, \env{filecontents}
-or \env{VerbatimOut} environments. The following list is considered (including a starred \texttt{\small\bfseries\textcolor{red}{*}} argument) as %
+or \env{VerbatimOut} environments. The following list is considered (including \texttt{\small\bfseries\textcolor{red}{*}} argument) as %
 \meta{verbatim write} environments:
 
 \begin{multicols}{4}
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
 \ttfamily\small
-\item scontents
-\item filecontents
-\item tcboutputlisting
-\item tcbexternal
-\item tcbwritetmp
-\item extcolorbox
-\item extikzpicture
-\item VerbatimOut
-\item verbatimwrite
-\item filecontentsdef
-\item filecontentshere
-\item filecontentsdefmacro
-\item filecontentsdefstarred
-\item filecontentsgdef
-\item filecontentsdefmacro
-\item filecontentsgdefmacro
+\item \env{scontents}
+\item \env{filecontents}
+\item \env{tcboutputlisting}
+\item \env{tcbexternal}
+\item \env{tcbwritetmp}
+\item \env{extcolorbox}
+\item \env{extikzpicture}
+\item \env{VerbatimOut}
+\item \env{verbatimwrite}
+\item \env{filecontentsdef}
+\item \env{filecontentshere}
+\item \env{filecontentsdefmacro}
+\item \env{filecontentsdefstarred}
+\item \env{filecontentsgdef}
+\item \env{filecontentsdefmacro}
+\item \env{filecontentsgdefmacro}
 \end{itemize}
 \end{multicols}
 
-They are automatically detected \meta{verbatim write} (including a starred \texttt{\small\bfseries\textcolor{red}{*}}) environments generates
+They are automatically detected \meta{verbatim write}
+(including \texttt{\small\bfseries\textcolor{red}{*}} argument) environments generates
 by commands:
 
 \begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
@@ -1151,27 +1167,27 @@ If any of the \meta{verbatim write} environments is not supported by default
 or can not detected, you can use the options described in \ref{sec:optline}
 and \ref{sec:optfile}.
 
-\subsection{Steps process}
+\section{Steps process}
 \label{sec:steps:process}
 
 For creation of the image formats, extraction of source code of environments and creation of an
-\meta{output file}, \ltximg{} need a various steps. Let's assume that the %
-\meta{input file} is \sysfile{test.tex}, \meta{output file} is %
-\sysfile{test-out}, the working directory are \sysdir{workdir}, the
-directory for images are \sysdir{workdir/images} and the user's temporary
-directory is \sysdir{tmp} and we want to generate images in \iext{pdf}
+\meta[cf=optcolor]{output file}, \ltximg{} need a various steps. Let's assume that the %
+\meta[cf=optcolor]{input file} is \sysfile{test.tex}, \meta[cf=optcolor]{output file} is %
+\sysfile{test-out}, the working directory are \sysdir{workdir/}, the
+directory for images are \sysdir{workdir/images/} and the temporary
+directory is \sysdir{/tmp} and we want to generate images in \iext{pdf}
 format together with the source code of the environments.
 
-\subsubsection{Validating Options}
+\subsection{Validating Options}
 
-The first step is read and validated \oarg[type=rm,cf=gray,sbc=optcolor,ac=gray]{options} from the command
+The first step is read and validated \oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} from the command
 line and \sysfile{test.tex}, verifying that \sysfile{test.tex} contains \emph{some} environment to extract,
-check the name and extension of \sysfile{test-out},  check the directory \sysdir{workdir/images} if it doesn't exist create it
-and create a temporary directory \sysdir{tmp/hG45uVklv9}.
+check the name and extension of \sysfile{test-out}, check the directory \sysdir{workdir/images} if it doesn't exist create it
+and create a temporary directory \sysdir{/tmp/hG45uVklv9}.
 
 The entire \sysfile{test.tex} file is loaded into memory and split to start the extraction process,
 
-\subsubsection{Comment and ignore}
+\subsection{Comment and ignore}
 In the second step, once the file \sysfile{test.tex} is loaded and divided in memory,
 proceeds (in general terms) as follows:
 
@@ -1183,12 +1199,12 @@ extract inside the \lstinline|\begin{preview}| \ldots \lstinline|\end{preview}|.
 
 At this point all the code you want to extract is inside \lstinline|\begin{preview}| \ldots \lstinline|\end{preview}|.
 
-\subsubsection{Create random file and extracting}
+\subsection{Creating files and extracting}
 
 In the third step, the script extract a sub files \sysfile{test-fig-1.tex},
-\sysfile{test-fig-2.tex}, \ldots{} and saved in \sysdir{images}. A temporary
+\sysfile{test-fig-2.tex}, \ldots{} and saved in \sysdir{./images}. A temporary
 file with a random number (1981 for example) with all environments is created
-and proceed in two ways according to the \oarg[type=rm,cf=gray,sbc=optcolor,ac=gray]{options}
+and proceed in two ways according to the \oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options}
 passed to the script:
 
 \begin{enumerate}[leftmargin=*]
@@ -1201,34 +1217,34 @@ following lines to the beginning of the \sysfile{test.tex} (in memory):
 \renewcommand\PreviewBbAdjust{-60pt -60pt 60pt 60pt}}%
 % rest of input file
 \end{examplecode}
-And save in a temporary file \sysfile{test-fig-1981.tex} in \sysdir{workdir}.
+And save in a temporary file \sysfile{test-fig-1981.tex} in \sysdir{workdir/}.
 
 \item If script is call \emph{whit} \cmdopt[n]{noprew} options, all code to extract
 its put inside the \env{preview} environment. The \lstinline|\begin{preview}|\ldots \lstinline|\end{preview}|
 lines are only used as delimiters for extracting the content \emph{without} using the package \pkgname{preview}.
 
-Creating a temporary file \sysfile{test-fig-1981.tex} in \sysdir{workdir}
+Creating a temporary file \sysfile{test-fig-1981.tex} in \sysdir{workdir/}
 whit the same preamble of \sysfile{test.tex} but the body only contains code that you want to extract.
 \end{enumerate}
 
 If \cmdopt{norun} is passed, the temporary file \sysfile{test-fig-1981.tex}
 is renamed to \sysfile{test-fig-all.tex} and moved to \sysdir{workdir/images}.
 
-\subsubsection{Generate image formats}
+\subsection{Generate image formats}
 
 In the fourth step, the script run:
 \begin{examplecmd}
-[user@machine ~:]§`\small\meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}` -recorder -shell-escape `\small\sysfile{test-fig-1981.tex}`
+[user@machine ~:]§ `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}` -recorder -shell-escape test-fig-1981.tex
 \end{examplecmd}
 generating the file \sysfile{test-fig-1981.pdf} whit all code extracted, move \sysfile{test-fig-1981.pdf}
-to \sysdir{tmp/hG45uVklv9}, separate in individual files \sysfile{test-fig-1.pdf}, \sysfile{test-fig-2.pdf}, \ldots{}
-and copy to \sysdir{workdir/images/}. The file \sysfile{test-fig-1981.tex} is moved to the \sysdir{workdir/images/}
+to \sysdir{/tmp/hG45uVklv9} and rename to \sysfile{test-fig-all.pdf}, separate in individual files \sysfile{test-fig-1.pdf}, \sysfile{test-fig-2.pdf}, \ldots{}
+and copy to \sysdir{workdir/images}. The file \sysfile{test-fig-1981.tex} is moved to the \sysdir{workdir/images}
 and rename to \sysfile{test-fig-all.tex}.
 
-Note the options passed to \meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler} does not include \prgopt*{output-directory}
+Note the options passed to \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} does not include \prgopt*{output-directory}
 (it is not supported) and always use \prgopt*{recorder} \prgopt*{shell-escape}.
 
-\subsubsection{Create output file}
+\subsection{Create output file}
 
 In the fifth step, the script creates the output file \sysfile{test-out.tex} converting all extracted code to
 \ics{includegraphics} and adding the following lines at end of preamble:
@@ -1241,21 +1257,21 @@ In the fifth step, the script creates the output file \sysfile{test-out.tex} con
 \end{examplecode}
 
 The script will try to detect whether the \pkgname{graphicx} package and
-the \ics{graphicspath} command are in the preamble of the \meta{output file}.
+the \ics{graphicspath} command are in the preamble of the \meta[cf=optcolor]{output file}.
 If it is not possible to find it, it will read the log file generated by the temporary file.
 Once the detection is complete, the package \pkgname{grfext} will be added then proceed to run:
 
 \begin{examplecmd}
-[user@machine ~:]§`\small\meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}` -recorder -shell-escape `\small\sysfile{test-out.tex}`
+[user@machine ~:]§ `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}` -recorder -shell-escape test-out.tex
 \end{examplecmd}
 generating the file \sysfile{test-out.pdf}.
 
-\subsubsection{Clean temporary files and dirs}
+\subsection{Clean temporary files and dirs}
 
 In the sixth step, the script read the files \sysfile{test-fig-1981.fls}
 and \sysfile{test-out.fls}, extract the information from the
 temporary files and dirs generated in the process and then
-delete them together with the directory \sysdir{tmp/hG45uVklv9}.
+delete them together with the directory \sysdir{/tmp/hG45uVklv9}.
 
 Finally the output file \sysfile{test-out.tex} looks like this:
 
@@ -1281,7 +1297,7 @@ Some text
 \section{Extract content}
 \label{sec:extract}
 
-The script provides two ways to \meta{extract} content from \meta{input file},
+The script provides two ways to \meta{extract} content from \meta[cf=optcolor]{input file},
 using \meta[type=rm,cf=optcolor,ac=gray]{environments} and \meta[type=rm,cf=optcolor,ac=gray]{docstrip tags}.
 Some environment (including \texttt{\small\bfseries\textcolor{red}{*}} argument)
 are supported by default. If environments are nested, the outermost one will be extracted.
@@ -1290,8 +1306,8 @@ are supported by default. If environments are nested, the outermost one will be 
 \label{sec:extract:env}
 
 \DescribeTE{preview}
-Environment provide by \pkgname{preview} package. If \env{preview} environments
-found in the \meta{input file} will be extracted and converted these. Internally
+Environment provide by \pkgname{preview}\cite{preview} package. If \env{preview} environments
+found in the \meta[cf=optcolor]{input file} will be extracted and converted these. Internally
 the script converts all environments to extract in \env{preview} environments.
 Is better comment this package in preamble unless the option \cmdopt[n]{noprew}{} is
 used.
@@ -1299,41 +1315,41 @@ used.
 \vspace{\baselineskip}
 
 \DescribeTE{pspicture}
-Environment provide by \pkgname{pstricks} package. The plain \hologo{TeX}
+Environment provide by \pkgname{pstricks}\cite{pstricks} package. The plain \hologo{TeX}
 syntax \lstinline|\pspicture ... \endpspicture| its converted to \hologo{LaTeX} syntax
 \lstinline|\begin{pspicture} ... \end{pspicture}| if not within the \env{PSTexample} environment.
 
 \vspace{\baselineskip}
 
 \DescribeTE{psgraph}
-Environment provide by \pkgname{pst-plot} package. The plain \hologo{TeX} \lstinline|\psgraph ... \endpsgraph|
+Environment provide by \pkgname{pst-plot}\cite{pst-plot} package. The plain \hologo{TeX} \lstinline|\psgraph ... \endpsgraph|
 its converted to \hologo{LaTeX} syntax \lstinline|\begin{psgraph} ... \end{psgraph}| if
 not within the \env{PSTexample} environment.
 
 \vspace{\baselineskip}
 
 \DescribeTE{postscript}
-Environment provide by \pkgname{pst-pdf} and \pkgname{auto-pst-pdf} packages.
+Environment provide by \pkgname{pst-pdf}\cite{pst-pdf} and \pkgname{auto-pst-pdf}\cite{auto-pst-pdf} packages.
 Since the \pkgname{pst-pdf} and \pkgname{auto-pst-pdf} packages internally use
 the \pkgname{preview} package, is better comment this in preamble.
 
 \vspace{\baselineskip}
 
 \DescribeTE{tikzpicture}
-Environment provide by \pkgname{tikz} package. The plain \hologo{TeX} \lstinline|\tikzpicture ... \tikzpicture|
+Environment provide by \pkgname{tikz}\cite{tikz} package. The plain \hologo{TeX} \lstinline|\tikzpicture ... \tikzpicture|
 its converted to \hologo{LaTeX} syntax \lstinline|\begin{tikzpicture} ... \end{tikzpicture}|
 but no a short syntax \lstinline|\tikz ... ;|.
 \vspace{\baselineskip}
 
 \DescribeTE{pgfpicture}
-Environment provide by \pkgname{pgf} package. Since the script uses a
+Environment provide by \pkgname{pgf}\cite{tikz} package. Since the script uses a
 \emph{\enquote{recursive regular expression}} to extract environments, no presents problems
-if present \lstinline|pgfinterruptpicture|.
+if present \env{pgfinterruptpicture}.
 
 \vspace{\baselineskip}
 
 \DescribeTE{PSTexample}
-Environment provide by \pkgname{pst-exa} packages. The script automatically detects the
+Environment provide by \pkgname{pst-exa}\cite{pstexa} packages. The script automatically detects the
 \lstinline|\begin{PSTexample}|  \lstinline|...\end{PSTexample}|
 environments and processes them as separately compiled files. The user should have loaded the
 package with the [\pkgopt{swpl}] or [\pkgopt{tcb}] option and run the script
@@ -1361,12 +1377,12 @@ code to extract
 \subsection{Prevent extraction and remove}
 \label{sec:noextract}
 
-Sometimes you do not want to \emph{\enquote{extract all}} the environments from \meta{input file} or you want to
+Sometimes you do not want to \emph{\enquote{extract all}} the environments from \meta[cf=optcolor]{input file} or you want to
 remove environments or arbitrary content. The script provides a convenient way to solve this situation.
 
 \DescribeTE{nopreview}
 Environment provide by \pkgname{preview} package. Internally the script
-converts all \emph{no extract} environments to \lstinline|\begin{nopreview} ... \end{nopreview}|.
+converts all \emph{\enquote{skip}} environments to \lstinline|\begin{nopreview} ... \end{nopreview}|.
 Is better comment this package in preamble unless the option \cmdopt[n]{noprew}{} is used.
 \vspace{\baselineskip}
 
@@ -1384,7 +1400,7 @@ no extract this
 \end{examplecode}
 
 \DescribeTE*{remove}
-All content betwen \lstinline|%<*remove> ... %</remove>| are deleted in the \meta{output file}.
+All content betwen \lstinline|%<*remove> ... %</remove>| are deleted in the \meta[cf=optcolor]{output file}.
 The tags can \emph{not} be nested and should be at the beginning of the line and in separate lines.
 
 \begin{examplecode}[frame=single]
@@ -1471,22 +1487,22 @@ the version provided in your \hologo{TeX} distribution
 The syntax for \ltximg{} is simple:
 
 \begin{examplecmd}
-[user@machine ~:]§ ltximg `\small\meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options} \textcolor{gray}{\texttt{[-\/-]}} \meta[type=tt,cf=OrangeRed,ac=OrangeRed]{file.ext}`
+[user@machine ~:]§ ltximg `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} \textcolor{gray}{\texttt{[-\/-]}} \meta[cf=optcolor]{input file}`
 \end{examplecmd}
 
-The extension \meta[type=tt,cf=OrangeRed,ac=OrangeRed]{ext} for \meta{input file} are \fext{tex} or \fext{ltx},
-relative or absolute paths for files and directories is not supported. If used without \meta[type=tt,cf=ForestGreen,ac=ForestGreen]{compiler}
-and \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options} the extracted environments are converted to \iext{pdf}
-image format and saved in the \sysdir{images} directory using \prgname*{pdflatex} and \pkgname{preview} package.
+The extension valid for \meta[cf=optcolor]{input file} are \fext{tex} or \fext{ltx},
+relative or absolute paths for files and directories is not supported. If used without \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}
+and \oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} the extracted environments are converted to \iext{pdf}
+image format and saved in the \sysdir{./images} directory using \prgname*{pdflatex} and \pkgname{preview} package.
 
 \subsection{Command line interface}
 \label{sec:optline}
 
-The script provides a \emph{command line interface} with short \textcolor{red}{\texttt{-}}
-and long \textcolor{red}{\texttt{--}} option, they may be given before the name of the \meta{input file}.
-Options that accept a \meta{value} require either a blank space \verb*| | or \textcolor{red}{\texttt{=}}
+The script provides a \emph{command line interface} with short \textcolor{optcolor}{\bfseries\texttt{-}}
+and long \textcolor{optcolor}{\bfseries\texttt{--}} option, they may be given before the name of the \meta[cf=optcolor]{input file}.
+Options that accept a \meta{value} require either a blank space \verb*| | or \textcolor{optcolor}{\bfseries\texttt{=}}
 between the option and the \meta{value}. Multiple short options can be bundling and if the last option takes a
-\meta{comma separated list} you need \textcolor{red}{\texttt{-\/-}} at the end.
+\meta{comma separated list} you need \textcolor{optcolor}{\bfseries\texttt{-\/-}} at the end.
 
 \DescribeCmd[h]{help}{bolean}{off}
 Display a command line help and exit.
@@ -1557,12 +1573,12 @@ Set the name of directory for save generated files. Only the name of directory
 must be passed without relative or absolute paths.
 
 \DescribeCmd{zip}{bolean}{off}
-Compress only the files generated by the script during the process in \sysdir{images} in \fext{zip} format.
-Does not include \meta{output file}.
+Compress the files generated by the script in \sysdir{./images} in \fext{zip} format.
+Does not include \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{tar}{bolean}{off}
-Compress only the files generated by the script during the process in \sysdir{images} in \fext{tar.gz} format.
-Does not include \meta{output file}.
+Compress the files generated by the script in \sysdir{./images} in \fext{tar.gz} format.
+Does not include \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{srcenv}{bolean}{off}
 Create separate files whit \meta{only code} for all extracted
@@ -1578,30 +1594,30 @@ for each extracted environment, is mutually exclusive whit \cmdopt{srcenv}.
 Use \prgname*{arara} for compiler files.
 
 \DescribeCmd{xetex}{bolean}{off}
-Using \prgname*{xelatex} compiler \meta{input file} and \meta{output file}.
+Using \prgname*{xelatex} compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{latex}{bolean}{off}
-Using \prgname*{latex}\textcolor{red}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{red}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-compiler in \meta{input file} and \prgname*{pdflatex} for \meta{output file}.
+Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
+compiler in \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{dvips}{bolean}{off}
-Using \prgname*{latex}\textcolor{red}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{red}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-for compiler \meta{input file} and \meta{output file}.
+Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
+for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{dvipdf}{bolean}{off}
-Using \prgname*{latex}\textcolor{red}{\texttt{\bfseries\guillemotright}}\prgname*{dvipdfmx}
-for compiler \meta{input file} and \meta{output file}.
+Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvipdfmx}
+for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{luatex}{bolean}{off}
-Using \prgname*{lualatex} for compiler \meta{input file} and \meta{output file}.
+Using \prgname*{lualatex} for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{prefix}{string}{fig}
 Set \meta{prefix} append to each generated files.
 
 \DescribeCmd{norun}{bolean}{off}
-Execute the script, but do not create images. This option is designed to
+Execute the script, but do not create image files. This option is designed to
 be used in conjunction with \cmdopt{srcenv} or \cmdopt{subenv} and to
-debug the \meta{output file}.
+debug the \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{nopdf}{bolean}{off}
 Don't create a .\iext{pdf} image files.
@@ -1610,7 +1626,7 @@ Don't create a .\iext{pdf} image files.
 Don't run \scriptname{pdfcrop} in image files.
 
 \DescribeCmd{clean}{doc\textbar pst\textbar tkz\textbar all\textbar off}{doc}
-Removes specific content in \meta{output file}. Valid values for this option are:
+Removes specific content in \meta[cf=optcolor]{output file}. Valid values for this option are:
 
 \begin{description}[font=\ttfamily, nosep, noitemsep, leftmargin=0pt]
 \item[doc] All content after \lstinline+\end{document}+ is removed.
@@ -1622,33 +1638,33 @@ Removes specific content in \meta{output file}. Valid values for this option are
 
 \DescribeCmd{verbcmd}{macro name}{myverb}
 Set custom verbatim command \lstinline+\myverb+. Just pass the \meta{name}
-of the macro without \textcolor{red}{\texttt{\textbackslash}}.
+of the macro without \enquote{\textcolor{optcolor}{\texttt{\bfseries\textbackslash}}}.
 
 \DescribeCmd{extrenv}{comma separated list}{empty}
-Add environments to extract, if it's the last option passed need \textcolor{red}{\texttt{-\/-}}
+Add environments to extract, if it's the last option passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}}
+at the end.\par
+
+\DescribeCmd{skipenv}{comma separated list}{empty}
+Add environments that should \emph{\enquote{not be extracted}} and that the script supports
+by default, if it's the last option passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}}
 at the end.\par
 
 \newpage
 
-\DescribeCmd{skipenv}{comma separated list}{empty}
-Add environments that should \emph{\enquote{not be extracted}} and that the script supports
-by default, if it's the last option passed need \textcolor{red}{\texttt{-\/-}}
-at the end.\par
-
 \DescribeCmd{verbenv}{comma separated list}{empty}
 Add \meta{verbatim standard} environment support, if it's the last option
-passed need \textcolor{red}{\texttt{-\/-}} at the end.\par
+passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
 
 \DescribeCmd{writenv}{comma separated list}{empty}
 Add \meta{verbatim write} environment support, if it's the last option
-passed need \textcolor{red}{\texttt{-\/-}} at the end.\par
+passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
 
 \DescribeCmd{deltenv}{comma separated list}{empty}
-Add environments to deleted in \meta{output file}. The environments are
+Add environments to deleted in \meta[cf=optcolor]{output file}. The environments are
 delete only in \meta{body}, if it's the last option
-passed need \textcolor{red}{\texttt{-\/-}} at the end.\par
+passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
 
-\subsection{Options in input file}
+\subsection{Options from input file}
 \label{sec:optfile}
 
 Many of the ideas in this section are inspired by the \arara\footnote{\url{https://ctan.org/pkg/arara}} tool.
@@ -1656,15 +1672,15 @@ A very useful way to pass options to the script is to place them in commented
 lines at the beginning of the file, very much in the \emph{\enquote{style of \arara}}.
 
 \DescribeOptFile*{\meta[ac=lightgray,cf=optcolor]{argument}}{option one, option two, option three, \ldots}
-\DescribeOptFile*{\meta[ac=lightgray,cf=optcolor]{argument}}{option one, option two, option three, \ldots}[\textcolor{red}{!}]
+\DescribeOptFile*{\meta[ac=lightgray,cf=optcolor]{argument}}{option one, option two, option three, \ldots}[\textcolor{gray}{!}]
 
-The vast majority of the \meta{options} can be passed into the \meta{input file}. These
+The vast majority of the \meta[ac=lightgray,cf=optcolor]{options} can be passed into the \meta[cf=optcolor]{input file}. These
 should be put at the beginning of the file in commented lines and everything must
-be on the same line, the exclamation mark \textcolor{red}{\texttt{!}} deactivates the \meta{options}.
-When passing options from the \meta{input file} you should be aware that
-they must \emph{\enquote{not}} contain \textcolor{red}{\texttt{-}} or \textcolor{red}{\texttt{-\/-}},
-the \textcolor{red}{\texttt{=}} sign between an option and its value is mandatory,
-short names are disabled and options found in the \meta{input file} overwrite
+be on the same line, the exclamation mark \textcolor{optcolor}{\texttt{!}} deactivates the \meta{options}.
+When passing options from the \meta[cf=optcolor]{input file} you should be aware that
+they must \emph{\enquote{not}} contain \textcolor{optcolor}{\texttt{-}} or \textcolor{optcolor}{\texttt{-\/-}},
+the \textcolor{optcolor}{\texttt{=}} sign between an option and its value is mandatory,
+short names are disabled and options found in the \meta[cf=optcolor]{input file} overwrite
 those passed on the command line.
 
 Valid values for \meta[ac=lightgray,cf=optcolor]{argument} are the following:
@@ -1689,7 +1705,7 @@ This line is to indicate to the script which environments its consider \meta{ver
 \DescribeOptFile{deltenv}{environment one, environment two, environment three, \ldots}
 This line is to indicate to the script which environments are deleted.
 
-If you are going to create an \meta{output file} and you do not want these lines to remain, it is better to
+If you are going to create an \meta[cf=optcolor]{output file} and you do not want these lines to remain, it is better to
 place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
 
 \begin{examplecode}[numbers=left]
@@ -1699,63 +1715,31 @@ place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
 %</remove>
 \end{examplecode}
 
-\section{Examples}
-\label{sec:examples}
-
-\subsection{From command line}
-\begin{examplecmd}
-[user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
-\end{examplecmd}
-Create a \sysdir{images} directory whit all extracted environments converted to image
-formats (\iext{pdf}, \iext{svg}) in individual files, an \meta{output file} \sysfile{test-out.ltx}
-whit all extracted environments converted to \ics{includegraphics} and a single file
-\sysfile{test-in-fig-all.ltx} with only the extracted environments
-using \prgname*{latex}\textcolor{red}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{red}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-and \pkgname{preview} package for \meta{input file} and \prgname*{pdflatex} for \meta{output file}.
-
-\subsection{From input file}
-Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
-
-\begin{examplecode}[numbers=left]
-% ltximg: options: {output = file-out, imgdir = pics}
-% ltximg: skipenv: {tikzpicture}
-% ltximg: deltenv: {filecontents}
-\end{examplecode}
-and run:
-\begin{examplecmd}
-[user@machine~:]§ ltximg file-in.tex
-\end{examplecmd}
-Create a \sysdir{pics} directory (if it does not exist) whit all extracted environments,
-except \env{tikzpicture}, converted to image formats (\iext{pdf}) in individual files,
-an \meta{output file} \sysfile{file-out.tex} whit all extracted environments
-converted to \ics{includegraphics} and environment \env{filecontents} removed,
-a single file \sysfile{test-in-env-all.ltx} with only the extracted environments
-using \prgname*{pdflatex} and \pkgname{preview} package for \meta{input file} and \meta{output file}.
-
 \section{The way of \texttt{arara} and \texttt{dvisvgm}}
+\label{sec:arara}
 
 By design, the script only runs \emph{\enquote{one compilation}} on top
-of the \meta{input file}, but, sometimes you need to process the \meta{input file}
+of the \meta[cf=optcolor]{input file}, but, sometimes you need to process the \meta[cf=optcolor]{input file}
 more than once or needs to be processed with something other than \hologo{LaTeX},
 \hologo{XeLaTeX}, \hologo{pdfLaTeX} or \hologo{LuaLaTeX}.
 
-This is where \arara{} (I love it) comes in, this \emph{\enquote{great little tool}},
-is able to have complete control over the compilation of the \meta{input file}, we just
+This is where \arara\cite{arara} comes in, this \emph{\enquote{great little tool}},
+is able to have complete control over the compilation of the \meta[cf=optcolor]{input file}, we just
 have to keep a few considerations in mind:
 
 \begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
 \item Read the documentation (this always comes first).
 \item Add \lstinline|{ options: [-recorder] }| to \enquote{rule} for clean temporary files.
-\item Avoiding the use of \lstinline|clean: { extensions: [ ...] }|.
+\item Avoiding the use of \lstinline|clean: { extensions: [...] }|.
 \item Don't set \lstinline|-jobname| and \lstinline|-output-directory|.
-\item Remember that the \meta{input file} and \meta{output file} will be compiled using the same \enquote{rule}.
+\item Remember that the \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file} will be compiled using the same \enquote{rule}.
 \end{enumerate}
 
 With all these considerations in mind it is possible to extract and convert
 from any file, for example, by adding these lines:
 
 \begin{examplecode}[numbers=left]
-% arara: lualatex
+% arara: lualatex: { options: [-recorder] }
 % arara: lualatex: { options: [-recorder] }
 %<*remove>
 % ltximg: options: {arara, output = file-out, noprew, prefix = tkz}
@@ -1766,37 +1750,149 @@ and run:
 [user@machine~:]§ ltximg test.tex
 \end{examplecmd}
 
-Create a \sysdir{images} directory (if it does not exist) whit all \env{tikzpicture}
+Create a \sysdir{./images} directory (if it does not exist) whit all \env{tikzpicture}
 environments converted to image format (\iext{pdf}) in individual files,
-an \meta{output file} \sysfile{file-out.tex} whit all \env{tikzpicture} environments
+an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all \env{tikzpicture} environments
 converted to \ics{includegraphics}, a single file \sysfile{test-tkz-all.tex}
-with only the extracted environments using \prgname*{lualatex} two times for \meta{input file} and \meta{output file}.
+with only the extracted environments using \prgname*{lualatex} two times for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
-In this way we can \meta{compile} and convert any document as long as the conditions
-of the \meta{input file} are met and the correct \enquote{rule} are used,
+In this way we can \meta{compile} and \meta{convert} any document as long as the conditions
+of the \meta[cf=optcolor]{input file} are met and the correct \enquote{rule} are used,
 
 Also, by design, the image format \iext{svg} is created using \prgname{pdftocairo} over the
 generated \iext{pdf} file, but, if you want to have a good \iext{svg} file it is best to
 use \prgname{dvisvgm}\footnote{\url{https://ctan.org/pkg/dvisvgm}} which
 is included in every modern \hologo{TeX} distribution. The best
-results of \prgname{dvisvgm} are obtained when processing the file in \fext{dvi} or \fext{xdv}
-format, there are three possible ways to do this
+results of \prgname{dvisvgm}\cite{dvisvgm} are obtained when processing the file in \fext{dvi} or \fext{xdv}
+format, there are three possible ways to do this:
 
 \begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
 \item Pass the necessary options to \prgname{arara} and let him do the job.
-\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{}, move to \sysdir{images}
+\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{}, move to \sysdir{images/}
 and generate \fext{dvi}(\fext{xdv}) files, then:
 \begin{examplecmd}
 [user@machine~:]§ for i in *.dvi; do `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
 \end{examplecmd}
 
-\item Execute the script using \cmdopt{norun}{}, move to \sysdir{images} and generate \texttt{test-fig-all}\fext{dvi}(\fext{xdv}), then:
+\item Execute the script using \cmdopt{norun}{}, move to \sysdir{images/} and generate \texttt{test-fig-all}\fext{dvi}(\fext{xdv}), then:
 \begin{examplecmd}
 [user@machine~:]§ `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.dvi
 \end{examplecmd}
 \end{enumerate}
 
 With this we can generate \iext{svg} files that preserve our typographic fonts.
+
+\section{Examples}
+\label{sec:examples}
+
+\subsection{Passing command line options}
+
+\begin{examplecmd}
+[user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
+\end{examplecmd}
+Create a \sysdir{./images} directory (if it does not exist) whit all extracted environments converted to image
+formats (\iext{pdf}, \iext{svg}) in individual files, an \meta[cf=optcolor]{output file} \sysfile{test-out.ltx}
+whit all extracted environments converted to \ics{includegraphics} and a single file
+\sysfile{test-in-fig-all.ltx} with only the extracted environments
+using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
+and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=optcolor]{output file}.
+
+\subsection{Passing options from input file}
+
+Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
+
+\begin{examplecode}[numbers=left]
+% ltximg: options: {luatex, output = file-out, imgdir = pics, prefix = env}
+% ltximg: skipenv: {tikzpicture}
+% ltximg: deltenv: {filecontents}
+\end{examplecode}
+and run:
+\begin{examplecmd}
+[user@machine~:]§ ltximg file-in.tex
+\end{examplecmd}
+Create a \sysdir{./pics} directory (if it does not exist) whit all extracted environments,
+except \env{tikzpicture}, converted to image formats (\iext{pdf}) in individual files,
+an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all extracted environments
+converted to \ics{includegraphics} and environment \env{filecontents} removed,
+a single file \sysfile{test-in-env-all.ltx} with only the extracted environments
+using \prgname*{lualatex} and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+
+\newpage
+
+\subsection{Using \texttt{arara} and \texttt{dvisvgm}}
+
+The process and operations required to generate the various types of \meta{image
+formats} or \meta{standalone files} have been described throughout the documentation,
+but, as discussed in section \ref{sec:arara}, sometimes the requirements are a \emph{little
+different}. Let's take as an example\footnote{Adapted from \href{https://tex.stackexchange.com/a/209059}{How to get tikzmark to work}}
+the next code which requires two compilations and use \arara{} to generate an image in \iext{pdf} format. We'll save our example as \sysfile{test.tex}.
+
+\begin{examplecode}[numbers=left]
+% arara: lualatex: { options: [-recorder] }
+% arara: lualatex: { options: [-recorder] }
+\documentclass{article}
+\usepackage[osf]{libertinus}
+\usepackage{tikz}
+\usetikzlibrary{calc,tikzmark}
+\begin{document}
+By taking logarithms of both sides
+%<*ltximg>
+\[
+  t = \frac{30\cdot\ln(3/22)}{\ln(15/22)}
+  \tikzmark{calculator}\approx\tikzmark{otherside}
+    156
+\]
+\begin{tikzpicture}[overlay,remember picture]
+  \coordinate (target) at ($(pic cs:calculator)!1/2!(pic cs:otherside) - (0,.5ex)$);
+  \draw[arrows=->] (target) ++(0,-2ex) node [anchor=north] {use calculator} -- (target);
+\end{tikzpicture}
+%</ltximg>
+\end{document}
+\end{examplecode}
+
+Now we just run:
+\begin{examplecmd}
+[user@machine~:]§ ltximg --arara test.tex
+\end{examplecmd}
+And we already have our image \sysfile{test-fig-1.pdf} on \sysdir{./images}.
+
+Let's modify the example\footnote{Adapted from \href{https://tex.stackexchange.com/a/114847}{Draw an aircraft with Tikz}}
+to generate an image in \iext{svg} format
+using \prgname{dvisvgm} and \arara.
+
+\begin{examplecode}[numbers=left]
+% arara: lualatex: { options: [--output-format=dvi] }
+% arara: lualatex: { options: [--output-format=dvi] }
+% arara: dvisvgm: { options: [--exact-bbox, -o test-fig-1.svg] }
+\documentclass{article}
+\begin{document}
+The best airplane ever drawn by David Carlise. No packages used, just the classic and perhaps
+forgotten \verb|\begin{picture} ... \end{picture}|.
+\begin{picture}(200,100)
+  \put(30,40){\line(1,0){150}}
+  \put(30,40){\line(0,1){60}}
+  \put(30,100){\line(1,0){20}}
+  \put(50,100){\line(1,-4){10}}
+  \put(60,60){\line(1,0){100}}
+  \put(160,60){\line(1,-1){20}}
+  \put(100,50){\line(0,-1){80}}
+  \put(130,50){\line(0,-1){80}}
+  \put(100,-30){\line(1,0){30}}
+  \put(100,61){\line(0,1){49}}
+  \put(130,61){\line(0,1){49}}
+  \put(100,110){\line(1,0){30}}
+\end{picture}
+\end{document}
+\end{examplecode}
+
+We now run:
+\begin{examplecmd}
+[user@machine~:]§ ltximg --luatex --norun test.tex
+[user@machine~:]§ cd images/
+[user@machine~:]§ `\small\prgname{arara}` test-fig-all.tex
+\end{examplecmd}
+And we already have our image \sysfile{test-fig-1.svg}. Here are some of
+the ways you can use \ltximg{} in conjunction with \arara.
 
 \newpage
 
@@ -1806,8 +1902,10 @@ With this we can generate \iext{svg} files that preserve our typographic fonts.
 The most recent publicly released version of \ltximg{} is available at
 \textsc{ctan}: \url{https://www.ctan.org/pkg/ltximg}. Historical and
 developmental versions are available at \textcolor{gray}{\scriptsize\faIcon[regular]{github}}
-\url{https://github.com/pablgonz/ltximg}. While general feedback via email is
-welcomed, specific bugs or feature requests should be reported through the issue
+\url{https://github.com/pablgonz/ltximg}.
+
+While general feedback via email is welcomed, specific bugs or feature
+requests should be reported through the issue
 tracker: \url{https://github.com/pablgonz/ltximg/issues}.
 
 This is a short list of some of the notable changes in the history of the \ltximg{} along with the
@@ -1883,13 +1981,90 @@ versions, both development (devp) and public (ctan).
     \end{itemize}
 \end{description}
 
+\let\stdsection\section
+\def\section*#1{\stdsection{#1}}
+\begin{thebibliography}{9}
+
+\bibitem{preview} \textsc{Kastrup, David}. \enquote{The \textsf{preview}
+package for \hologo{LaTeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/preview}, 2017.
+
+\bibitem{pstricks} \textsc{Van Zandt, Timothy}. \enquote{\textsf{PSTricks} -
+\textsf{PostScript} macros for generic \hologo{TeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pstricks-base}, 2007.
+
+\bibitem{pst-pdf} \textsc{Niepraschk, Rolf}. \enquote{The \textsf{pst-pdf}
+Packages}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pst-pdf}, 2019.
+
+\bibitem{auto-pst-pdf} \textsc{Robertson, Will}. \enquote{The \textsf{auto-pst-pdf}
+Packages}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/auto-pst-pdf}, 2009.
+
+\bibitem{pst-plot} \textsc{Van Zandt, Timothy}. \enquote{\textsf{pst-plot} –
+Plot data using \textsf{PSTricks}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pst-plot}, 2019.
+
+\bibitem{pst2pdf} \textsc{Voß, Herbert}. \enquote{\textsf{pst2pdf} - A script
+to compile \textsf{PSTricks} documents via \hologo{pdfTeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pst2pdf}, 2017.
+
+\bibitem{pstexa} \textsc{Voß, Herbert}. \enquote{\textsf{pst-exa} - Typeset
+\textsf{PSTricks} examples, with \hologo{pdfTeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pst-exa}, 2017.
+
+\bibitem{tikz} \textsc{Tantau, Till}. \enquote{The \textsf{TikZ} and \textsf{PGF}
+Packages}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/pgf}, 2020.
+
+\bibitem{xcomment} \textsc{Van Zandt, Timothy}. \enquote{The \textsf{xcomment}
+package}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/xcomment}, 2010.
+
+\bibitem{extract} \textsc{Adriaens, Hendri}. \enquote{The \textsf{extract}
+package}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/extract}, 2019.
+
+\bibitem{cachepic} \textsc{Trzeciak, Tomasz M}. \enquote{The \textsf{cachepic}
+package}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/cachepic}, 2009.
+
+\bibitem{doc} \textsc{Mittelbach, Frank}. \enquote{The \textsf{doc} and \textsf{shortvrb}
+Packages}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/doc}, 2020.
+
+\bibitem{fancyvrb} \textsc{Van Zandt, Timothy}. \enquote{The \textsf{fancyvrb}
+package - Fancy Verbatims in \hologo{LaTeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/fancyvrb}, 2020.
+
+\bibitem{listings} \textsc{Hoffmann, Jobst}. \enquote{The \textsf{listings}
+package}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/listings}, 2020.
+
+\bibitem{minted} \textsc{Poore, Geoffrey M}. \enquote{The \textsf{minted}
+package - Highlighted source code in \hologo{LaTeX}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/minted}, 2017.
+
+\bibitem{arara} \textsc{The Island of \hologo{TeX}}. \enquote{\textsf{arara} - The
+cool \hologo{TeX} automation tool}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/arara}, 2020.
+
+\bibitem{dvisvgm} \textsc{Gieseking, Martin}. \enquote{\textsf{dvisvgm} - A
+fast \textsf{DVI} to \textsf{SVG} converter}. Available from
+\textsc{ctan}, \url{https://ctan.org/pkg/dvisvgm}, 2020.
+
+\end{thebibliography}
+\let\section\stdsection
+
 \newpage
 
 \addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
 \cleardoublepage
 \phantomsection
-%\printindex[mydoc]
-%\PrintIndex
+\indexprologue{
+The italic numbers denote the pages where the corresponding entry is
+described.}
+
 \printindex
 \end{document}
 %</documentation>
