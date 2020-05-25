@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-05-22';
+my $date      = '2020-05-24';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -191,7 +191,7 @@ sub RUNOSCMD {
     return;
 }
 
-### Help/Usage for command line
+### Help for command line
 sub usage ($) {
 find_ghostscript();
 
@@ -672,11 +672,13 @@ my $tmp_verbw = qr {
 ### A pre-regex for comment lines
 my $tmpcomment = qr/^ \s* \%+ .+? $ /mx;
 
-### Hash for replace \begin{document} ... \end{document} in verbatim's env
+### Hash for replace in verbatim's and comment lines
 my %document = (
     '\begin{document}' => '\BEGIN{document}',
     '\end{document}'   => '\END{document}',
     '\documentclass'   => '\DOCUMENTCLASS',
+    '\pagestyle{'      => '\PAGESTYLE{',
+    '\thispagestyle{'  => '\THISPAGESTYLE{',
     );
 
 ### Changes in input file for verbatim write and comment lines
@@ -935,7 +937,7 @@ my $mintcshrt = qr/\\ newmint $braquet (?:\{.+?\})       /x;
 my $mintdline = qr/\\ newmintinline $braces (?:\{.+?\})  /x;
 my $mintcline = qr/\\ newmintinline $braquet (?:\{.+?\}) /x;
 
-### Filter input file
+### Filter input file, now $ltxfile is pass to $filecheck
 
 Log("Filter $name$ext \(remove % and comments\)");
 my @filecheck = $ltxfile;
@@ -1141,24 +1143,26 @@ while ($document =~ /$verb_brace/pgmx) {
 $document =~ s/<LTXSBO>/\\{/g;
 $document =~ s/<LTXSBC>/\\}/g;
 
-### Reverse for extract and output file
+### Reverse changes for extract and output file
 my %changes_out = (
-    '\PSSET'            =>  '\psset',
-    '\TIKZSET'          =>  '\tikzset',
-    '\TRICKS'           =>  '\pspicture',
-    '\ENDTRICKS'        =>  '\endpspicture',
-    '\PGFTRICKS'        =>  '\pgfpicture',
-    '\ENDPGFTRICKS'     =>  '\endpgfpicture',
-    '\TKZTRICKS'        =>  '\tikzpicture',
-    '\ENDTKZTRICKS'     =>  '\endtikzpicture',
-    '\PSGRAPHTRICKS'    =>  '\psgraph',
-    '\ENDPSGRAPHTRICKS' =>  '\endpsgraph',
-    '\USEPACKAGE'       =>  '\usepackage',
-    '{GRAPHICX}'        =>  '{graphicx}',
-    '\GRAPHICSPATH{'    =>  '\graphicspath{',
-    '\BEGIN{'           =>  '\begin{',
-    '\END{'             =>  '\end{',
-    '\DOCUMENTCLASS'    =>  '\documentclass',
+    '\PSSET'            => '\psset',
+    '\TIKZSET'          => '\tikzset',
+    '\TRICKS'           => '\pspicture',
+    '\ENDTRICKS'        => '\endpspicture',
+    '\PGFTRICKS'        => '\pgfpicture',
+    '\ENDPGFTRICKS'     => '\endpgfpicture',
+    '\TKZTRICKS'        => '\tikzpicture',
+    '\ENDTKZTRICKS'     => '\endtikzpicture',
+    '\PSGRAPHTRICKS'    => '\psgraph',
+    '\ENDPSGRAPHTRICKS' => '\endpsgraph',
+    '\USEPACKAGE'       => '\usepackage',
+    '{GRAPHICX}'        => '{graphicx}',
+    '\GRAPHICSPATH{'    => '\graphicspath{',
+    '\BEGIN{'           => '\begin{',
+    '\END{'             => '\end{',
+    '\DOCUMENTCLASS'    => '\documentclass',
+    '\PAGESTYLE{'       => '\pagestyle{',
+    '\THISPAGESTYLE{'   => '\thispagestyle{',
     );
 
 ### Reverse tags, need back in all file to extract
@@ -1237,7 +1241,7 @@ Log('The environments that will be searched for extraction:');
 my @real_extract_env = grep !/nopreview/, @extract_env;
 Logarray(\@real_extract_env);
 
-### Create a Regex to extract environments
+### Create a regex to extract environments
 my $environ = join q{|}, map { quotemeta } sort { length $a <=> length $b } @extract_env;
 $environ = qr/$environ/x;
 my $extr_tmp = qr {
@@ -1441,9 +1445,9 @@ $preamble =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                ($verb_std)/\%<\*ltximgverw>\n$1\n\%<\/ltximgverw>/gmsx;
 
 ### Check plain TeX syntax
-my %special = map { $_ => 1 } @extract_env; # anon hash
+my %plainsyntax = map { $_ => 1 } @extract_env; # anon hash
 
-if (exists $special{pspicture}) {
+if (exists $plainsyntax{pspicture}) {
     Log('Convert plain \pspicture to LaTeX syntax');
     $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1452,7 +1456,7 @@ if (exists $special{pspicture}) {
     \\pspicture(\*)?(.+?)\\endpspicture/\\begin\{pspicture$1\}$2\\end\{pspicture$1\}/gmsx;
 }
 
-if (exists $special{psgraph}) {
+if (exists $plainsyntax{psgraph}) {
     Log('Convert plain \psgraph to LaTeX syntax');
     $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1461,7 +1465,7 @@ if (exists $special{psgraph}) {
     \\psgraph(\*)?(.+?)\\endpsgraph/\\begin\{psgraph$1\}$2\\end\{psgraph$1\}/gmsx;
 }
 
-if (exists $special{tikzpicture}) {
+if (exists $plainsyntax{tikzpicture}) {
     Log('Convert plain \tikzpicture to LaTeX syntax');
     $bodydoc =~ s/ \%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                    \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1469,7 +1473,7 @@ if (exists $special{tikzpicture}) {
     \\tikzpicture(.+?)\\endtikzpicture/\\begin{tikzpicture}$1\\end{tikzpicture}/gmsx;
 }
 
-if (exists $special{pgfpicture}) {
+if (exists $plainsyntax{pgfpicture}) {
     Log('Convert plain \pgfpicture to LaTeX syntax');
     $bodydoc =~ s/ \%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                    \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1479,7 +1483,7 @@ if (exists $special{pgfpicture}) {
 
 ### $force mode for pstricks/psgraph/tikzpiture
 if ($opts_cmd{boolean}{force}) {
-    if (exists $special{pspicture} or exists $special{psgraph}) {
+    if (exists $plainsyntax{pspicture} or exists $plainsyntax{psgraph}) {
         Log('Force mode for pstricks and psgraph');
         $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                       \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1492,7 +1496,7 @@ if ($opts_cmd{boolean}{force}) {
                       )
                     /\\begin\{preview\}\n$+{code}\n\\end\{preview\}/gmsx;
     }
-    if (exists $special{tikzpicture}) {
+    if (exists $plainsyntax{tikzpicture}) {
         Log('Force mode for pstricks and tikzpicture');
         $bodydoc =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                       \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
@@ -1720,14 +1724,6 @@ else {
     mkdir $opts_cmd{string}{imgdir},0744 or die errorUsage "* Error!!: Can't create the directory $opts_cmd{string}{imgdir}: $!\n";
 }
 
-### Options for \pagestyle{empty} ($crop)
-my $opt_page = $opts_cmd{boolean}{nocrop} ? "\\begin\{document\}"
-             :                              "\\pagestyle\{empty\}\n\\begin\{document\}"
-             ;
-
-### Add options to preamble for subfiles
-my $sub_prea = "$atbegindoc$preamble$opt_page";
-
 ### Set compiler name for terminal
 my $compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
              : $opts_cmd{compiler}{luatex} ? 'lualatex'
@@ -1771,10 +1767,10 @@ my $quiet = $verbose ? q{}
           :            '-q'
           ;
 
-### Option for pdfcrop in command line, --luatex problem for now
+### Option for pdfcrop in command line (last version of pdfcro https://github.com/ho-tex/pdfcrop)
 my $opt_crop = $opts_cmd{compiler}{xetex}  ? "--xetex  --margins $opts_cmd{string}{margin}"
              : $opts_cmd{compiler}{luatex} ? "--pdftex --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{latex}  ? "--margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{latex}  ? "--luatex --margins $opts_cmd{string}{margin}"
              :                               "--pdftex --margins $opts_cmd{string}{margin}"
              ;
 
@@ -1811,6 +1807,43 @@ my $preview = <<"EXTRA";
 \\renewcommand\\PreviewBbAdjust\{-60pt -60pt 60pt 60pt\}\}%
 EXTRA
 
+### Copy preamble and body for temp file with all environments
+my $preamout = $preamble;
+my $bodyout  = $bodydoc;
+
+### Match pagestyle in preamble
+my $style_page = qr /(?:\\)(?:this)?(?:pagestyle\{) (.+?) (?:\})/x;
+my @style_page = $preamout =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)| $style_page/gmsx;
+my %style_page = map { $_ => 1 } @style_page; # anon hash
+
+### Seting page style for subfilea and process
+if (@style_page) {
+    if (!exists $style_page{empty}) {
+        Log("Replacing page style for generated files");
+        $preamout =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
+                      (\\(this)?pagestyle)(?:\{.+?\})/$1\{empty\}/gmsx;
+   }
+}
+else {
+    Log('Add \pagestyle{empty} for generated files');
+    $preamout = $preamout."\\pagestyle\{empty\}\n";
+}
+
+### Add $atbegindoc to preamble for subfiles
+my $sub_prea = $atbegindoc;
+$sub_prea = $atbegindoc.$preamout;
+
+### Add \begin{document} to preamble
+$sub_prea = $sub_prea.'\begin{document}';
+
+### Remove %<*ltximgverw> ... %</ltximgverw> in preamble for subfiles
+$sub_prea =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
+
+### Revert changes
+%replace = (%changes_out);
+$find    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %replace;
+$sub_prea =~ s/($find)/$replace{$1}/g;
+
 ### Write subfiles for environments
 if ($outsrc) {
     my $src_name = "$name-$opts_cmd{string}{prefix}-";
@@ -1837,16 +1870,12 @@ if ($outsrc) {
     }
     if ($opts_cmd{boolean}{subenv}) {
         Log('Extract source code of all environments extracted with preamble');
+        # Removing content in preamble only for sub files
         my @tag_remove_preamble = $sub_prea =~ m/(?:^\%<\*remove$tmp>.+?\%<\/remove$tmp>)/gmsx;
         if (@tag_remove_preamble) {
             Log('Removing the content between %<*remove> ... %</remove> in preamble for subfiles');
             $sub_prea =~ s/^\%<\*remove$tmp>\s*(.+?)\s*\%<\/remove$tmp>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
         }
-        # Remove %<*ltximgverw> ... %</ltximgverw> in preamble for subfiles
-        $sub_prea =~ s/\%<\*ltximgverw>\n(.+?)\n\%<\/ltximgverw>/$1/gmsx;
-        %replace = (%changes_out);
-        $find    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %replace;
-        $sub_prea   =~ s/($find)/$replace{$1}/g;
         if ($STDenv) {
             Infoline("Creating a $envNo $fileSTD $ext whit source code and preamble for $envSTD");
             while ($bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms) {
@@ -1867,25 +1896,19 @@ if ($outsrc) {
     }
 }
 
-### Copy preamble and body for temp file with all environments
-my $preamout = $preamble;
-my $bodyout  = $bodydoc;
-
-### Remove PSTexample[[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\]]
+### Remove \begin{PSTexample}[graphic={...}]
 $bodyout  =~ s/($BE)(?:\[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\])/$1/gmsx;
 $bodyout  =~ s/($BE\[.+?)(?:,graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\})(\])/$1$2/gmsx;
 
-### Remove %<*ltximgverw> ... %</ltximgverw>
+### Remove %<*ltximgverw> ... %</ltximgverw> in bodyout
 $bodyout  =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 $preamout =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 
-### Reverse changes
-%replace = (%changes_out);
-$find    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %replace;
+### Reverse changes for temporary file with all env (no in -exa file)
 $bodyout    =~ s/($find)/$replace{$1}/g;
 $bodyout    =~ s/(\%$tmp)//g;
 $bodyout    =~ s/(remove$tmp)/remove/g;
-$preamout   =~ s/(remove$tmp)/remove/g;
+$sub_prea   =~ s/(remove$tmp)/remove/g;
 $preamout   =~ s/($find)/$replace{$1}/g;
 $atbegindoc =~ s/($find)/$replace{$1}/g;
 
@@ -1896,7 +1919,7 @@ if ($PSTexa) {
     while ( $bodydoc =~ m/$BE\[.+? $opts_cmd{string}{imgdir}\/.+?-\d+\}\](?<exa_src>.+?)$EE/gmsx ) { # search $bodydoc
         push @exa_extract, $+{exa_src}."\\newpage\n";
         open my $allexaenv, '>', "$name-$opts_cmd{string}{prefix}-exa-$tmp$ext";
-            print {$allexaenv} $atbegindoc.$preamout.$opt_page."@exa_extract"."\\end\{document\}";
+            print {$allexaenv} $sub_prea."@exa_extract"."\\end\{document\}";
         close $allexaenv;
     }
     if ($opts_cmd{boolean}{norun}) {
@@ -1922,7 +1945,7 @@ if ($STDenv) {
         while ( $bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms ) { # search $bodydoc
             push @env_extract, $+{env_src}."\\newpage\n";
         }
-        print {$allstdenv} $atbegindoc.$preamout.$opt_page."@env_extract"."\\end{document}";
+        print {$allstdenv} $sub_prea."@env_extract"."\\end{document}";
     }
     else {
         print {$allstdenv} $atbegindoc.$preview.$preamout.$bodyout."\n\\end{document}";
