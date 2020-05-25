@@ -199,7 +199,7 @@ my $usage = <<"END_OF_USAGE";
 ${title}** Description
    LTXimg is a "perl" script that automates the process of extracting and
    converting "environments" provided by tikz, pstricks and other packages
-   from LaTeX file to image formats in "individual files" using ghostscript
+   from LaTeX file to image formats and "standalone files" using ghostscript
    and poppler-utils. Generates a one file with only extracted environments
    and other with all extracted environments converted to \\includegraphics.
 
@@ -1040,25 +1040,25 @@ $mintline = qr/\b(?:$mintline)/x;
 
 ### Reserved words in verbatim inline (while)
 my %changes_in = (
-    '%<*ltximg>'      =>  '%<*LTXIMG>',
-    '%</ltximg>'      =>  '%</LTXIMG>',
-    '%<*noltximg>'    =>  '%<*NOLTXIMG>',
-    '%</noltximg>'    =>  '%</NOLTXIMG>',
-    '%<*remove>'      =>  '%<*REMOVE>',
-    '%</remove>'      =>  '%</REMOVE>',
-    '\psset'          =>  '\PSSET',
-    '\tikzset'        =>  '\TIKZSET',
-    '\pspicture'      =>  '\TRICKS',
-    '\endpspicture'   =>  '\ENDTRICKS',
-    '\pgfpicture'     =>  '\PGFTRICKS',
-    '\endpgfpicture'  =>  '\ENDPGFTRICKS',
-    '\tikzpicture'    =>  '\TKZTRICKS',
-    '\endtikzpicture' =>  '\ENDTKZTRICKS',
-    '\psgraph'        =>  '\PSGRAPHTRICKS',
-    '\endpsgraph'     =>  '\ENDPSGRAPHTRICKS',
-    '\usepackage'     =>  '\USEPACKAGE',
-    '{graphicx}'      =>  '{GRAPHICX}',
-    '\graphicspath{'  =>  '\GRAPHICSPATH{',
+    '%<*ltximg>'      => '%<*LTXIMG>',
+    '%</ltximg>'      => '%</LTXIMG>',
+    '%<*noltximg>'    => '%<*NOLTXIMG>',
+    '%</noltximg>'    => '%</NOLTXIMG>',
+    '%<*remove>'      => '%<*REMOVE>',
+    '%</remove>'      => '%</REMOVE>',
+    '\psset'          => '\PSSET',
+    '\tikzset'        => '\TIKZSET',
+    '\pspicture'      => '\TRICKS',
+    '\endpspicture'   => '\ENDTRICKS',
+    '\pgfpicture'     => '\PGFTRICKS',
+    '\endpgfpicture'  => '\ENDPGFTRICKS',
+    '\tikzpicture'    => '\TKZTRICKS',
+    '\endtikzpicture' => '\ENDTKZTRICKS',
+    '\psgraph'        => '\PSGRAPHTRICKS',
+    '\endpsgraph'     => '\ENDPSGRAPHTRICKS',
+    '\usepackage'     => '\USEPACKAGE',
+    '{graphicx}'      => '{GRAPHICX}',
+    '\graphicspath{'  => '\GRAPHICSPATH{',
     );
 
 ### Hash to replace \begin and \end in verbatim inline
@@ -1167,12 +1167,12 @@ my %changes_out = (
 
 ### Reverse tags, need back in all file to extract
 my %reverse_tag = (
-    '%<*LTXIMG>'     => '%<*ltximg>',
-    '%</LTXIMG>'     => '%</ltximg>',
-    '%<*NOLTXIMG>'   => '%<*noltximg>',
-    '%</NOLTXIMG>'   => '%</noltximg>',
-    '%<*REMOVE>'     => '%<*remove>',
-    '%</REMOVE>'     => '%</remove>',
+    '%<*LTXIMG>'   => '%<*ltximg>',
+    '%</LTXIMG>'   => '%</ltximg>',
+    '%<*NOLTXIMG>' => '%<*noltximg>',
+    '%</NOLTXIMG>' => '%</noltximg>',
+    '%<*REMOVE>'   => '%<*remove>',
+    '%</REMOVE>'   => '%</remove>',
     );
 
 ### First we do some security checks to ensure that they are verbatim and
@@ -1481,7 +1481,7 @@ if (exists $plainsyntax{pgfpicture}) {
     \\pgfpicture(.+?)\\endpgfpicture/\\begin{pgfpicture}$1\\end{pgfpicture}/gmsx;
 }
 
-### $force mode for pstricks/psgraph/tikzpiture
+### Force mode for pstricks/psgraph/tikzpiture
 if ($opts_cmd{boolean}{force}) {
     if (exists $plainsyntax{pspicture} or exists $plainsyntax{psgraph}) {
         Log('Force mode for pstricks and psgraph');
@@ -1522,9 +1522,9 @@ $bodydoc =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
 
 ########################################################################
 #  All environments are now classified:                                #
-#  Extraction       -> \begin{preview} ... \end{preview}               #
-#  No Extraction    -> \begin{nopreview} ... \end{nopreview}           #
-#  Verbatim's       -> %<\*ltximgverw> ... <\/ltximgverw>              #
+#  Extraction       ->    \begin{preview} ... \end{preview}            #
+#  No Extraction    ->    \begin{nopreview} ... \end{nopreview}        #
+#  Verbatim's       ->    %<\*ltximgverw> ... <\/ltximgverw>           #
 ########################################################################
 
 ### The %<*remove> ... %</remove> tags need a special treatment :)
@@ -1561,7 +1561,7 @@ for (@lineas) {
     }
 }
 
-### Join lines in $document
+### Join lines in $bodydoc
 $bodydoc = join "\n", @lineas;
 
 ### We restore the changes in preamble
@@ -1767,10 +1767,10 @@ my $quiet = $verbose ? q{}
           :            '-q'
           ;
 
-### Option for pdfcrop in command line (last version of pdfcro https://github.com/ho-tex/pdfcrop)
+### Option for pdfcrop in command line (last version of pdfcrop https://github.com/ho-tex/pdfcrop)
 my $opt_crop = $opts_cmd{compiler}{xetex}  ? "--xetex  --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{luatex} ? "--pdftex --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{latex}  ? "--luatex --margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{luatex} ? "--luatex --margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{latex}  ? "--pdftex --margins $opts_cmd{string}{margin}"
              :                               "--pdftex --margins $opts_cmd{string}{margin}"
              ;
 
@@ -1800,7 +1800,7 @@ my %opt_poppler = (
     svg => "pdftocairo $quiet -svg",
     );
 
-### Lines to add at begin input file
+### Lines to add at begin document
 my $preview = <<"EXTRA";
 \\AtBeginDocument\{%
 \\RequirePackage\[${opt_prew}active,tightpage\]\{preview\}%
@@ -1811,12 +1811,12 @@ EXTRA
 my $preamout = $preamble;
 my $bodyout  = $bodydoc;
 
-### Match pagestyle in preamble
+### Match \pagestyle and \thispagestyle in preamble
 my $style_page = qr /(?:\\)(?:this)?(?:pagestyle\{) (.+?) (?:\})/x;
 my @style_page = $preamout =~ m/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)| $style_page/gmsx;
 my %style_page = map { $_ => 1 } @style_page; # anon hash
 
-### Seting page style for subfilea and process
+### Seting \pagestyle{empty} for subfiles and process
 if (@style_page) {
     if (!exists $style_page{empty}) {
         Log("Replacing page style for generated files");
@@ -1829,11 +1829,11 @@ else {
     $preamout = $preamout."\\pagestyle\{empty\}\n";
 }
 
-### Add $atbegindoc to preamble for subfiles
+### Add $atbegindoc to $preamout for subfiles
 my $sub_prea = $atbegindoc;
 $sub_prea = $atbegindoc.$preamout;
 
-### Add \begin{document} to preamble
+### Add \begin{document} to $sub_prea
 $sub_prea = $sub_prea.'\begin{document}';
 
 ### Remove %<*ltximgverw> ... %</ltximgverw> in preamble for subfiles
@@ -1844,7 +1844,7 @@ $sub_prea =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 $find    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %replace;
 $sub_prea =~ s/($find)/$replace{$1}/g;
 
-### Write subfiles for environments
+### Write standalone files for environments
 if ($outsrc) {
     my $src_name = "$name-$opts_cmd{string}{prefix}-";
     my $srcNo    = 1;
@@ -1870,7 +1870,7 @@ if ($outsrc) {
     }
     if ($opts_cmd{boolean}{subenv}) {
         Log('Extract source code of all environments extracted with preamble');
-        # Removing content in preamble only for sub files
+        # Removing content in preamble only for subfiles
         my @tag_remove_preamble = $sub_prea =~ m/(?:^\%<\*remove$tmp>.+?\%<\/remove$tmp>)/gmsx;
         if (@tag_remove_preamble) {
             Log('Removing the content between %<*remove> ... %</remove> in preamble for subfiles');
@@ -1900,7 +1900,7 @@ if ($outsrc) {
 $bodyout  =~ s/($BE)(?:\[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\])/$1/gmsx;
 $bodyout  =~ s/($BE\[.+?)(?:,graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\})(\])/$1$2/gmsx;
 
-### Remove %<*ltximgverw> ... %</ltximgverw> in bodyout
+### Remove %<*ltximgverw> ... %</ltximgverw> in bodyout and preamout
 $bodyout  =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 $preamout =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
 
@@ -2190,7 +2190,7 @@ if ($outfile) {
     }
 }
 
-### Capture graphicx.sty latex log file
+### Capture graphicx.sty in .log of LaTeX file
 if ($findgraphicx eq 'true' and $outfile) {
     Log("Couldn't capture the graphicx package for $opts_cmd{string}{output}$ext in preamble");
     my $ltxlog;
@@ -2350,7 +2350,7 @@ if (%delete_env) {
     $bodydoc =~ s/($delt_env)(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
 }
 
-### Create a output file
+### Create a <output file>
 if ($outfile) {
     # Options for out_file (add $end to outfile)
     my $out_file = $clean{doc} ? "$preamble\n$bodydoc\n\\end\{document\}"
@@ -2411,7 +2411,7 @@ if ($outfile) {
     }
 } # close outfile file
 
-### Compress images dir with generated files
+### Compress ./images with generated files
 my $archivetar;
 if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
     my $stamp = strftime("%Y-%m-%d", localtime);
