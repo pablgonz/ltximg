@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-05-24';
+my $date      = '2020-05-25';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -1741,6 +1741,64 @@ else {
     Log("The file will be processed using $compiler");
 }
 
+### Option for pdfcrop in command line (last version of pdfcrop https://github.com/ho-tex/pdfcrop)
+my $opt_crop = $opts_cmd{compiler}{xetex}  ? "--xetex  --margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{luatex} ? "--luatex --margins $opts_cmd{string}{margin}"
+             : $opts_cmd{compiler}{latex}  ? "--margins $opts_cmd{string}{margin}"
+             :                               "--pdftex --margins $opts_cmd{string}{margin}"
+             ;
+
+### Options for preview packpage
+my $opt_prew = $opts_cmd{compiler}{xetex}  ? 'xetex,'
+             : $opts_cmd{compiler}{latex}  ? q{}
+             : $opts_cmd{compiler}{dvipdf} ? q{}
+             : $opts_cmd{compiler}{dvips}  ? q{}
+             :                               'pdftex,'
+             ;
+
+########################################################################
+# One problem with using arara is that we don't know what the file is  #
+# really compiled with, this affects [preview] and [pdfcrop]           #
+########################################################################
+
+### Try to capture arara:compiler in preamble of <input file>
+my @arara_engines = qw (latex pdflatex lualatex xelatex luahbtex);
+my $arara_engines = join q{|}, map { quotemeta} sort { length $a <=> length $b } @arara_engines;
+$arara_engines = qr/\b(?:$arara_engines)/x;
+my $arara_rule = qr /^(?:\%\s{1}arara[:]\s{1}) ($arara_engines) /msx;
+
+if ($compiler eq 'arara' and !$opts_cmd{boolean}{noprew} or !$opts_cmd{boolean}{nocrop}) {
+    Log('Trying to detect some suported [engine] in the rules of arara');
+    my @engine = $atbegindoc =~ m/$arara_rule/msx;
+    my %engine = map { $_ => 1 } @engine; # anon hash
+    # Set options for [preview] and [pdfcrop]
+    if (exists $engine{latex}) {
+        Log('The latex engine was found in arara rule');
+        $opt_crop = "--margins $opts_cmd{string}{margin}";
+        $opt_prew = q{};
+    }
+    elsif (exists $engine{lualatex} or exists $engine{luahbtex}) {
+        Log('The lualatex engine was found in arara rule');
+        $opt_crop = "--luatex --margins $opts_cmd{string}{margin}";
+        $opt_prew = 'pdftex,';
+    }
+    elsif (exists $engine{xelatex}) {
+        Log('The xelatex engine was found in arara rule');
+        $opt_crop = "--xetex --margins $opts_cmd{string}{margin}";
+        $opt_prew = 'xetex,';
+    }
+    elsif (exists($engine{pdflatex})) {
+        Log('The pdflatex engine was found in arara rule');
+        $opt_crop = "--pdftex --margins $opts_cmd{string}{margin}";
+        $opt_prew = 'pdftex,';
+    }
+    else {
+        Log('No supported [engine] could be detected, default values will be used');
+        $opt_crop = "--pdftex --margins $opts_cmd{string}{margin}";
+        $opt_prew = 'pdftex,';
+    }
+}
+
 ### Message in command line for compiler
 my $msg_compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
                  : $opts_cmd{compiler}{luatex} ? 'lualatex'
@@ -1756,7 +1814,7 @@ my $write18 = '-shell-escape'; # TeXLive
 $write18 = '-enable-write18' if defined $ENV{"TEXSYSTEM"} and $ENV{"TEXSYSTEM"} =~ /miktex/i;
 
 ### Define options for compilers
-my $opt_compiler = $opts_cmd{compiler}{arara} ? '--log -H'
+my $opt_compiler = $opts_cmd{compiler}{arara} ? '--log'
                  :                              "$write18 -interaction=nonstopmode -recorder"
                  ;
 
@@ -1766,22 +1824,6 @@ Log("The options '$opt_compiler' will be passed to the $compiler");
 my $quiet = $verbose ? q{}
           :            '-q'
           ;
-
-### Option for pdfcrop in command line (last version of pdfcrop https://github.com/ho-tex/pdfcrop)
-my $opt_crop = $opts_cmd{compiler}{xetex}  ? "--xetex  --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{luatex} ? "--luatex --margins $opts_cmd{string}{margin}"
-             : $opts_cmd{compiler}{latex}  ? "--pdftex --margins $opts_cmd{string}{margin}"
-             :                               "--pdftex --margins $opts_cmd{string}{margin}"
-             ;
-
-### Options for preview packpage
-my $opt_prew = $opts_cmd{compiler}{xetex}  ? 'xetex,'
-             : $opts_cmd{compiler}{latex}  ? q{}
-             : $opts_cmd{compiler}{dvipdf} ? q{}
-             : $opts_cmd{compiler}{arara}  ? q{}
-             : $opts_cmd{compiler}{dvips}  ? q{}
-             :                               'pdftex,'
-             ;
 
 ### Options for ghostscript in command line
 my %opt_gs_dev = (
@@ -2007,7 +2049,7 @@ opendir (my $DIR, $workdir);
                 move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-all.pdf")
                 or die "* Error!!: Couldn't be renamed $+{name}-$tmp.pdf to $tempDir/$+{name}-all.pdf";
                 }
-            if (!$opts_cmd{boolean}{crop}) {
+            if (!$opts_cmd{boolean}{nocrop}) {
                 Infoline("Cropping the file $+{name}-all.pdf");
                 if (!$verbose){ print "* Running: pdfcrop $opt_crop\r\n"; }
                 RUNOSCMD("pdfcrop $opt_crop", "$tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf");
