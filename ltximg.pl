@@ -357,19 +357,22 @@ Log("$scriptname $nv was started in $workdir");
 Log("Creating the temporary directory $tempDir");
 
 ### The next code it's part of pdfcrop (adapted from TexLive 2014)
-Log('General information about the Perl instalation');
+# make ENV safer, see perldoc perlsec
+delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
+
 # Windows detection
 my $Win = 0;
-$Win = 1 if $^O =~ /mswin32/i;
-$Win = 1 if $^O =~ /cygwin/i;
+if ($^O =~ /mswin32/i) { $Win = 1; }
+if ($^O =~ /cygwin/i) { $Win = 1; }
 
 my $archname = $Config{'archname'};
 $archname = 'unknown' unless defined $Config{'archname'};
 
 # Get ghostscript command name
 sub find_ghostscript () {
-    return if $gscmd;
+    if ($gscmd) { return; }
     if ($log) {
+        Log('General information about the Perl instalation');
         print {$LogWrite} "* Perl executable: $^X\n";
         if ($] < 5.006) {
             print {$LogWrite} "* Perl version: $]\n";
@@ -542,7 +545,7 @@ sub SearchRegistry () {
 ### Call GS
 find_ghostscript();
 
-### If windows
+### If windows need suport space in path
 if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
 
 ### Help
