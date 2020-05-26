@@ -385,9 +385,9 @@ sub find_ghostscript () {
         }
         printf {$LogWrite} "* Pointer size: $Config{'ptrsize'}\n";
         printf {$LogWrite} "* Pipe support: %s\n",
-                (defined($Config{'d_pipe'}) ? 'yes' : 'no');
+                (defined $Config{'d_pipe'} ? 'yes' : 'no');
         printf {$LogWrite} "* Fork support: %s\n",
-                (defined($Config{'d_fork'}) ? 'yes' : 'no');
+                (defined $Config{'d_fork'} ? 'yes' : 'no');
     }
     my $system = 'unix';
     $system = "dos" if $^O =~ /dos/i;
@@ -1717,12 +1717,14 @@ my @sorted_words = sort { length $a <=> length $b } @currentopt;
 Log('The script will execute the following options:');
 Logarray(\@sorted_words);
 
-### Set directory to save generated files
+### Set directory to save generated files, need full path for goog log :)
+my $imgdirpath = File::Spec->rel2abs($opts_cmd{string}{imgdir});
+
 if (-e $opts_cmd{string}{imgdir}) {
-    Log("The generated file(s) will be saved in the directory $opts_cmd{string}{imgdir}");
+    Log("The generated file(s) will be saved in $imgdirpath");
 }
 else {
-    Log("Creating the directory $opts_cmd{string}{imgdir}/ to save the generated file(s)");
+    Log("Creating the directory $imgdirpath to save the generated file(s)");
     Logline("[perl] mkdir($opts_cmd{string}{imgdir},0744)");
     mkdir $opts_cmd{string}{imgdir},0744 or die errorUsage "* Error!!: Can't create the directory $opts_cmd{string}{imgdir}: $!\n";
 }
@@ -2562,13 +2564,13 @@ if (@deldirs) {
 
 ### End of script process
 if (!$opts_cmd{boolean}{norun} and ($opts_cmd{boolean}{srcenv} or $opts_cmd{boolean}{subenv})) {
-    Log("The image file(s): $format and subfile(s) are in $workdir/$opts_cmd{string}{imgdir}");
+    Log("The image file(s): $format and subfile(s) are in $imgdirpath");
 }
 if (!$opts_cmd{boolean}{norun} and (!$opts_cmd{boolean}{srcenv} and !$opts_cmd{boolean}{subenv})) {
-    Log("The image file(s): $format are in $workdir/$opts_cmd{string}{imgdir}");
+    Log("The image file(s): $format are in $imgdirpath");
 }
 if ($opts_cmd{boolean}{norun} and ($opts_cmd{boolean}{srcenv} or $opts_cmd{boolean}{subenv})) {
-    Log("The subfile(s) are in $workdir/$opts_cmd{string}{imgdir}");
+    Log("The subfile(s) are in $imgdirpath");
 }
 if ($outfile) {
     Log("The file $opts_cmd{string}{output}$ext are in $workdir");
