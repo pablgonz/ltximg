@@ -729,7 +729,7 @@ Copyright 2013 - 2020 by Pablo González L
     -shell-escape,osf,--output-format,--exact-bbox,-o,dvi},%
 % Important words 7, reserved for arara
     keywordstyle=[7]{\color{araracolor}},%
-    keywords=[7]{lualatex,dvisvgm},%
+    keywords=[7]{lualatex,dvisvgm,halt,xelatex},%
 % Important words 8, pkg and others load in examples
     keywordstyle=[8]{\color{SlateBlue}},%
     keywords=[8]{graphicx,grfext,tikz,article,document,preview,libertinus,calc,tikzmark},%
@@ -879,14 +879,11 @@ for more details.
 \section{Motivation and Acknowledgments}
 
 The original idea was to extend the functionality of the \scriptname{pst2pdf}\cite{pst2pdf}
-script (only for \env{pspicture} and \env{postscript}) to work with %
-\env{tikzpicture} and other environments.
+script to work with \env{tikzpicture} and other environments. The \pkgname{tikz}\cite{tikz} package
+allows to \emph{externalize} the environments, but, the idea was to be able to extend this
+to \emph{any type} of environment covering three central points:
 
-The \pkgname{tikz}\cite{tikz} package allows to \emph{externalize} the environments, but, the
-idea was to be able to extend this to any type of environment covering three
-central points:
-
-\begin{enumerate}[font=\small,noitemsep,leftmargin=*]
+\begin{enumerate}[font=\small,noitemsep,leftmargin=*,nosep]
 
 \item Generate a separate image files for environments.
 
@@ -894,9 +891,11 @@ central points:
 
 \item Generate a file replacing the environments by \ics{includegraphics}.
 \end{enumerate}
+
 \thispagestyle{plain}
 
 \newpage
+
 \pagestyle{myheader}
 
 From the side of \hologo{TeX} there are some packages that cover several of these
@@ -916,10 +915,6 @@ This script would not be possible without the great work of Herbert Voß
 author of \scriptname{pst2pdf}\footnote{\url{https://ctan.org/pkg/pst2pdf}}
 and Heiko Oberdiek author of \scriptname{pdfcrop}\footnote{\url{https://ctan.org/pkg/pdfcrop}}.
 Several parts of the code have been taken and adapted from both scripts.
-
-Finding the correct \emph{\enquote{regular expressions}}
-and writing a \emph{\enquote{good documentation}} would be the great mission (which does not
-end yet).
 
 \section{How it works}
 \label{sec:howtowork}
@@ -996,6 +991,10 @@ parts and then processing them:
 \end{document}
 % Part Four: Everything after \end{document}
 \end{examplecode}
+
+If for some reason you have an environment \env{filecontens} before \lstinline|\documentclass| or
+in the preamble of the \meta{input file} that contains a \emph{sub-document} or \emph{environment}
+you want to extract, the script will ignore them.
 
 \newpage
 
@@ -1671,7 +1670,7 @@ Don't create a \fext{pdf} image files.
 Don't run \scriptname{pdfcrop} in image files.
 
 \DescribeCmd{arara}{bolean}{off}
-Use \prgname*{arara} for compiler files.
+Use \prgname*{arara} for compiler files. See \ref{sec:arara} for more information.
 
 \DescribeCmd{xetex}{bolean}{off}
 Using \prgname*{xelatex} compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
@@ -1724,6 +1723,20 @@ Add environments to deleted in \meta[cf=optcolor]{output file}. The environments
 delete only in \meta{body}, if it's the last option
 passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
 
+\subsection{Passing options from command line}
+
+An example of usage from command line:
+
+\begin{examplecmd}
+[user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
+\end{examplecmd}
+Create a \sysdir{./images} directory (if it does not exist) whit all extracted environments converted to image
+formats (\iext{pdf}, \iext{svg}) in individual files, an \meta[cf=optcolor]{output file} \sysfile{test-out.ltx}
+whit all extracted environments converted to \ics{includegraphics} and a single file
+\sysfile{test-in-fig-all.ltx} with only the extracted environments
+using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
+and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=optcolor]{output file}.
+
 \subsection{Options from input file}
 \label{sec:optfile}
 
@@ -1742,6 +1755,8 @@ they must \emph{\enquote{not}} contain \textcolor{optcolor}{\texttt{-}} or \text
 the \textcolor{optcolor}{\texttt{=}} sign between an option and its value is mandatory,
 short names are disabled and options found in the \meta[cf=optcolor]{input file} overwrite
 those passed on the command line.
+
+\newpage
 
 Valid values for \meta[ac=lightgray,cf=optcolor]{argument} are the following:
 
@@ -1770,12 +1785,34 @@ place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
 
 \begin{examplecode}[numbers=left]
 %<*remove>
-% ltximg: options: {png,srcenv,xetex}
-% ltximg: extrenv: {description}
+% ltximg: options: { png, srcenv, xetex }
+% ltximg: extrenv: { description }
 %</remove>
 \end{examplecode}
 
-\section{The way of \texttt{arara} and \texttt{dvisvgm}}
+\subsection{Passing options from input file}
+
+Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
+
+\begin{examplecode}[numbers=left]
+% ltximg: options: { luatex, output = file-out, imgdir = pics, prefix = env }
+% ltximg: skipenv: { tikzpicture }
+% ltximg: deltenv: { filecontents }
+\end{examplecode}
+and run:
+\begin{examplecmd}
+[user@machine~:]§ ltximg file-in.tex
+\end{examplecmd}
+
+Create a \sysdir{./pics} directory (if it does not exist) whit all extracted environments,
+except \env{tikzpicture}, converted to image formats (\iext{pdf}) in individual files,
+an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all extracted environments
+converted to \ics{includegraphics} and environment \env{filecontents} removed,
+a single file \sysfile{test-in-env-all.ltx} with only the extracted environments
+using \prgname*{lualatex} and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+
+
+\section{The way of \texttt{arara}}
 \label{sec:arara}
 
 By design, the script only runs \emph{\enquote{one compilation}} on top
@@ -1790,36 +1827,84 @@ have to keep a few considerations in mind:
 \begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
 \item Read the documentation (this always comes first).
 \item Add \lstinline|{ options: [-recorder] }| to \enquote{rule} for clean temporary files.
-\item Avoiding the use of \lstinline|clean: { extensions: [...] }|.
-\item Don't set \lstinline|-jobname| and \lstinline|-output-directory|.
-\item Remember that the \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file} will be compiled using the same \enquote{rule}.
+\item Avoiding the use of \lstinline|: clean: { extensions: [...] }|.
+\item Don't set \lstinline|-jobname| and \lstinline|-output-directory| in any \enquote{rule}.
 \end{enumerate}
 
-With all these considerations in mind it is possible to extract and convert
-from any file, for example, by adding these lines:
+When the \cmdopt{arara} option is passed to the script, the line that runs in the system is:
+
+\begin{examplecmd}
+[user@machine~:]§ `\small\prgname{arara}` --log file.tex
+\end{examplecmd}
+
+If you have several \enquote{rules} within the file they will all be executed, to avoid this we must add:
+
+\begin{examplecode}[numbers=left]
+% arara: halt
+\end{examplecode}
+
+After the last \enquote{rule} you have at the beginning of the file. With all these considerations
+in mind it is possible to extract and convert environments
+from \emph{any file}.
+
+\newpage
+
+For example, by adding these lines at the beginning of the file:
 
 \begin{examplecode}[numbers=left]
 % arara: lualatex: { options: [-recorder] }
 % arara: lualatex: { options: [-recorder] }
 %<*remove>
-% ltximg: options: {arara, output = file-out, noprew, prefix = tkz}
+% ltximg: options: { arara, output = file-out, prefix = tkz}
 %</remove>
 \end{examplecode}
+
 and run:
+
 \begin{examplecmd}
 [user@machine~:]§ ltximg test.tex
 \end{examplecmd}
 
-Create a \sysdir{./images} directory (if it does not exist) whit all \env{tikzpicture}
+Create a \sysdir{./images} directory (if it does not exist) whit all extracted
 environments converted to image format (\iext{pdf}) in individual files,
-an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all \env{tikzpicture} environments
+an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all exatracted environments
 converted to \ics{includegraphics}, a single file \sysfile{test-tkz-all.tex}
-with only the extracted environments using \prgname*{lualatex} two times for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+with only the extracted environments using \pkgname{preview} package and \prgname*{lualatex} \emph{\enquote{two times}}
+for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+
+Remember that the \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}
+will be compiled using the same \enquote{rule}. One \emph{trick} to get around this situation is to use:
+
+
+\begin{examplecode}[numbers=left]
+%<*remove>
+% arara: lualatex: { options: [-recorder] }
+% arara: lualatex: { options: [-recorder] }
+% arara: halt
+% ltximg: options: { arara, output = file-out, prefix = tkz}
+%</remove>
+% arara: xelatex: { options: [-recorder] }
+% arara: xelatex: { options: [-recorder] }
+\end{examplecode}
+
+The content betwen \lstinline|%<*remove> ... %</remove>| are remove from \meta[cf=optcolor]{output file}
+before compiling. Thus, the \meta{output file} will be compiled using \prgname*{xelatex} \emph{\enquote{two times}}.
+
+As a final consideration, \ltximg{} passes options to the \pkgname{preview} package and
+the \scriptname{pdfcrop} script according to the engine used. When using \cmdopt{arara} it
+will \emph{\enquote{try}} to detect the used engine by means of a regular expression, if the
+detection fails the default values will be used.
+
+This does not affect the process of creating \meta{standalone files} and can be prevented by using \cmdopt{noprew}
+or \cmdopt{nocrop} at the cost of not having the images cropped.
 
 In this way we can \meta{compile} and \meta{convert} any document as long as the conditions
-of the \meta[cf=optcolor]{input file} are met and the correct \enquote{rule} are used,
+of the \meta[cf=optcolor]{input file} are met and the correct \enquote{rule} are used.
 
-Also, by design, the image format \iext{svg} is created using \prgname{pdftocairo} over the
+\section{Note for \texttt{dvisvgm} users}
+\label{sec:dvisvgm}
+
+By design, the image format \iext{svg} is created using \prgname{pdftocairo} over the
 generated \iext{pdf} file, but, if you want to have a good \iext{svg} file it is best to
 use \prgname{dvisvgm}\footnote{\url{https://ctan.org/pkg/dvisvgm}} which
 is included in every modern \hologo{TeX} distribution. The best
@@ -1827,14 +1912,29 @@ results of \prgname{dvisvgm}\cite{dvisvgm} are obtained when processing the file
 format, there are three possible ways to do this:
 
 \begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
-\item Pass the necessary options to \prgname{arara} and let him do the job.
-\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{}, move to \sysdir{./images}
-and generate \fext{dvi}(\fext{xdv}) files, then:
+\item Pass the necessary options to \prgname{arara} and let him do the job\footnote{The dvisvgm rule in version 5.1.3 of arara only supports a dvi extention}.
+
+\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{} to generate \meta{standalone files}, move to \sysdir{./images}
+and generate \fext{dvi} or \fext{xdv} files runing:
+
+\begin{examplecmd}
+[user@machine~:]§ for i in *.tex; do `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
+\end{examplecmd}
+
+then:
+
 \begin{examplecmd}
 [user@machine~:]§ for i in *.dvi; do `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
 \end{examplecmd}
 
-\item Execute the script using \cmdopt{norun}{}, move to \sysdir{./images} and generate \sysfile{test-fig-all}\fext{dvi}(\fext{xdv}), then:
+\item Execute the script using \cmdopt{norun}{}, move to \sysdir{./images} and generate  \fext{dvi} or \fext{xdv} file running:
+
+\begin{examplecmd}
+[user@machine~:]§ `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.tex
+\end{examplecmd}
+
+then:
+
 \begin{examplecmd}
 [user@machine~:]§ `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.dvi
 \end{examplecmd}
@@ -1842,47 +1942,11 @@ and generate \fext{dvi}(\fext{xdv}) files, then:
 
 With this we can generate \iext{svg} files that preserve our typographic fonts.
 
-\section{Examples}
-\label{sec:examples}
+\newpage
 
-\subsection{Passing command line options}
+\section{Using \texttt{arara} and \texttt{dvisvgm}}
 
-\begin{examplecmd}
-[user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
-\end{examplecmd}
-Create a \sysdir{./images} directory (if it does not exist) whit all extracted environments converted to image
-formats (\iext{pdf}, \iext{svg}) in individual files, an \meta[cf=optcolor]{output file} \sysfile{test-out.ltx}
-whit all extracted environments converted to \ics{includegraphics} and a single file
-\sysfile{test-in-fig-all.ltx} with only the extracted environments
-using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=optcolor]{output file}.
-
-\subsection{Passing options from input file}
-
-Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
-
-\begin{examplecode}[numbers=left]
-% ltximg: options: {luatex, output = file-out, imgdir = pics, prefix = env}
-% ltximg: skipenv: {tikzpicture}
-% ltximg: deltenv: {filecontents}
-\end{examplecode}
-and run:
-\begin{examplecmd}
-[user@machine~:]§ ltximg file-in.tex
-\end{examplecmd}
-Create a \sysdir{./pics} directory (if it does not exist) whit all extracted environments,
-except \env{tikzpicture}, converted to image formats (\iext{pdf}) in individual files,
-an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} whit all extracted environments
-converted to \ics{includegraphics} and environment \env{filecontents} removed,
-a single file \sysfile{test-in-env-all.ltx} with only the extracted environments
-using \prgname*{lualatex} and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
-
-\subsection{Using \texttt{arara} and \texttt{dvisvgm}}
-
-The process and operations required to generate the various types of \meta{image
-formats} or \meta{standalone files} have been described throughout the documentation,
-but, as discussed in section \ref{sec:arara}, sometimes the requirements are a \emph{little
-different}. Let's take as an example\footnote{Adapted from \href{https://tex.stackexchange.com/a/209059}{How to get tikzmark to work}}
+An example\footnote{Adapted from \href{https://tex.stackexchange.com/a/209059}{How to get tikzmark to work}}
 the next code which requires two compilations and use \arara{} to generate an image in \iext{pdf} format. We'll save our example as \sysfile{test.tex}.
 
 \begin{examplecode}[numbers=left]
@@ -1893,7 +1957,6 @@ the next code which requires two compilations and use \arara{} to generate an im
 \usepackage{tikz}
 \usetikzlibrary{calc,tikzmark}
 \begin{document}
-
 By taking logarithms of both sides:
 
 %<*ltximg>
@@ -1917,11 +1980,8 @@ Now we just run:
 
 And we already have our image \sysfile{test-fig-1.pdf} on \sysdir{./images}.
 
-\newpage
-
 Let's modify the example\footnote{Adapted from \href{https://tex.stackexchange.com/a/114847}{Draw an aircraft with Tikz}}
-to generate an image in \iext{svg} format
-using \prgname{dvisvgm} and \arara.
+to generate an image in \iext{svg} format using \prgname{dvisvgm} and \arara.
 
 \begin{examplecode}[numbers=left]
 % arara: lualatex: { options: [--output-format=dvi] }
@@ -1930,7 +1990,6 @@ using \prgname{dvisvgm} and \arara.
 % ltximg: options: {arara,norun,noprew}
 \documentclass{article}
 \begin{document}
-
 The best airplane ever drawn by David Carlise. No packages used, just the classic and perhaps
 forgotten \verb|\begin{picture} ... \end{picture}|.
 
@@ -1952,7 +2011,6 @@ forgotten \verb|\begin{picture} ... \end{picture}|.
 \end{examplecode}
 
 We now run:
-
 \begin{examplecmd}
 [user@machine~:]§ ltximg test.tex
 [user@machine~:]§ cd images/
@@ -1961,17 +2019,29 @@ We now run:
 
 And we already have our image \sysfile{test-fig-1.svg}.
 
+\section{Final notes}
+
+The process and operations required to generate the various types of \meta{image
+formats} or \meta{standalone files} have been described throughout the documentation,
+but, as discussed in section \ref{sec:arara}, sometimes the requirements are a \emph{little
+different}.
+
 Here are some of the ways you can use \ltximg{} in conjunction with \arara.
-If you are a user of \prgname{latexmk}\footnote{\url{https://www.ctan.org/pkg/latexmk}}, another
+If you are a user of \scriptname{latexmk}\footnote{\url{https://www.ctan.org/pkg/latexmk}}, another
 great utility that automates the compilation process,  the procedure is analogous, you
 just have to search (or write) the necessary \emph{\enquote{rule}}.
 
-\newpage
+This is the best way to extend the capabilities of the \ltximg{}. Although
+many tasks can be \emph{automated}, in the end only the user knows what
+the document contains and how it should be generated.
+
+Finding the correct \emph{\enquote{regular expressions}} and writing a \emph{\enquote{good documentation}}
+would be the great mission (which does not end yet).
 
 \section{Change history}
 \label{sec:change:history}
 
-The most recent publicly released version of \ltximg{} is available at
+The most recent publicly released of \ltximg{} is available at
 \textsc{ctan}: \url{https://www.ctan.org/pkg/ltximg}. Historical and
 developmental versions are available at \textcolor{gray}{\scriptsize\faIcon[regular]{github}}
 \url{https://github.com/pablgonz/ltximg}.
