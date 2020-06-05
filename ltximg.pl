@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-05-25';
+my $date      = '2020-06-04';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -1739,11 +1739,13 @@ my $compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
              :                               'pdflatex'
              ;
 
-if ($compiler eq 'arara') {
-    Log("The file will be processed using $compiler, no ducks will be harmed in this process");
-}
-else {
-    Log("The file will be processed using $compiler");
+if (!$opts_cmd{boolean}{norun}) {
+    if ($compiler eq 'arara') {
+        Log("The file will be processed using $compiler, no ducks will be harmed in this process");
+    }
+    else {
+        Log("The file will be processed using $compiler");
+    }
 }
 
 ### Option for pdfcrop in command line (last version of pdfcrop https://github.com/ho-tex/pdfcrop)
@@ -1823,7 +1825,9 @@ my $opt_compiler = $opts_cmd{compiler}{arara} ? '--log'
                  :                              "$write18 -interaction=nonstopmode -recorder"
                  ;
 
-Log("The options '$opt_compiler' will be passed to the $compiler");
+if (!$opts_cmd{boolean}{norun}) {
+    Log("The options '$opt_compiler' will be passed to the $compiler");
+}
 
 ### Append -q for system command line (gs, poppler-utils, dvips, dvipdfmx)
 my $quiet = $verbose ? q{}
