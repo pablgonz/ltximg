@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-06-04';
+my $date      = '2020-06-08';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -560,16 +560,16 @@ if (defined $opts_cmd{internal}{version}) {
     exit 0;
 }
 
-### Check the input file from command line
+### Check <input file> from command line
 @ARGV > 0 or errorUsage '* Error!!: Input filename missing';
 @ARGV < 2 or errorUsage '* Error!!: Unknown option or too many input files';
 
-### Check input file extention
+### Check <input file> extention
 my @SuffixList = ('.tex', q{}, '.ltx'); # posibles
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 $ext = '.tex' if not $ext;
 
-### Read input file in memory
+### Read <input file> in memory
 Log("Read input file $name$ext in memory");
 open my $INPUTfile, '<:crlf', "$name$ext";
     my $ltxfile;
@@ -1806,6 +1806,13 @@ if ($compiler eq 'arara' and !$opts_cmd{boolean}{noprew} or !$opts_cmd{boolean}{
     }
 }
 
+### Set options for preview (add at begin document)
+my $preview = <<"EXTRA";
+\\AtBeginDocument\{%
+\\RequirePackage\[${opt_prew}active,tightpage\]\{preview\}%
+\\renewcommand\\PreviewBbAdjust\{-60pt -60pt 60pt 60pt\}\}%
+EXTRA
+
 ### Message in command line for compiler
 my $msg_compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
                  : $opts_cmd{compiler}{luatex} ? 'lualatex'
@@ -1850,13 +1857,6 @@ my %opt_poppler = (
     ppm => "pdftoppm $quiet -r $opts_cmd{string}{dpi}",
     svg => "pdftocairo $quiet -svg",
     );
-
-### Lines to add at begin document
-my $preview = <<"EXTRA";
-\\AtBeginDocument\{%
-\\RequirePackage\[${opt_prew}active,tightpage\]\{preview\}%
-\\renewcommand\\PreviewBbAdjust\{-60pt -60pt 60pt 60pt\}\}%
-EXTRA
 
 ### Copy preamble and body for temp file with all environments
 my $preamout = $preamble;
@@ -1999,6 +1999,7 @@ if ($STDenv) {
         print {$allstdenv} $sub_prea."@env_extract"."\\end{document}";
     }
     else {
+        Log("Adding \\RequirePackage\[${opt_prew}active,tightpage\]\{preview\} to $name-$opts_cmd{string}{prefix}-$tmp$ext");
         print {$allstdenv} $atbegindoc.$preview.$preamout.$bodyout."\n\\end{document}";
     }
     close $allstdenv;
