@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-06-08';
+my $date      = '2020-06-09';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -403,7 +403,7 @@ sub find_ghostscript () {
     }
     Log("General information about the Ghostscript");
     my %candidates = (
-        'unix'   => [qw|gs gsc|],
+        'unix'   => [qw|gs gsc gswin64c gswin32c|],
         'dos'    => [qw|gs386 gs|],
         'os2'    => [qw|gsos2 gs|],
         'win'    => [qw|gswin32c gs|],
@@ -793,7 +793,7 @@ if(%opts_file) {
     if (exists $opts_file{options}) {
         Infoline("Found \% ltximg\: options\: \{...\} in $name$ext");
         # Add compilers from input file
-        for my $opt (qw(arara xetex latex dvips dvipdf)) {
+        for my $opt (qw(arara xetex luatex latex dvips dvipdf)) {
             if (exists $opts_file{options}{$opt}) {
                 Infoline("Found [$opt] compiler option in $name$ext");
                 $opts_cmd{compiler}{$opt} = 1;
@@ -1774,33 +1774,38 @@ my $arara_engines = join q{|}, map { quotemeta} sort { length $a <=> length $b }
 $arara_engines = qr/\b(?:$arara_engines)/x;
 my $arara_rule = qr /^(?:\%\s{1}arara[:]\s{1}) ($arara_engines) /msx;
 
-if ($compiler eq 'arara' and !$opts_cmd{boolean}{noprew} or !$opts_cmd{boolean}{nocrop}) {
+### Set options for [compiler], [preview] and [pdfcrop]
+if ($compiler eq 'arara') {
     Log('Trying to detect some suported [engine] in the rules of arara');
     my @engine = $atbegindoc =~ m/$arara_rule/msx;
     my %engine = map { $_ => 1 } @engine; # anon hash
-    # Set options for [preview] and [pdfcrop]
     if (exists $engine{latex}) {
         Log('The latex engine was found in arara rule');
+        # Set options for [preview] and [pdfcrop]
         $opt_crop = "--margins $opts_cmd{string}{margin}";
         $opt_prew = q{};
     }
     elsif (exists $engine{lualatex} or exists $engine{luahbtex}) {
         Log('The lualatex engine was found in arara rule');
+        # Set options for [preview] and [pdfcrop]
         $opt_crop = "--luatex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'pdftex,';
     }
     elsif (exists $engine{xelatex}) {
         Log('The xelatex engine was found in arara rule');
+        # Set options for [preview] and [pdfcrop]
         $opt_crop = "--xetex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'xetex,';
     }
     elsif (exists($engine{pdflatex})) {
         Log('The pdflatex engine was found in arara rule');
+        # Set options for [preview] and [pdfcrop]
         $opt_crop = "--pdftex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'pdftex,';
     }
     else {
         Log('No supported [engine] could be detected, default values will be used');
+        # Set options for [preview] and [pdfcrop]
         $opt_crop = "--pdftex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'pdftex,';
     }
