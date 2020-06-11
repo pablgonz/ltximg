@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-06-09';
+my $date      = '2020-06-10';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -276,7 +276,7 @@ ${title}** Description
 \$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 \$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 
-   Create a "./mypics" directory (if it doesn’t exist) whit all extracted
+   Create a "./mypics" directory (if it doesn't exist) whit all extracted
    environments converted to individual files (.pdf, .eps, .png, .ltx), a
    file "test-in-fig-all.ltx" whit all extracted environments and the file
    "test-out.ltx" with all environments converted to \\includegraphics using
@@ -460,7 +460,7 @@ sub find_ghostscript () {
 
 sub SearchRegistry () {
     my $found = 0;
-    eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|;';
+    eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';#;
     if ($@) {
         if ($log) {
             print {$LogWrite} "* Registry lookup for Ghostscript failed:\n";
@@ -1848,14 +1848,13 @@ my $quiet = $verbose ? q{}
 
 ### Options for ghostscript in command line
 my %opt_gs_dev = (
-    pdf  => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress",
-    gray => "$gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray",
-    png  => "$gscmd $quiet -dNOSAFER -sDEVICE=pngalpha -r$opts_cmd{string}{dpi}",
-    bmp  => "$gscmd $quiet -dNOSAFER -sDEVICE=bmp32b -r$opts_cmd{string}{dpi}",
-    jpg  => "$gscmd $quiet -dNOSAFER -sDEVICE=jpeg -r$opts_cmd{string}{dpi} -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
-    tif  => "$gscmd $quiet -dNOSAFER -sDEVICE=tiff32nc -r$opts_cmd{string}{dpi}",
+    pdf  => '-dNOSAFER -sDEVICE=pdfwrite',
+    gray => '-dNOSAFER -dEmbedAllFonts -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -sProcessColorModel=DeviceGray',
+    png  => "-dNOSAFER -sDEVICE=pngalpha -r$opts_cmd{string}{dpi}",
+    bmp  => "-dNOSAFER -sDEVICE=bmp32b -r$opts_cmd{string}{dpi}",
+    jpg  => "-dNOSAFER -sDEVICE=jpeg -r$opts_cmd{string}{dpi} -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
+    tif  => "-dNOSAFER -sDEVICE=tiff32nc -r$opts_cmd{string}{dpi}",
     );
-
 ### Options for poppler-utils in command line
 my %opt_poppler = (
     eps => "pdftops $quiet -eps",
@@ -2052,7 +2051,7 @@ opendir (my $DIR, $workdir);
                     print "* Running: $gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
                     print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
                 }
-                RUNOSCMD("$opt_gs_dev{gray}","-o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf");
+                RUNOSCMD("$gscmd $quiet $opt_gs_dev{gray}","-o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf");
             }
             else {
                 Infoline("Creating the file $+{name}-all.pdf");
@@ -2084,8 +2083,8 @@ if (!$opts_cmd{boolean}{norun}) {
                 for my $var (qw(pdf png jpg bmp tif)) {
                     if (defined $opts_cmd{image}{$var}) {
                         print "Generating format [$var] from file $+{name}$+{type}\r\n";
-                        if (!$verbose){ print "* Running: $opt_gs_dev{$var} \r\n"; }
-                        RUNOSCMD("$opt_gs_dev{$var}", "-o $workdir/$opts_cmd{string}{imgdir}/$+{name}-%1d.$var $tempDir/$+{name}$+{type}");
+                        if (!$verbose){ print "* Running: $gscmd $quiet $opt_gs_dev{$var} \r\n"; }
+                        RUNOSCMD("$gscmd $quiet $opt_gs_dev{$var}", "-o $workdir/$opts_cmd{string}{imgdir}/$+{name}-%1d.$var $tempDir/$+{name}$+{type}");
                     }
                 }
             }
