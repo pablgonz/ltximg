@@ -39,7 +39,7 @@ my $scriptname = 'ltximg';
 ### Script identification
 my $program   = 'LTXimg';
 my $nv        = 'v1.8';
-my $date      = '2020-06-10';
+my $date      = '2020-06-12';
 my $copyright = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -393,6 +393,7 @@ sub find_ghostscript () {
     $system = "dos" if $^O =~ /dos/i;
     $system = "os2" if $^O =~ /os2/i;
     $system = "win" if $^O =~ /mswin32/i;
+    $system = "msys" if $^O =~ /msys/i;
     $system = "cygwin" if $^O =~ /cygwin/i;
     $system = "miktex" if defined $ENV{"TEXSYSTEM"} and
                           $ENV{"TEXSYSTEM"} =~ /miktex/i;
@@ -403,10 +404,11 @@ sub find_ghostscript () {
     }
     Log("General information about the Ghostscript");
     my %candidates = (
-        'unix'   => [qw|gs gsc gswin64c gswin32c|],
+        'unix'   => [qw|gs gsc|],
         'dos'    => [qw|gs386 gs|],
         'os2'    => [qw|gsos2 gs|],
         'win'    => [qw|gswin32c gs|],
+        'msys'   => [qw|gs gsc gswin32c gswin64c|],
         'cygwin' => [qw|gs gswin32c|],
         'miktex' => [qw|mgs gswin32c gs|],
     );
@@ -425,6 +427,7 @@ sub find_ghostscript () {
         'dos'    => '.exe',
         'os2'    => '.exe',
         'win'    => '.exe',
+        'msys'   => '.exe',
         'cygwin' => '.exe',
         'miktex' => '.exe',
     );
@@ -446,8 +449,11 @@ sub find_ghostscript () {
         }
         last if $found;
     }
-    if (not $found and $Win) {
+    if (not $found and $Win and $system ne 'msys') {
         $found = SearchRegistry();
+    }
+    if (not $found and $system eq 'msys') {
+        $found = Searchbyregquery();
     }
     if ($found) {
         if ($log) { print {$LogWrite} "* Autodetected ghostscript command: $gscmd\n"; }
@@ -460,14 +466,14 @@ sub find_ghostscript () {
 
 sub SearchRegistry () {
     my $found = 0;
-    eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';#;
+    eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';
     if ($@) {
         if ($log) {
             print {$LogWrite} "* Registry lookup for Ghostscript failed:\n";
             my $msg = $@;
             $msg =~ s/\s+$//;
             foreach (split /\r?\n/, $msg) {
-                print " $_\n";
+                print {$LogWrite} " $_\n";
             }
         }
         return $found;
@@ -540,12 +546,50 @@ sub SearchRegistry () {
         last;
     }
     return $found;
-} # end GS search
+} # end GS search registry
+
+### This part is only necessary if you're using Git on windows and don't
+### have gs configured in the PATH. Git for windows don't have a Win32::TieRegistry
+sub Searchbyregquery (){
+    my $found = 0;
+    my $gs_regkey;
+    if ($log) { print {$LogWrite} "* Search Ghostscript in Windows registry under mingw/msys:\n";}
+    my $gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" //s //v GS_DLL};
+    if ($? == 0) {
+        if ($log) { print {$LogWrite} "* Registry entry found for ghostscript 64 bits version\n";}
+    } else {
+        $gs_regkey = qx{reg query "HKLM\\Software\\Wow6432Node\\GPL Ghostscript" //s //v GS_DLL};
+        if ($? == 0) {
+        if ($log) { print {$LogWrite} "* Registry entry found for ghostscript 32 bits version\n";}
+        }
+    }
+    my ($gs_path) = $gs_regkey =~ m/(?:\s* GS_DLL \s* REG_SZ \s*) (.+?)(?:\R)/s;
+    if ($gs_path) {
+        $gs_path =~ s|(gs)(?:dll)(\d{2})(?:\.dll)|$1win$2c.exe|gmsxi;
+        $gscmd = $gs_path;
+        # Windows or msys (git bash) need suport space in path
+        $gscmd = "\"$gscmd\"";
+        if ($log) { print {$LogWrite} "* Found (via reg query): $gscmd\n"; }
+        $found = 1;
+    }
+    if ($@) {
+        if ($log) {
+            print {$LogWrite} "* Registry lookup for Ghostscript by reg query failed:\n";
+            my $msg = $@;
+            $msg =~ s/\s+$//;
+            foreach (split /\r?\n/, $msg) {
+                print {$LogWrite} " $_\n";
+            }
+        }
+        return $found;
+    }
+    return $found;
+}
 
 ### Call GS
 find_ghostscript();
 
-### If windows need suport space in path
+### Windows need suport space in path
 if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
 
 ### Help
