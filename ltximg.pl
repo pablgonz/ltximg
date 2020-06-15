@@ -28,19 +28,20 @@ use File::Find;
 use autodie;
 use Config;
 use Cwd;
+use if $^O eq 'MSWin32', 'Win32';
+use if $^O eq 'MSWin32', 'Win32::Console::ANSI'; # need for color :)
+use Term::ANSIColor;
 
 ### Directory for work and temp files
 my $tempDir = tempdir( CLEANUP => 1);
 my $workdir = cwd;
 
-### Real script name
-my $scriptname = 'ltximg';
-
 ### Script identification
-my $program   = 'LTXimg';
-my $nv        = 'v1.8';
-my $date      = '2020-06-12';
-my $copyright = <<"END_COPYRIGHT" ;
+my $scriptname = 'ltximg';
+my $program    = 'LTXimg';
+my $nv         = 'v1.8';
+my $date       = '2020-06-14';
+my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
@@ -111,15 +112,34 @@ sub crearhash {
     for my $aentra(@_){
         for my $initend (qw(begin end)) {
             $cambios{"\\$initend\{$aentra"} = "\\\U$initend\E\{$aentra";
-            }
         }
+    }
     return %cambios;
+}
+
+### Print colored info in screen
+sub Infocolor {
+    my $type = shift;
+    my $info = shift;
+    if ($type eq 'Running') {
+        print color('cyan'), '* ', color('reset'), color('green'),
+        "$type: ", color('reset'), color('cyan'), "$info\r\n", color('reset');
+    }
+    if ($type eq 'Warning') {
+        print color('bold red'), "* $type: ", color('reset'),
+        color('yellow'), "$info\r\n", color('reset');
+    }
+    if ($type eq 'Finish') {
+        print color('magenta'), '** ', color('reset'), color('bold red'), "$type: ", color('reset'),
+        color('yellow'), "$info",color('reset'), color('magenta'), " **\r\n", color('reset');
+    }
+    return;
 }
 
 ### Write Log line and print msg (common)
 sub Infoline {
     my $msg = shift;
-    my $now  = strftime("%y/%m/%d %H:%M:%S", localtime);
+    my $now = strftime("%y/%m/%d %H:%M:%S", localtime);
     if ($log) { $LogWrite->print(sprintf "[%s] * %s\n", $now, $msg); }
     say $msg;
     return;
@@ -135,7 +155,7 @@ sub Logline {
 ### Write Log line (time stamp)
 sub Log {
     my $msg = shift;
-    my $now  = strftime("%y/%m/%d %H:%M:%S", localtime);
+    my $now = strftime("%y/%m/%d %H:%M:%S", localtime);
     if ($log) { $LogWrite->print(sprintf "[%s] * %s\n", $now, $msg); }
     return;
 }
@@ -159,33 +179,43 @@ sub Logarray {
 ### Extended print info for execute system commands using $ command
 sub Logrun {
     my $msg = shift;
-    my $now  = strftime("%y/%m/%d %H:%M:%S", localtime);
+    my $now = strftime("%y/%m/%d %H:%M:%S", localtime);
     if ($log) { $LogWrite->print(sprintf "[%s] \$ %s\n", $now, $msg); }
-    if ($verbose) { print "* Running: $msg\r\n"; }
     return;
 }
 
 ### Capture and execute system commands
 sub RUNOSCMD {
-    my $cmdname = shift;
-    my $argcmd  = shift;
+    my $cmdname  = shift;
+    my $argcmd   = shift;
+    my $showmsg  = shift;
     my $captured = "$cmdname $argcmd";
     Logrun($captured);
+    if ($showmsg eq 'show') {
+        if ($verbose) {
+            Infocolor('Running', $captured);
+        }
+        else{ Infocolor('Running', $cmdname); }
+    }
+    if ($showmsg eq 'only' and $verbose) {
+        Infocolor('Running', $captured);
+    }
+    # Run system system command
     $captured = qx{$captured};
     if ($log) { $LogWrite->print($captured); }
     if ($? == -1) {
         print $captured;
         $cmdname = "* Error!!: ".$cmdname." failed to execute (%s)!\n";
-        if ($log) { $LogWrite->print(sprintf "$cmdname", exterr); }
-        die sprintf "$cmdname", exterr;
+        if ($log) { $LogWrite->print(sprintf $cmdname, exterr); }
+        die sprintf $cmdname, exterr;
     } elsif ($? & 127) {
         $cmdname = "* Error!!: ".$cmdname." died with signal %d!\n";
-        if ($log) { $LogWrite->print(sprintf "$cmdname", ($? & 127)); }
-        die sprintf "$cmdname", ($? & 127);
+        if ($log) { $LogWrite->print(sprintf $cmdname, ($? & 127)); }
+        die sprintf $cmdname, ($? & 127);
     } elsif ($? != 0 ) {
         $cmdname = "* Error!!: ".$cmdname." exited with error code %d!\n";
-        if ($log) { $LogWrite->print(sprintf "$cmdname", $? >> 8); }
-        die sprintf "$cmdname",$? >> 8;
+        if ($log) { $LogWrite->print(sprintf $cmdname, $? >> 8); }
+        die sprintf $cmdname,$? >> 8;
     }
     if ($verbose) { print $captured; }
     return;
@@ -353,7 +383,7 @@ if ($log) {
 }
 
 ### Init log file
-Log("$scriptname $nv was started in $workdir");
+Log("The script $scriptname $nv was started in $workdir");
 Log("Creating the temporary directory $tempDir");
 
 ### The next code it's part of pdfcrop (adapted from TexLive 2014)
@@ -363,7 +393,6 @@ delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 # Windows detection
 my $Win = 0;
 if ($^O =~ /mswin32/i) { $Win = 1; }
-if ($^O =~ /cygwin/i) { $Win = 1; }
 
 my $archname = $Config{'archname'};
 $archname = 'unknown' unless defined $Config{'archname'};
@@ -372,7 +401,7 @@ $archname = 'unknown' unless defined $Config{'archname'};
 sub find_ghostscript () {
     if ($gscmd) { return; }
     if ($log) {
-        Log('General information about the Perl instalation');
+        Log('General information about the Perl instalation and operating system');
         print {$LogWrite} "* Perl executable: $^X\n";
         if ($] < 5.006) {
             print {$LogWrite} "* Perl version: $]\n";
@@ -390,8 +419,6 @@ sub find_ghostscript () {
                 (defined $Config{'d_fork'} ? 'yes' : 'no');
     }
     my $system = 'unix';
-    $system = "dos" if $^O =~ /dos/i;
-    $system = "os2" if $^O =~ /os2/i;
     $system = "win" if $^O =~ /mswin32/i;
     $system = "msys" if $^O =~ /msys/i;
     $system = "cygwin" if $^O =~ /cygwin/i;
@@ -400,19 +427,21 @@ sub find_ghostscript () {
     if ($log) {
         print {$LogWrite} "* OS name: $^O\n";
         print {$LogWrite} "* Arch name: $archname\n";
-        print {$LogWrite} "* System: $system\n";
+        if ($^O eq 'MSWin32') {
+            my $tmp = Win32::GetOSName();
+            print {$LogWrite} "* System: $tmp\n";
+        }
+        else { print {$LogWrite} "* System: $system\n"; }
     }
     Log("General information about the Ghostscript");
     my %candidates = (
         'unix'   => [qw|gs gsc|],
-        'dos'    => [qw|gs386 gs|],
-        'os2'    => [qw|gsos2 gs|],
         'win'    => [qw|gswin32c gs|],
-        'msys'   => [qw|gs gsc gswin32c gswin64c|],
-        'cygwin' => [qw|gs gswin32c|],
+        'msys'   => [qw|gswin32c gswin64c|],
+        'cygwin' => [qw|gs gsc|],
         'miktex' => [qw|mgs gswin32c gs|],
     );
-    if ($system eq 'win' or $system eq 'cygwin' or $system eq 'miktex') {
+    if ($system eq 'win' or $system eq 'miktex') {
         if ($archname =~ /mswin32-x64/i) {
             my @a = ();
             foreach my $name (@{$candidates{$system}}) {
@@ -424,8 +453,6 @@ sub find_ghostscript () {
     }
     my %exe = (
         'unix'   => q{},
-        'dos'    => '.exe',
-        'os2'    => '.exe',
         'win'    => '.exe',
         'msys'   => '.exe',
         'cygwin' => '.exe',
@@ -466,6 +493,7 @@ sub find_ghostscript () {
 
 sub SearchRegistry () {
     my $found = 0;
+    # The module Win32::TieRegistry not aviable in cygwin/msys
     eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';
     if ($@) {
         if ($log) {
@@ -550,24 +578,27 @@ sub SearchRegistry () {
 
 ### This part is only necessary if you're using Git on windows and don't
 ### have gs configured in the PATH. Git for windows don't have a Win32::TieRegistry
+### and this module is not supported in the current versions of cygwin/msys.
 sub Searchbyregquery (){
     my $found = 0;
     my $gs_regkey;
     if ($log) { print {$LogWrite} "* Search Ghostscript in Windows registry under mingw/msys:\n";}
-    my $gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" //s //v GS_DLL};
+    $gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" //s //v GS_DLL};
+    #$gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" /s /v GS_DLL};
     if ($? == 0) {
-        if ($log) { print {$LogWrite} "* Registry entry found for ghostscript 64 bits version\n";}
-    } else {
+        if ($log) { print {$LogWrite} "* Registry entry found for GS_DLL (64 bits version)\n";}
+    }
+    else {
         $gs_regkey = qx{reg query "HKLM\\Software\\Wow6432Node\\GPL Ghostscript" //s //v GS_DLL};
         if ($? == 0) {
-        if ($log) { print {$LogWrite} "* Registry entry found for ghostscript 32 bits version\n";}
+            if ($log) { print {$LogWrite} "* Registry entry found for GS_DLL (32 bits version)\n";}
         }
     }
     my ($gs_path) = $gs_regkey =~ m/(?:\s* GS_DLL \s* REG_SZ \s*) (.+?)(?:\R)/s;
     if ($gs_path) {
         $gs_path =~ s|(gs)(?:dll)(\d{2})(?:\.dll)|$1win$2c.exe|gmsxi;
         $gscmd = $gs_path;
-        # Windows or msys (git bash) need suport space in path
+        # Need suport space in path
         $gscmd = "\"$gscmd\"";
         if ($log) { print {$LogWrite} "* Found (via reg query): $gscmd\n"; }
         $found = 1;
@@ -609,9 +640,10 @@ if (defined $opts_cmd{internal}{version}) {
 @ARGV < 2 or errorUsage '* Error!!: Unknown option or too many input files';
 
 ### Check <input file> extention
-my @SuffixList = ('.tex', q{}, '.ltx'); # posibles
+my @SuffixList = ('.tex', '.ltx'); # valid extention
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
-$ext = '.tex' if not $ext;
+if ($ext eq '.tex' or $ext eq '.ltx') {	$ext = $ext; }
+else { die errorUsage '* Error!!: Invalid or empty extention for input file'; }
 
 ### Read <input file> in memory
 Log("Read input file $name$ext in memory");
@@ -623,7 +655,7 @@ open my $INPUTfile, '<:crlf', "$name$ext";
         }
 close $INPUTfile;
 
-### Set tmp random number for name-fig-tmp and others
+### Set tmp random number for <name-fig-tmp> and others
 my $tmp = int(rand(10000));
 
 ### Identification message in terminal
@@ -782,10 +814,11 @@ while ($atbegindoc =~ /$readoptfile/g) {
 
 ### Process options from input file (if exist)
 if(%opts_file) {
+    Infocolor('Warning', "Found options for script in $name$ext");
+    # Search and extract options from input file
     Log("Searching options for script in $name$ext");
-    # Add extract options from input file
     if (exists $opts_file{extrenv}) {
-        Infoline("Found \% ltximg\: extrenv\: \{...\} in $name$ext");
+        Log("Found \% ltximg\: extrenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{extrenv}}) {
             Log('Error!!: Invalid argument for % ltximg: extrenv: {...}, some argument from list begin with -');
             die errorUsage '* Error!!: Invalid argument in % ltximg: extrenv: {...}';
@@ -795,7 +828,7 @@ if(%opts_file) {
     }
     # Add skipenv options from input file
     if (exists $opts_file{skipenv}) {
-        Infoline("Found \% ltximg\: skipenv\: \{...\} in $name$ext");
+        Log("Found \% ltximg\: skipenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{skipenv}}) {
             Log('Error!!: Invalid argument for % ltximg: skipenv: {...}, some argument from list begin with -');
             die errorUsage '* Error!!: Invalid argument in % ltximg: skipenv: {...}';
@@ -805,7 +838,7 @@ if(%opts_file) {
     }
     # Add verbenv options from input file
     if (exists $opts_file{verbenv}) {
-        Infoline("Found \% ltximg\: verbenv\: \{...} in $name$ext");
+        Log("Found \% ltximg\: verbenv\: \{...} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{verbenv}}) {
             Log('Error!!: Invalid argument for % ltximg: verbenv: {...}, some argument from list begin with -');
             die errorUsage '* Error!!: Invalid argument in % ltximg: verbenv: {...}';
@@ -815,7 +848,7 @@ if(%opts_file) {
     }
     # Add writenv options from input file
     if (exists $opts_file{writenv}) {
-        Infoline("Found \% ltximg\: writenv\: \{...\} in $name$ext");
+        Log("Found \% ltximg\: writenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{ $opts_file{writenv}}) {
             Log('Error!!: Invalid argument for % ltximg: writenv: {...}, some argument from list begin with -');
             die errorUsage '* Error!!: Invalid argument in % ltximg: writenv: {...}';
@@ -825,7 +858,7 @@ if(%opts_file) {
     }
     # Add deltenv options from input file
     if (exists $opts_file{deltenv}) {
-        Infoline("Found \% ltximg\: deltenv\: \{...\} in $name$ext");
+        Log("Found \% ltximg\: deltenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{deltenv}}) {
             Log('Error!!: Invalid argument for % ltximg: deltenv: {...}, some argument from list begin with -');
             die errorUsage '* Error!!: Invalid argument in % ltximg: deltenv: {...}';
@@ -835,39 +868,39 @@ if(%opts_file) {
     }
     # Add all other options from input file
     if (exists $opts_file{options}) {
-        Infoline("Found \% ltximg\: options\: \{...\} in $name$ext");
+        Log("Found \% ltximg\: options\: \{...\} in $name$ext");
         # Add compilers from input file
         for my $opt (qw(arara xetex luatex latex dvips dvipdf)) {
             if (exists $opts_file{options}{$opt}) {
-                Infoline("Found [$opt] compiler option in $name$ext");
+                Log("Found [$opt] compiler option in $name$ext");
                 $opts_cmd{compiler}{$opt} = 1;
             }
         }
         # Add image options
         for my $opt (qw(eps ppm svg png jpg bmp tif)) {
             if (exists $opts_file{options}{$opt}) {
-                Infoline("Found [$opt] image option in $name$ext");
+                Log("Found [$opt] image option in $name$ext");
                 $opts_cmd{image}{$opt} = 1;
             }
         }
         # Add boolean options
         for my $opt (qw(nopdf norun nocrop srcenv subenv zip tar gray force noprew)) {
             if (exists $opts_file{options}{$opt}) {
-                Infoline("Found [$opt] option in $name$ext");
+                Log("Found [$opt] option in $name$ext");
                 $opts_cmd{boolean}{$opt} = 1;
             }
         }
         # Add string options
         for my $opt (qw(dpi myverb margins prefix imgdir output)) {
             if (exists $opts_file{options}{$opt}) {
-                Infoline("Found [$opt = $opts_file{options}{$opt}] in $name$ext");
+                Log("Found [$opt = $opts_file{options}{$opt}] in $name$ext");
                 $opts_cmd{string}{$opt} = $opts_file{options}{$opt};
             }
         }
         # Add clean option
         for my $opt (qw(doc off pst tkz all)) {
             if ($opts_file{options}{clean} eq "$opt" ) {
-                Infoline("Found [clean = $opt] in $name$ext");
+                Log("Found [clean = $opt] in $name$ext");
                 $opts_cmd{clean} = $opt;
             }
         }
@@ -880,9 +913,7 @@ if (defined $opts_cmd{string}{myverb}) {
         Log('Error!!: Invalid argument for myverb, argument begin with - or \ ');
         die errorUsage '* Error!!: Invalid argument for --myverb';
     }
-    else {
-        Log("Set myverb = $opts_cmd{string}{myverb}");
-    }
+    else { Log("Set myverb = $opts_cmd{string}{myverb}"); }
 }
 
 ### Validate imgdir = string option
@@ -891,9 +922,7 @@ if (defined $opts_cmd{string}{imgdir}) {
         Log('Error!!: Invalid argument for imgdir option, argument begin with -, \ or /');
         die errorUsage '* Error!!: Invalid argument for --imgdir';
     }
-    else {
-        Log("Set imgdir = $opts_cmd{string}{imgdir}");
-    }
+    else { Log("Set imgdir = $opts_cmd{string}{imgdir}"); }
 }
 
 ### Define key = pdf for image format
@@ -985,17 +1014,16 @@ my $mintdline = qr/\\ newmintinline $braces (?:\{.+?\})  /x;
 my $mintcline = qr/\\ newmintinline $braquet (?:\{.+?\}) /x;
 
 ### Filter input file, now $ltxfile is pass to $filecheck
-
 Log("Filter $name$ext \(remove % and comments\)");
 my @filecheck = $ltxfile;
 s/%.*\n//mg foreach @filecheck;    # del comments
 s/^\s*|\s*//mg foreach @filecheck; # del white space
 my $filecheck = join q{}, @filecheck;
 
-### Search verbatim and verbatim write environments input file
+### Search verbatim and verbatim write environments <input file>
 Log("Search verbatim and verbatim write environments in $name$ext");
 
-### Search new verbatim write names in input file
+### Search new verbatim write names in <input file>
 my @newv_write = $filecheck =~ m/$newverbwrt/xg;
 if (@newv_write) {
     Log("Found new verbatim write environments in $name$ext");
@@ -1003,7 +1031,7 @@ if (@newv_write) {
     push @verw_env_tmp, @newv_write;
 }
 
-### Search new verbatim environments in input file (for)
+### Search new verbatim environments in <input file> (for)
 my @verb_input = $filecheck =~ m/$newverbenv/xg;
 if (@verb_input) {
     Log("Found new verbatim environments in $name$ext");
@@ -1011,7 +1039,7 @@ if (@verb_input) {
     push @verb_env_tmp, @verb_input;
 }
 
-### Search \newminted{$mintdenv}{options} need add "code" (for)
+### Search \newminted{$mintdenv}{options} in <input file>, need add "code" (for)
 my @mint_denv = $filecheck =~ m/$mintdenv/xg;
 if (@mint_denv) {
     Log("Found \\newminted\{envname\} in $name$ext");
@@ -1022,7 +1050,7 @@ if (@mint_denv) {
     push @verb_env_tmp, @mint_denv;
 }
 
-### Search \newminted[$mintcenv]{lang} (for)
+### Search \newminted[$mintcenv]{lang} in <input file> (for)
 my @mint_cenv = $filecheck =~ m/$mintcenv/xg;
 if (@mint_cenv) {
     Log("Found \\newminted\[envname\] in $name$ext");
@@ -1039,7 +1067,7 @@ Log("Search verbatim macros in $name$ext");
 ### Store all minted inline/short in @mintline
 my @mintline;
 
-### Search \newmint{$mintdshrt}{options} (while)
+### Search \newmint{$mintdshrt}{options} in <input file> (while)
 my @mint_dshrt = $filecheck =~ m/$mintdshrt/xg;
 if (@mint_dshrt) {
     Log("Found \\newmint\{macroname\} (short) in $name$ext");
@@ -1047,7 +1075,7 @@ if (@mint_dshrt) {
     push @mintline, @mint_dshrt;
 }
 
-### Search \newmint[$mintcshrt]{lang}{options} (while)
+### Search \newmint[$mintcshrt]{lang}{options} in <input file> (while)
 my @mint_cshrt = $filecheck =~ m/$mintcshrt/xg;
 if (@mint_cshrt) {
     Log("Found \\newmint\[macroname\] (short) in $name$ext");
@@ -1055,7 +1083,7 @@ if (@mint_cshrt) {
     push @mintline, @mint_cshrt;
 }
 
-### Search \newmintinline{$mintdline}{options} (while)
+### Search \newmintinline{$mintdline}{options} in <input file> (while)
 my @mint_dline = $filecheck =~ m/$mintdline/xg;
 if (@mint_dline) {
     Log("Found \\newmintinline\{macroname\} in $name$ext");
@@ -1066,7 +1094,7 @@ if (@mint_dline) {
     push @mintline, @mint_dline;
 }
 
-### Search \newmintinline[$mintcline]{lang}{options} (while)
+### Search \newmintinline[$mintcline]{lang}{options} in <input file> (while)
 my @mint_cline = $filecheck =~ m/$mintcline/xg;
 if (@mint_cline) {
     Log("Found \\newmintinline\[macroname\] in $name$ext");
@@ -1361,7 +1389,7 @@ my $skip_env = qr {
 ########################################################################
 # In this first part the script only detects verbatim environments and #
 # verbatim write don't distinguish between which ones are extracted,   #
-# that's done in a second pass                                         #
+# that's done in a second pass.                                        #
 ########################################################################
 
 Log('Making changes to verbatim/verbatim write environments before extraction');
@@ -1421,7 +1449,7 @@ if (@tag_noextract) {
 ########################################################################
 # We now make the real changes for environment extraction. Since we    #
 # don't know what kind of environments are passed, need to redefine    #
-# the environments to make the changes                                 #
+# the environments to make the changes.                                #
 ########################################################################
 
 my @new_verb_tmp = array_minus(@verbatim, @extract_env);
@@ -1741,7 +1769,7 @@ if ($envNo == 0 and $exaNo == 0) {
     die errorUsage "* Error!!: $scriptname can not find any environment to extract in $name$ext";
 }
 
-### Storing the current options of script
+### Storing the current options of script for log file
 foreach my $key (keys %{$opts_cmd{boolean}}) {
     if (defined $opts_cmd{boolean}{$key}) { push @currentopt, "--$key"; }
 }
@@ -1765,10 +1793,11 @@ Logarray(\@sorted_words);
 my $imgdirpath = File::Spec->rel2abs($opts_cmd{string}{imgdir});
 
 if (-e $opts_cmd{string}{imgdir}) {
-    Log("The generated file(s) will be saved in $imgdirpath");
+    Infoline("The generated files will be saved in $imgdirpath");
 }
 else {
-    Log("Creating the directory $imgdirpath to save the generated file(s)");
+    Infoline("Creating the directory $imgdirpath to save the generated files");
+    Infocolor('Running', "mkdir $imgdirpath");
     Logline("[perl] mkdir($opts_cmd{string}{imgdir},0744)");
     mkdir $opts_cmd{string}{imgdir},0744 or die errorUsage "* Error!!: Can't create the directory $opts_cmd{string}{imgdir}: $!\n";
 }
@@ -1787,9 +1816,7 @@ if (!$opts_cmd{boolean}{norun}) {
     if ($compiler eq 'arara') {
         Log("The file will be processed using $compiler, no ducks will be harmed in this process");
     }
-    else {
-        Log("The file will be processed using $compiler");
-    }
+    else { Log("The file will be processed using $compiler"); }
 }
 
 ### Option for pdfcrop in command line (last version of pdfcrop https://github.com/ho-tex/pdfcrop)
@@ -1809,7 +1836,7 @@ my $opt_prew = $opts_cmd{compiler}{xetex}  ? 'xetex,'
 
 ########################################################################
 # One problem with using arara is that we don't know what the file is  #
-# really compiled with, this affects [preview] and [pdfcrop]           #
+# really compiled with, this affects [preview] and [pdfcrop].          #
 ########################################################################
 
 ### Try to capture arara:compiler in preamble of <input file>
@@ -1824,25 +1851,25 @@ if ($compiler eq 'arara') {
     my @engine = $atbegindoc =~ m/$arara_rule/msx;
     my %engine = map { $_ => 1 } @engine; # anon hash
     if (exists $engine{latex}) {
-        Log('The latex engine was found in arara rule');
+        Log('The [latex] engine was found in arara rule');
         # Set options for [preview] and [pdfcrop]
         $opt_crop = "--margins $opts_cmd{string}{margin}";
         $opt_prew = q{};
     }
     elsif (exists $engine{lualatex} or exists $engine{luahbtex}) {
-        Log('The lualatex engine was found in arara rule');
+        Log('The [lualatex] engine was found in arara rule');
         # Set options for [preview] and [pdfcrop]
         $opt_crop = "--luatex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'pdftex,';
     }
     elsif (exists $engine{xelatex}) {
-        Log('The xelatex engine was found in arara rule');
+        Log('The [xelatex] engine was found in arara rule');
         # Set options for [preview] and [pdfcrop]
         $opt_crop = "--xetex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'xetex,';
     }
     elsif (exists($engine{pdflatex})) {
-        Log('The pdflatex engine was found in arara rule');
+        Log('The [pdflatex] engine was found in arara rule');
         # Set options for [preview] and [pdfcrop]
         $opt_crop = "--pdftex --margins $opts_cmd{string}{margin}";
         $opt_prew = 'pdftex,';
@@ -1872,7 +1899,7 @@ my $msg_compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
                  :                               'pdflatex'
                  ;
 
-### Define options for compiler, TeXLive and MikTeX
+### Activate write18 for compiler in TeXLive and MikTeX
 my $write18 = '-shell-escape'; # TeXLive
 $write18 = '-enable-write18' if defined $ENV{"TEXSYSTEM"} and $ENV{"TEXSYSTEM"} =~ /miktex/i;
 
@@ -1892,18 +1919,26 @@ my $quiet = $verbose ? q{}
 
 ### Options for ghostscript in command line
 my %opt_gs_dev = (
-    pdf  => '-dNOSAFER -sDEVICE=pdfwrite',
-    gray => '-dNOSAFER -dEmbedAllFonts -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -sProcessColorModel=DeviceGray',
-    png  => "-dNOSAFER -sDEVICE=pngalpha -r$opts_cmd{string}{dpi}",
-    bmp  => "-dNOSAFER -sDEVICE=bmp32b -r$opts_cmd{string}{dpi}",
-    jpg  => "-dNOSAFER -sDEVICE=jpeg -r$opts_cmd{string}{dpi} -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
-    tif  => "-dNOSAFER -sDEVICE=tiff32nc -r$opts_cmd{string}{dpi}",
+    pdf  => '-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=pdfwrite',
+    gray => '-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sColorConversionStrategy=Gray -sProcessColorModel=DeviceGray',
+    png  => "-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha -r$opts_cmd{string}{dpi}",
+    bmp  => "-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=bmp32b -r$opts_cmd{string}{dpi}",
+    jpg  => "-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=jpeg -r$opts_cmd{string}{dpi} -dJPEGQ=100 -dGraphicsAlphaBits=4 -dTextAlphaBits=4",
+    tif  => "-dNOSAFER -dBATCH -dNOPAUSE -sDEVICE=tiff32nc -r$opts_cmd{string}{dpi}",
     );
+
+### poppler-utils in command line
+my %cmd_poppler = (
+    eps => "pdftops",
+    ppm => "pdftoppm",
+    svg => "pdftocairo",
+    );
+
 ### Options for poppler-utils in command line
 my %opt_poppler = (
-    eps => "pdftops $quiet -eps",
-    ppm => "pdftoppm $quiet -r $opts_cmd{string}{dpi}",
-    svg => "pdftocairo $quiet -svg",
+    eps => "$quiet -eps",
+    ppm => "$quiet -r $opts_cmd{string}{dpi}",
+    svg => "$quiet -svg",
     );
 
 ### Copy preamble and body for temp file with all environments
@@ -1921,7 +1956,7 @@ if (@style_page) {
         Log("Replacing page style for generated files");
         $preamout =~ s/\%<\*ltximgverw> .+?\%<\/ltximgverw>(*SKIP)(*F)|
                       (\\(this)?pagestyle)(?:\{.+?\})/$1\{empty\}/gmsx;
-   }
+    }
 }
 else {
     Log('Add \pagestyle{empty} for generated files');
@@ -1950,7 +1985,9 @@ if ($outsrc) {
     if ($opts_cmd{boolean}{srcenv}) {
         Log('Extract source code of all environments extracted without preamble');
         if ($STDenv) {
-            Infoline("Creating $envNo $fileSTD $ext with source code for $envSTD");
+            Log("Creating $envNo standalone $fileSTD [$ext] with source code for $envSTD in $imgdirpath");
+            print "Creating $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
+            color('reset'), " with source code for $envSTD\r\n";
             while ($bodydoc =~ m/$BP\s*(?<env_src>.+?)\s*$EP/gms) {
                 open my $outexasrc, '>', "$opts_cmd{string}{imgdir}/$src_name$srcNo$ext";
                     print {$outexasrc} $+{env_src};
@@ -1959,7 +1996,9 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Infoline("Creating $exaNo $fileEXA $ext with source code for $envEXA");
+            Log("Creating $exaNo standalone $fileEXA [$ext] with source code for $envEXA in $imgdirpath");
+            print "Creating $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
+            color('reset'), " with source code for $envEXA\r\n";
             while ($bodydoc =~ m/$BE\[.+?(?<pst_exa_name>$opts_cmd{string}{imgdir}\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $outstdsrc, '>', "$+{'pst_exa_name'}$ext";
                     print {$outstdsrc} $+{'exa_src'};
@@ -1976,7 +2015,9 @@ if ($outsrc) {
             $sub_prea =~ s/^\%<\*remove$tmp>\s*(.+?)\s*\%<\/remove$tmp>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
         }
         if ($STDenv) {
-            Infoline("Creating a $envNo $fileSTD $ext whit source code and preamble for $envSTD");
+            Log("Creating a $envNo standalone $fileSTD [$ext] whit source code and preamble for $envSTD in $imgdirpath");
+            print "Creating a $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
+            color('reset'), " whit source code and preamble for $envSTD\r\n";
             while ($bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms) {
                 open my $outstdfile, '>', "$opts_cmd{string}{imgdir}/$src_name$srcNo$ext";
                     print {$outstdfile} "$sub_prea$+{'env_src'}\\end\{document\}";
@@ -1985,7 +2026,9 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Infoline("Creating a $exaNo $fileEXA $ext whit source code and preamble for $envEXA");
+            Log("Creating a $exaNo standalone $fileEXA [$ext] whit source code and preamble for $envEXA in $imgdirpath");
+            print "Creating a $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
+            color('reset'), " whit source code and preamble for $envEXA\r\n";
             while ($bodydoc =~ m/$BE\[.+?(?<pst_exa_name>$opts_cmd{string}{imgdir}\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $outexafile, '>', "$+{'pst_exa_name'}$ext";
                     print {$outexafile} "$sub_prea\n$+{'exa_src'}\n\\end\{document\}";
@@ -2023,8 +2066,13 @@ if ($PSTexa) {
     }
     if ($opts_cmd{boolean}{norun}) {
         Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-exa-$tmp$ext");
-        say "* Running: mv $name-$opts_cmd{string}{prefix}-exa-$tmp$ext $name-$opts_cmd{string}{prefix}-exa-all$ext";
-        Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext, $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext)");
+        if ($verbose) {
+            Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-exa-all$ext");
+        }
+        else {
+            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-exa-$tmp$ext $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext");
+        }
+        Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext, $imgdirpath/$name-$opts_cmd{string}{prefix}-exa-all$ext)");
         move("$workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext", "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext")
         or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext";
     }
@@ -2033,84 +2081,91 @@ if ($PSTexa) {
 ### Create a one file whit "all" standard environments extracted
 if ($STDenv) {
     if ($opts_cmd{boolean}{noprew}) {
-        Infoline("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [no preview]");
+        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [no preview]");
+        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted",
+        color('magenta'), " [no preview]\r\n",color('reset');
     }
     else {
-        Infoline("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [preview]");
+        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [preview]");
+        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted",
+        color('magenta'), " [preview]\r\n",color('reset');
     }
     open my $allstdenv, '>', "$name-$opts_cmd{string}{prefix}-$tmp$ext";
-    if ($opts_cmd{boolean}{noprew}) {
-        my @env_extract;
-        while ( $bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms ) { # search $bodydoc
-            push @env_extract, $+{env_src}."\\newpage\n";
+        if ($opts_cmd{boolean}{noprew}) {
+            my @env_extract;
+            while ( $bodydoc =~ m/(?<=$BP)(?<env_src>.+?)(?=$EP)/gms ) { # search $bodydoc
+                push @env_extract, $+{env_src}."\\newpage\n";
+            }
+            print {$allstdenv} $sub_prea."@env_extract"."\\end{document}";
         }
-        print {$allstdenv} $sub_prea."@env_extract"."\\end{document}";
-    }
-    else {
-        Log("Adding \\RequirePackage\[${opt_prew}active,tightpage\]\{preview\} to $name-$opts_cmd{string}{prefix}-$tmp$ext");
-        print {$allstdenv} $atbegindoc.$preview.$preamout.$bodyout."\n\\end{document}";
-    }
+        else {
+            Log("Adding \\RequirePackage\[${opt_prew}active,tightpage\]\{preview\} to $name-$opts_cmd{string}{prefix}-$tmp$ext");
+            print {$allstdenv} $atbegindoc.$preview.$preamout.$bodyout."\n\\end{document}";
+        }
     close $allstdenv;
     if ($opts_cmd{boolean}{norun}) {
         Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-$tmp$ext");
-        say "* Running: mv $name-$opts_cmd{string}{prefix}-$tmp$ext $name-$opts_cmd{string}{prefix}-all$ext";
-        Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext, $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext)");
+        if ($verbose) {
+            Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-all$ext");
+        }
+        else {
+            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-$tmp$ext $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext");
+        }
+        Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext, $imgdirpath/$name-$opts_cmd{string}{prefix}-all$ext)");
         move("$workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext", "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext")
         or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-$tmp$ext to $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext";
     }
 }
 
 if (!$opts_cmd{boolean}{norun}) {
-Log("Compiler generate files whit all environment extracted");
+Log('Generate a PDF file with all captured environments');
 opendir (my $DIR, $workdir);
     while (readdir $DIR) {
         if (/(?<name>$name-$opts_cmd{string}{prefix}(-exa)?)(?<type>-$tmp$ext)/) {
-            Infoline("Compiling the file $+{name}$+{type} using [$msg_compiler]");
-            if (!$verbose){ print "* Running: $compiler $opt_compiler\r\n"; }
-            RUNOSCMD($compiler, "$opt_compiler $+{name}$+{type}");
+            Log("Compiling the file $+{name}$+{type} using [$msg_compiler]");
+            print "Compiling the file $+{name}$+{type} using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
+            RUNOSCMD($compiler, "$opt_compiler $+{name}$+{type}",'show');
             # Compiling file using latex>dvips>ps2pdf
             if ($opts_cmd{compiler}{dvips} or $opts_cmd{compiler}{latex}) {
-                if (!$verbose){ print "* Running: dvips $quiet -Ppdf\r\n"; }
-                RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi");
-                if (!$verbose){ print "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None\r\n"; }
-                RUNOSCMD("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf");
+                RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi",'show');
+                RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf",'show');
             }
             # Compiling file using latex>dvipdfmx
             if ($opts_cmd{compiler}{dvipdf}) {
-                if (!$verbose){ print "* Running: dvipdfmx $quiet\r\n"; }
-                RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi");
+                RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi",'show');
             }
-            Log("Move $+{name}$+{type} file whit all src code to $opts_cmd{string}{imgdir}");
+            # Moving and renaming tmp file with source
+            Log("Move $+{name}$+{type} file whit all source for environments to $imgdirpath");
             Infoline("Moving and renaming $+{name}$+{type}");
             if ($verbose){
-                say "* Running: mv $workdir/$+{name}$+{type} $opts_cmd{string}{imgdir}/$+{name}-all$ext";
-            } else { say "* Running: mv $+{name}$+{type} $+{name}-all$ext"; }
-            Logline("[perl] move($workdir/$+{name}$+{type}, $opts_cmd{string}{imgdir}/$+{name}-all$ext)");
-            move("$workdir/$+{name}$+{type}", "$opts_cmd{string}{imgdir}/$+{name}-all$ext")
-            or die "* Error!!: Couldn't be renamed $+{name}$+{type} to $opts_cmd{string}{imgdir}/$+{name}-all$ext";
-            # If option gray
-            if ($opts_cmd{boolean}{gray}) {
-                Infoline("Creating the file $+{name}-all.pdf [grayscale]");
-                if (!$verbose) {
-                    print "* Running: $gscmd $quiet -dNOSAFER -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress \n";
-                    print "           -sColorConversionStrategy=Gray -dProcessColorModel=/DeviceGray \n";
-                }
-                RUNOSCMD("$gscmd $quiet $opt_gs_dev{gray}","-o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf");
+                Infocolor('Running', "mv $workdir/$+{name}$+{type} $imgdirpath/$+{name}-all$ext");
             }
             else {
-                Infoline("Creating the file $+{name}-all.pdf");
+                Infocolor('Running', "mv $+{name}$+{type} $opts_cmd{string}{imgdir}/$+{name}-all$ext");
+            }
+            Logline("[perl] move($workdir/$+{name}$+{type}, $imgdirpath/$+{name}-all$ext)");
+            move("$workdir/$+{name}$+{type}", "$opts_cmd{string}{imgdir}/$+{name}-all$ext")
+            or die "* Error!!: Couldn't be renamed $+{name}$+{type} to $opts_cmd{string}{imgdir}/$+{name}-all$ext";
+            # pdfcrop
+            if (!$opts_cmd{boolean}{nocrop}) {
+                Infoline("Cropping the file $+{name}-$tmp.pdf");
+                RUNOSCMD("pdfcrop $opt_crop", "$+{name}-$tmp.pdf $+{name}-$tmp.pdf",'show');
+            }
+            # gray
+            if ($opts_cmd{boolean}{gray}) {
+                Infoline("Creating the file $+{name}-all.pdf [gray] in $tempDir");
+                RUNOSCMD("$gscmd $quiet $opt_gs_dev{gray} ","-o $tempDir/$+{name}-all.pdf $workdir/$+{name}-$tmp.pdf",'show');
+            }
+            else {
+                Infoline("Creating the file $+{name}-all.pdf in $tempDir");
                 if ($verbose){
-                    say "* Running: mv $workdir/$+{name}-$tmp.pdf $tempDir/$+{name}-all.pdf";
+                    Infocolor('Running', "mv $workdir/$+{name}-$tmp.pdf $tempDir/$+{name}-all.pdf");
                 }
-                else { say "* Running: mv $+{name}-$tmp.pdf $+{name}-all.pdf"; }
+                else { Infocolor('Running', "mv $+{name}-$tmp.pdf $tempDir/$+{name}-all.pdf"); }
+                # Renaming pdf file
                 Logline("[perl] move($workdir/$+{name}-$tmp.pdf, $tempDir/$+{name}-all.pdf)");
                 move("$workdir/$+{name}-$tmp.pdf", "$tempDir/$+{name}-all.pdf")
                 or die "* Error!!: Couldn't be renamed $+{name}-$tmp.pdf to $tempDir/$+{name}-all.pdf";
-                }
-            if (!$opts_cmd{boolean}{nocrop}) {
-                Infoline("Cropping the file $+{name}-all.pdf");
-                if (!$verbose){ print "* Running: pdfcrop $opt_crop\r\n"; }
-                RUNOSCMD("pdfcrop $opt_crop", "$tempDir/$+{name}-all.pdf $tempDir/$+{name}-all.pdf");
             }
         }
     }
@@ -2119,16 +2174,16 @@ closedir $DIR;
 
 ### Create image formats in separate files
 if (!$opts_cmd{boolean}{norun}) {
-    Log("Creating the image formats: $format");
+    Log("Creating the image formats: $format, working on $tempDir");
     opendir(my $DIR, $tempDir);
         while (readdir $DIR) {
             # PDF/PNG/JPG/BMP/TIFF format suported by ghostscript
             if (/(?<name>$name-$opts_cmd{string}{prefix}(-exa)?)(?<type>-all\.pdf)/) {
                 for my $var (qw(pdf png jpg bmp tif)) {
                     if (defined $opts_cmd{image}{$var}) {
-                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
-                        if (!$verbose){ print "* Running: $gscmd $quiet $opt_gs_dev{$var} \r\n"; }
-                        RUNOSCMD("$gscmd $quiet $opt_gs_dev{$var}", "-o $workdir/$opts_cmd{string}{imgdir}/$+{name}-%1d.$var $tempDir/$+{name}$+{type}");
+                        Log("Generating format [$var] from file $+{name}$+{type} in $imgdirpath using $gscmd");
+                        print 'Generating format', color('blue'), " [$var] ", color('reset'),"from file $+{name}$+{type}\r\n";
+                        RUNOSCMD("$gscmd $quiet $opt_gs_dev{$var} ", "-o $workdir/$opts_cmd{string}{imgdir}/$+{name}-%1d.$var $tempDir/$+{name}$+{type}",'show');
                     }
                 }
             }
@@ -2136,10 +2191,13 @@ if (!$opts_cmd{boolean}{norun}) {
             if (/(?<name>$name-$opts_cmd{string}{prefix}-exa)(?<type>-all\.pdf)/) { # pst-exa package
                 for my $var (qw(eps ppm svg)) {
                     if (defined $opts_cmd{image}{$var}) {
-                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
-                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
+                        Log("Generating format [$var] from file $+{name}$+{type} in $imgdirpath using $cmd_poppler{$var}");
+                        print 'Generating format', color('blue'), " [$var] ", color('reset'),"from file $+{name}$+{type}\r\n";
+                        if (!$verbose){
+                            Infocolor('Running', "$cmd_poppler{$var} $opt_poppler{$var}");
+                        }
                         for (my $epsNo = 1; $epsNo <= $exaNo; $epsNo++) {
-                            RUNOSCMD("$opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$opts_cmd{string}{imgdir}/$+{name}-$epsNo.$var");
+                            RUNOSCMD("$cmd_poppler{$var} $opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$opts_cmd{string}{imgdir}/$+{name}-$epsNo.$var",'only');
                         }
                     }
                 }
@@ -2147,10 +2205,13 @@ if (!$opts_cmd{boolean}{norun}) {
             if (/(?<name>$name-$opts_cmd{string}{prefix})(?<type>-all\.pdf)/) {
                 for my $var (qw(eps ppm svg)) {
                     if (defined $opts_cmd{image}{$var}) {
-                        print "Generating format [$var] from file $+{name}$+{type}\r\n";
-                        if (!$verbose){ print "* Running: $opt_poppler{$var} \r\n"; }
+                        Log("Generating format [$var] from file $+{name}$+{type} in $imgdirpath using $cmd_poppler{$var}");
+                        print 'Generating format', color('blue'), " [$var] ", color('reset'),"from file $+{name}$+{type}\r\n";
+                        if (!$verbose){
+                            Infocolor('Running', "$cmd_poppler{$var} $opt_poppler{$var}");
+                        }
                         for (my $epsNo = 1; $epsNo <= $envNo; $epsNo++) {
-                            RUNOSCMD("$opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$opts_cmd{string}{imgdir}/$+{name}-$epsNo.$var");
+                            RUNOSCMD("$cmd_poppler{$var} $opt_poppler{$var}", "-f $epsNo -l $epsNo $tempDir/$+{name}$+{type} $workdir/$opts_cmd{string}{imgdir}/$+{name}-$epsNo.$var",'only');
                         }
                     }
                 }
@@ -2159,11 +2220,17 @@ if (!$opts_cmd{boolean}{norun}) {
     closedir $DIR;
     # Renaming PPM image files
     if (defined $opts_cmd{image}{ppm}) {
-        Infoline("Renaming PPM image file(s)");
+        Log("Renaming [ppm] images in $imgdirpath");
+        if ($verbose){
+            print 'Renaming', color('blue'), " [ppm] ", color('reset'),"images in $imgdirpath\r\n";
+        }
         opendir(my $DIR, $opts_cmd{string}{imgdir});
             while (readdir $DIR) {
                 if (/(?<name>$name-$opts_cmd{string}{prefix}(-exa)?-\d+\.ppm)(?<sep>-\d+)(?<ppm>\.ppm)/) {
-                    Logline("[perl] move($opts_cmd{string}{imgdir}/$+{name}$+{sep}$+{ppm}, $opts_cmd{string}{imgdir}/$+{name})");
+                    if ($verbose){
+                        Infocolor('Running', "mv $+{name}$+{sep}$+{ppm} $+{name}");
+                    }
+                    Logline("[perl] move($imgdirpath/$+{name}$+{sep}$+{ppm}, $imgdirpath/$+{name})");
                     move("$opts_cmd{string}{imgdir}/$+{name}$+{sep}$+{ppm}", "$opts_cmd{string}{imgdir}/$+{name}")
                     or die "* Error!!: Couldn't be renamed $+{name}$+{sep}$+{ppm} to $+{name}";
                 }
@@ -2302,9 +2369,8 @@ if ($findgraphicx eq 'true' and $outfile) {
             print {$OUTfile} "$preamble\n\\stop";
         close $OUTfile;
         if ($opts_cmd{compiler}{latex}) { $compiler = 'pdflatex'; }
-        my $captured = "$compiler $write18 -interaction=batchmode $name-$opts_cmd{string}{prefix}-$tmp$ext";
-        Logrun($captured);
-        $captured = qx{$captured};
+        if ($verbose) { say "Creating [$name-$opts_cmd{string}{prefix}-$tmp$ext] with only preamble"; }
+        RUNOSCMD("$compiler $write18 -interaction=batchmode", "$name-$opts_cmd{string}{prefix}-$tmp$ext", 'only');
         Log("Read $name-$opts_cmd{string}{prefix}-$tmp.log");
         open my $LaTeXlog, '<', "$name-$opts_cmd{string}{prefix}-$tmp.log";
             {
@@ -2358,7 +2424,7 @@ if ($findgraphicx eq 'true' and $outfile) {
 }
 
 # Regex for clean file (pst) in preamble
-my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
+my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add | -pdf )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
 my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
 
 if ($clean{pst}) {
@@ -2475,38 +2541,40 @@ if ($outfile) {
         Log("Removing the content between <*remove> ... </remove> tags in all $opts_cmd{string}{output}$outext");
         $out_file =~ s/^\%<\*remove$tmp>\s*(.+?)\s*\%<\/remove$tmp>(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
     }
-    # Remove internal mark for verbatim env
+    # Remove internal mark for verbatim and verbatim write environments
     $out_file =~ s/\%<\*ltximgverw>\s*(.+?)\s*\%<\/ltximgverw>/$1/gmsx;
     %replace = (%changes_out);
     $find    = join q{|}, map {quotemeta} sort { length $a <=> length $b } keys %replace;
     $out_file =~ s/($find)/$replace{$1}/g;
     if (-e "$opts_cmd{string}{output}$outext") {
-        Infoline("Rewriting the file $opts_cmd{string}{output}$outext");
+        Log("Rewriting the file $opts_cmd{string}{output}$outext");
+        Infocolor('Warning', "The file [$opts_cmd{string}{output}$outext] already exists and will be rewritten");
     }
-    else{
-        Infoline("Creating the file $opts_cmd{string}{output}$outext");
-    }
+    else{ Infoline("Creating the file $opts_cmd{string}{output}$outext"); }
+
+    # Write <output file>
+    Log("Write the file $opts_cmd{string}{output}$outext in $workdir");
     open my $OUTfile, '>', "$opts_cmd{string}{output}$outext";
         print {$OUTfile} $out_file;
     close $OUTfile;
-    # Process the output file
+
+    # Process <output file>
     if (!$opts_cmd{boolean}{norun}) {
         if ($opts_cmd{compiler}{latex}) {
             $compiler     = 'pdflatex';
             $msg_compiler = 'pdflatex';
         }
-        Infoline("Compiling the file $opts_cmd{string}{output}$outext using [$msg_compiler]");
-        if (!$verbose){ print "* Running: $compiler $opt_compiler\r\n"; }
-        RUNOSCMD($compiler, "$opt_compiler $opts_cmd{string}{output}$outext");
+        Log("Compiling the file $opts_cmd{string}{output}$outext using [$msg_compiler]");
+        print "Compiling the file $opts_cmd{string}{output}$outext using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
+        RUNOSCMD("$compiler $opt_compiler", "$opts_cmd{string}{output}$outext",'show');
+        # Compiling <output file> using dvips>ps2pdf
         if ($opts_cmd{compiler}{dvips}) {
-            if (!$verbose){ print "* Running: dvips $quiet -Ppdf\r\n"; }
-            RUNOSCMD("dvips $quiet -Ppdf", "$opts_cmd{string}{output}.dvi");
-            if (!$verbose){ print "* Running: ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None\r\n"; }
-            RUNOSCMD("ps2pdf -dPDFSETTINGS=/prepress -dAutoRotatePages=/None", "$opts_cmd{string}{output}.ps $opts_cmd{string}{output}.pdf");
+            RUNOSCMD("dvips $quiet -Ppdf", "$opts_cmd{string}{output}.dvi",'show');
+            RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$opts_cmd{string}{output}.ps $opts_cmd{string}{output}.pdf", 'show');
         }
+        # Compiling <output file> using latex>dvipdfmx
         if ($opts_cmd{compiler}{dvipdf}) {
-            if (!$verbose){ print "* Running: dvipdfmx $quiet\r\n"; }
-            RUNOSCMD("dvipdfmx $quiet", "$opts_cmd{string}{output}.dvi");
+            RUNOSCMD("dvipdfmx $quiet", "$opts_cmd{string}{output}.dvi", 'show');
         }
     }
 } # close outfile file
@@ -2625,10 +2693,10 @@ if (!$opts_cmd{boolean}{norun} and (!$opts_cmd{boolean}{srcenv} and !$opts_cmd{b
 if ($opts_cmd{boolean}{norun} and ($opts_cmd{boolean}{srcenv} or $opts_cmd{boolean}{subenv})) {
     Log("The subfile(s) are in $imgdirpath");
 }
-if ($outfile) {
-    Log("The file $opts_cmd{string}{output}$ext are in $workdir");
-}
+if ($outfile) { Log("The file $opts_cmd{string}{output}$ext are in $workdir"); }
 
-Infoline("The execution of $scriptname has been successfully completed");
+Infocolor('Finish', "The execution of $scriptname has been successfully completed");
+
+Log("The execution of $scriptname has been successfully completed");
 
 __END__
