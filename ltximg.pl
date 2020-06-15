@@ -435,11 +435,11 @@ sub find_ghostscript () {
     }
     Log("General information about the Ghostscript");
     my %candidates = (
-        'unix'   => [qw|gs gsc|],
-        'win'    => [qw|gswin32c gs|],
+        'unix'   => [qw|gs|],
+        'win'    => [qw|gswin32c|],
         'msys'   => [qw|gswin32c gswin64c|],
-        'cygwin' => [qw|gs gsc|],
-        'miktex' => [qw|mgs gswin32c gs|],
+        'cygwin' => [qw|gs|],
+        'miktex' => [qw|mgs gswin32c|],
     );
     if ($system eq 'win' or $system eq 'miktex') {
         if ($archname =~ /mswin32-x64/i) {
