@@ -25,6 +25,7 @@ use File::Temp qw(tempdir);
 use POSIX qw(strftime);
 use File::Copy;
 use File::Find;
+use Env qw(PATH);
 use autodie;
 use Config;
 use Cwd;
@@ -40,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-06-14';
+my $date       = '2020-06-16';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -80,7 +81,12 @@ $opts_cmd{string}{myverb} = 'myverb';
 $opts_cmd{clean}          = 'doc';
 
 ### Error in command line
-sub errorUsage { die "@_ (run ltximg --help for more information)\n"; }
+sub errorUsage {
+    my $msg = shift;
+    die color('red').'* Error!!: '.color('reset').$msg.
+    " (run ltximg --help for more information)\n";
+    return;
+}
 
 ### Extended error messages
 sub exterr () {
@@ -130,8 +136,8 @@ sub Infocolor {
         color('yellow'), "$info\r\n", color('reset');
     }
     if ($type eq 'Finish') {
-        print color('magenta'), '** ', color('reset'), color('bold red'), "$type: ", color('reset'),
-        color('yellow'), "$info",color('reset'), color('magenta'), " **\r\n", color('reset');
+        print color('yellow'), '* ', color('reset'), color('bold red'),
+        "$type!: ", color('reset'),  color('yellow'), "$info\r\n",color('reset');
     }
     return;
 }
@@ -204,18 +210,23 @@ sub RUNOSCMD {
     $captured = qx{$captured};
     if ($log) { $LogWrite->print($captured); }
     if ($? == -1) {
-        print $captured;
-        $cmdname = "* Error!!: ".$cmdname." failed to execute (%s)!\n";
-        if ($log) { $LogWrite->print(sprintf $cmdname, exterr); }
-        die sprintf $cmdname, exterr;
+        my $errorlog    = "* Error!!: ".$cmdname." failed to execute (%s)!\n";
+        my $errorprint  = "* Error!!: ".color('reset').$cmdname." failed to execute (%s)!\n";
+        if ($log) { $LogWrite->print(sprintf $errorlog, exterr); }
+        print STDERR color('red');
+        die sprintf $errorprint, exterr;
     } elsif ($? & 127) {
-        $cmdname = "* Error!!: ".$cmdname." died with signal %d!\n";
-        if ($log) { $LogWrite->print(sprintf $cmdname, ($? & 127)); }
-        die sprintf $cmdname, ($? & 127);
+        my $errorlog   = "* Error!!: ".$cmdname." died with signal %d!\n";
+        my $errorprint = "* Error!!: ".color('reset').$cmdname." died with signal %d!\n";
+        if ($log) { $LogWrite->print(sprintf $errorlog, ($? & 127)); }
+        print STDERR color('red');
+        die sprintf $errorprint, ($? & 127);
     } elsif ($? != 0 ) {
-        $cmdname = "* Error!!: ".$cmdname." exited with error code %d!\n";
-        if ($log) { $LogWrite->print(sprintf $cmdname, $? >> 8); }
-        die sprintf $cmdname,$? >> 8;
+        my $errorlog = "* Error!!: ".$cmdname." exited with error code %d!\n";
+        my $errorprint  = "* Error!!: ".color('reset').$cmdname." exited with error code %d!\n";
+        if ($log) { $LogWrite->print(sprintf $errorlog, $? >> 8); }
+        print STDERR color('red');
+        die sprintf $errorprint, $? >> 8;
     }
     if ($verbose) { print $captured; }
     return;
@@ -375,7 +386,7 @@ my $result=GetOptions (
 
 ### Open log file
 if ($log) {
-    if (!defined $ARGV[0]) { errorUsage '* Error!!: Input filename missing'; }
+    if (!defined $ARGV[0]) { errorUsage('Input filename missing'); }
     my $tempname = $ARGV[0];
     $tempname =~ s/\.(tex|ltx)$//;
     if ($LogFile eq "$tempname.log") { $LogFile = "$scriptname-log.log"; }
@@ -419,10 +430,10 @@ sub find_ghostscript () {
                 (defined $Config{'d_fork'} ? 'yes' : 'no');
     }
     my $system = 'unix';
-    $system = "win" if $^O =~ /mswin32/i;
-    $system = "msys" if $^O =~ /msys/i;
-    $system = "cygwin" if $^O =~ /cygwin/i;
-    $system = "miktex" if defined $ENV{"TEXSYSTEM"} and
+    $system = 'win' if $^O =~ /mswin32/i;
+    $system = 'msys' if $^O =~ /msys/i;
+    $system = 'cygwin' if $^O =~ /cygwin/i;
+    $system = 'miktex' if defined $ENV{"TEXSYSTEM"} and
                           $ENV{"TEXSYSTEM"} =~ /miktex/i;
     if ($log) {
         print {$LogWrite} "* OS name: $^O\n";
@@ -437,7 +448,7 @@ sub find_ghostscript () {
     my %candidates = (
         'unix'   => [qw|gs|],
         'win'    => [qw|gswin32c|],
-        'msys'   => [qw|gswin32c gswin64c|],
+        'msys'   => [qw|gswin64c gswin32c|],
         'cygwin' => [qw|gs|],
         'miktex' => [qw|mgs gswin32c|],
     );
@@ -578,28 +589,39 @@ sub SearchRegistry () {
 
 ### This part is only necessary if you're using Git on windows and don't
 ### have gs configured in the PATH. Git for windows don't have a Win32::TieRegistry
-### and this module is not supported in the current versions of cygwin/msys.
+### and this module is not supported in the current versions.
 sub Searchbyregquery (){
     my $found = 0;
     my $gs_regkey;
+    my $opt_reg = '//s //v';
     if ($log) { print {$LogWrite} "* Search Ghostscript in Windows registry under mingw/msys:\n";}
-    $gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" //s //v GS_DLL};
-    #$gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" /s /v GS_DLL};
+    $gs_regkey = qx{reg query "HKLM\\Software\\GPL Ghostscript" $opt_reg GS_DLL};
     if ($? == 0) {
         if ($log) { print {$LogWrite} "* Registry entry found for GS_DLL (64 bits version)\n";}
     }
     else {
-        $gs_regkey = qx{reg query "HKLM\\Software\\Wow6432Node\\GPL Ghostscript" //s //v GS_DLL};
+        $gs_regkey = qx{reg query "HKLM\\Software\\Wow6432Node\\GPL Ghostscript" $opt_reg GS_DLL};
         if ($? == 0) {
             if ($log) { print {$LogWrite} "* Registry entry found for GS_DLL (32 bits version)\n";}
         }
     }
-    my ($gs_path) = $gs_regkey =~ m/(?:\s* GS_DLL \s* REG_SZ \s*) (.+?)(?:\R)/s;
-    if ($gs_path) {
-        $gs_path =~ s|(gs)(?:dll)(\d{2})(?:\.dll)|$1win$2c.exe|gmsxi;
-        $gscmd = $gs_path;
-        # Need suport space in path
-        $gscmd = "\"$gscmd\"";
+    my ($gs_find) = $gs_regkey =~ m/(?:\s* GS_DLL \s* REG_SZ \s*) (.+?)(?:\.dll.+?\R)/s;
+    if ($gs_find) {
+        my ($gs_vol, $gs_path, $gs_ver) = $gs_find =~ m/
+                                                        (\w{1})(?:\:)   # volumen
+                                                        (.+?)           # path to executable
+                                                        (?:\\gsdll)     # LIB
+                                                        (\d{2})         # Version
+                                                      /xs;
+        # Adjust
+        $gs_vol = lc($gs_vol);
+        $gs_path = '/'.$gs_vol.$gs_path;
+        $gs_path =~ s|\\|/|gmsxi;
+        # Add to PATH
+        if ($log) { print {$LogWrite} "* Add $gs_path to PATH for current session\n"; }
+        $PATH .= ":$gs_path";
+        # Set executable
+        $gscmd = 'gswin'.$gs_ver.'c';
         if ($log) { print {$LogWrite} "* Found (via reg query): $gscmd\n"; }
         $found = 1;
     }
@@ -636,14 +658,14 @@ if (defined $opts_cmd{internal}{version}) {
 }
 
 ### Check <input file> from command line
-@ARGV > 0 or errorUsage '* Error!!: Input filename missing';
-@ARGV < 2 or errorUsage '* Error!!: Unknown option or too many input files';
+@ARGV > 0 or errorUsage('Input filename missing');
+@ARGV < 2 or errorUsage('Unknown option or too many input files');
 
 ### Check <input file> extention
 my @SuffixList = ('.tex', '.ltx'); # valid extention
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 if ($ext eq '.tex' or $ext eq '.ltx') {	$ext = $ext; }
-else { die errorUsage '* Error!!: Invalid or empty extention for input file'; }
+else { die errorUsage('Invalid or empty extention for input file'); }
 
 ### Read <input file> in memory
 Log("Read input file $name$ext in memory");
@@ -678,23 +700,23 @@ s/^\s*(\=):?|\s*//mg foreach @delt_env_tmp;
 ### Validate environments options from comand line
 if (grep /(^\-|^\.).*?/, @extr_env_tmp) {
     Log('Error!!: Invalid argument for --extrenv, some argument from list begin with -');
-    die errorUsage '* Error!!: Invalid argument for --extrenv option';
+    die errorUsage('Invalid argument for --extrenv option');
 }
 if (grep /(^\-|^\.).*?/, @skip_env_tmp) {
     Log('Error!!: Invalid argument for --skipenv, some argument from list begin with -');
-    die errorUsage '* Error!!: Invalid argument for --skipenv option';
+    die errorUsage('Invalid argument for --skipenv option');
 }
 if (grep /(^\-|^\.).*?/, @verb_env_tmp) {
     Log('Error!!: Invalid argument for --verbenv, some argument from list begin with -');
-    die errorUsage '* Error!!: Invalid argument for --verbenv option';
+    die errorUsage('Invalid argument for --verbenv option');
 }
 if (grep /(^\-|^\.).*?/, @verw_env_tmp) {
     Log('Error!!: Invalid argument for --writenv, some argument from list begin with -');
-    die errorUsage '* Error!!: Invalid argument for --writenv option';
+    die errorUsage('Invalid argument for --writenv option');
 }
 if (grep /(^\-|^\.).*?/, @delt_env_tmp) {
     Log('Error!!: Invalid argument for --deltenv, some argument from list begin with -');
-    die errorUsage '* Error!!: Invalid argument for --deltenv option';
+    die errorUsage('Invalid argument for --deltenv option');
 }
 
 ### Default environment to extract
@@ -821,7 +843,7 @@ if(%opts_file) {
         Log("Found \% ltximg\: extrenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{extrenv}}) {
             Log('Error!!: Invalid argument for % ltximg: extrenv: {...}, some argument from list begin with -');
-            die errorUsage '* Error!!: Invalid argument in % ltximg: extrenv: {...}';
+            die errorUsage('Invalid argument in % ltximg: extrenv: {...}');
         }
         Logarray(\@{$opts_file{extrenv}});
         push @extr_env_tmp, @{$opts_file{extrenv}};
@@ -831,7 +853,7 @@ if(%opts_file) {
         Log("Found \% ltximg\: skipenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{skipenv}}) {
             Log('Error!!: Invalid argument for % ltximg: skipenv: {...}, some argument from list begin with -');
-            die errorUsage '* Error!!: Invalid argument in % ltximg: skipenv: {...}';
+            die errorUsage('Invalid argument in % ltximg: skipenv: {...}');
         }
         Logarray(\@{$opts_file{skipenv}});
         push @skip_env_tmp, @{$opts_file{skipenv}};
@@ -841,7 +863,7 @@ if(%opts_file) {
         Log("Found \% ltximg\: verbenv\: \{...} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{verbenv}}) {
             Log('Error!!: Invalid argument for % ltximg: verbenv: {...}, some argument from list begin with -');
-            die errorUsage '* Error!!: Invalid argument in % ltximg: verbenv: {...}';
+            die errorUsage('Invalid argument in % ltximg: verbenv: {...}');
         }
         Logarray(\@{ $opts_file{verbenv}});
         push @verb_env_tmp, @{$opts_file{verbenv}};
@@ -851,7 +873,7 @@ if(%opts_file) {
         Log("Found \% ltximg\: writenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{ $opts_file{writenv}}) {
             Log('Error!!: Invalid argument for % ltximg: writenv: {...}, some argument from list begin with -');
-            die errorUsage '* Error!!: Invalid argument in % ltximg: writenv: {...}';
+            die errorUsage('Invalid argument in % ltximg: writenv: {...}');
         }
         Logarray(\@{ $opts_file{writenv}});
         push @verw_env_tmp, @{$opts_file{writenv}};
@@ -861,7 +883,7 @@ if(%opts_file) {
         Log("Found \% ltximg\: deltenv\: \{...\} in $name$ext");
         if (grep /(^\-|^\.).*?/, @{$opts_file{deltenv}}) {
             Log('Error!!: Invalid argument for % ltximg: deltenv: {...}, some argument from list begin with -');
-            die errorUsage '* Error!!: Invalid argument in % ltximg: deltenv: {...}';
+            die errorUsage('Invalid argument in % ltximg: deltenv: {...}');
         }
         Logarray(\@{ $opts_file{deltenv}});
         push @delt_env_tmp, @{$opts_file{deltenv}};
@@ -911,7 +933,7 @@ if(%opts_file) {
 if (defined $opts_cmd{string}{myverb}) {
     if ($opts_cmd{string}{myverb} =~ /^(?:\\|\-).+?/) {
         Log('Error!!: Invalid argument for myverb, argument begin with - or \ ');
-        die errorUsage '* Error!!: Invalid argument for --myverb';
+        die errorUsage('Invalid argument for --myverb');
     }
     else { Log("Set myverb = $opts_cmd{string}{myverb}"); }
 }
@@ -920,7 +942,7 @@ if (defined $opts_cmd{string}{myverb}) {
 if (defined $opts_cmd{string}{imgdir}) {
     if ($opts_cmd{string}{imgdir} =~ /^(?:\\|\-).+?/) {
         Log('Error!!: Invalid argument for imgdir option, argument begin with -, \ or /');
-        die errorUsage '* Error!!: Invalid argument for --imgdir';
+        die errorUsage('Invalid argument for --imgdir');
     }
     else { Log("Set imgdir = $opts_cmd{string}{imgdir}"); }
 }
@@ -956,7 +978,7 @@ if (defined $opts_cmd{string}{output}) {
     my ($outname, $outpath, $tmpext) = fileparse($opts_cmd{string}{output}, @SuffixList);
     if ($outname =~ /(^\-|^\.).*?/) {
         Log('The name of output file begin with dash -');
-        die errorUsage "* Error!!: $opts_cmd{string}{output} it is not a valid name for output file";
+        die errorUsage("$opts_cmd{string}{output} it is not a valid name for output file");
     }
     if ($tmpext eq q{}) { # Check and set extension
         Log("Set extension for output file to $ext");
@@ -1741,17 +1763,17 @@ if (!$opts_cmd{boolean}{norun}) {
 
 ### Check run and no images
 if (!$opts_cmd{boolean}{norun} and $format eq q{}) {
-    die errorUsage '* Error!!: --nopdf need --norun or an image option';
+    die errorUsage('--nopdf need --norun or an image option');
 }
 
 ### Check dvips and no eps
 if ($opts_cmd{compiler}{dvips} and !$opts_cmd{image}{eps} and !$opts_cmd{boolean}{norun}) {
-    die errorUsage '* Error!!: Option --dvips need --eps';
+    die errorUsage('Option --dvips need --eps');
 }
 
 ### Check --srcenv and --subenv option from command line
 if ($opts_cmd{boolean}{srcenv} && $opts_cmd{boolean}{subenv}) {
-    die errorUsage '* Error!!: Options --srcenv and --subenv  are mutually exclusive';
+    die errorUsage('Options --srcenv and --subenv  are mutually exclusive');
 }
 
 ### If --srcenv or --subenv option are OK then execute script
@@ -1766,7 +1788,7 @@ if ($opts_cmd{boolean}{subenv}) {
 
 ### Check if enviroment(s) found in input file
 if ($envNo == 0 and $exaNo == 0) {
-    die errorUsage "* Error!!: $scriptname can not find any environment to extract in $name$ext";
+    die errorUsage("$scriptname can not find any environment to extract in $name$ext");
 }
 
 ### Storing the current options of script for log file
@@ -1799,7 +1821,7 @@ else {
     Infoline("Creating the directory $imgdirpath to save the generated files");
     Infocolor('Running', "mkdir $imgdirpath");
     Logline("[perl] mkdir($opts_cmd{string}{imgdir},0744)");
-    mkdir $opts_cmd{string}{imgdir},0744 or die errorUsage "* Error!!: Can't create the directory $opts_cmd{string}{imgdir}: $!\n";
+    mkdir $opts_cmd{string}{imgdir},0744 or die errorUsage("Can't create the directory $opts_cmd{string}{imgdir}");
 }
 
 ### Set compiler name for terminal
