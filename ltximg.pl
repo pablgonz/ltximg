@@ -41,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-06-18';
+my $date       = '2020-07-14';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -84,7 +84,7 @@ $opts_cmd{clean}          = 'doc';
 sub errorUsage {
     my $msg = shift;
     die color('red').'* Error!!: '.color('reset').$msg.
-    " (run ltximg --help for more information)\n";
+    " (run $scriptname --help for more information)\n";
     return;
 }
 
@@ -400,9 +400,7 @@ Log("The script $scriptname $nv was started in $workdir");
 Log("Creating the temporary directory $tempDir");
 
 ### The next code it's part of pdfcrop (adapted from TexLive 2014)
-# make ENV safer, see perldoc perlsec
-delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
-
+delete @ENV{qw(IFS CDPATH ENV BASH_ENV)}; # make ENV safer, see perldoc perlsec
 
 # Check if ghostscript name is pass from terminal
 if (defined $opts_cmd{string}{gscmd}) {
@@ -1759,6 +1757,13 @@ if ($PSTexa) {
 
 ### Reset exaNo
 $exaNo = scalar @exa_extract;
+
+### Remove wraped postscript environments
+Log('Convert postscript environments to \begin{preview} ... \end{preview}');
+$bodydoc =~ s/\\begin\{preview\}%$tmp\n
+              \\begin\{postscript\} (?<code>.+?) \\end\{postscript\}\n
+              \\end\{preview\}%$tmp
+              /\\begin\{preview\}%$tmp$+{code}\\end\{preview\}%$tmp/gmsx;
 
 my $BP = "\\\\begin\{preview\}%$tmp";
 my $EP = "\\\\end\{preview\}%$tmp";
