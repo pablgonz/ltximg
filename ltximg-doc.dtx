@@ -61,34 +61,40 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 -g, --gray            Gray scale for images using ghostscript       [off]
 -f, --force           Capture "\psset" and "\tikzset" to extract    [off]
 -n, --noprew          Create images files whitout "preview" package [off]
+-r <integer>, --runs <integer>
+                      Set the number of times the compiler will run
+                      on the input file for environment extraction  [1]
 -d <integer>, --dpi <integer>
                       Dots per inch resolution for images           [150]
 -m <integer>, --margin <integer>
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
---imgdir <dirname>    Set name of directory to save generated files [images]
+--imgdir <dirname>    Set name of directory to save images/files    [images]
 --prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
+--myverb <macroname>  Add "\\macroname" to verbatim inline search   [myverb]
 --clean (doc|pst|tkz|all|off)
                       Removes specific block text in output file    [doc]
---zip                 Compress files generated in .zip format       [off]
---tar                 Compress files generated in .tar.gz format    [off]
+--zip                 Compress files generated in .zip              [off]
+--tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files whit only code environment       [off]
 --subenv              Create files whit preamble and code           [off]
---latex               Using latex>dvips>ps2pdf for compiler input
-                      and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
+--dvilua              Using dvilualatex>dvips>ps2pdf for compiler
+                      input and lualatex for compiler output        [off]
+--dvipdf              Using latex>dvipdfmx for compiler input and
+                      latex>dvipdfmx for compiler output            [off]
+--latex               Using latex>dvips>ps2pdf for compiler input
+                      and pdflatex for compiler output              [off]
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
---dvipdf              Using dvipdfmx for compiler input and output  [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
---nocrop              Don't run pdfcrop                             [off]
 --extrenv <env1,...>  Add new environments to extract               [empty]
---skipenv <env1,...>  Skip environments to extract                  [empty]
+--skipenv <env1,...>  Skip default environments to extract          [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
@@ -133,7 +139,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-05-24.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-19.
 
 ## Copyright
 
@@ -245,7 +251,7 @@ Copyright 2013 - 2020 by Pablo González L
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{1.8}
-\def\filedate{2020-05-23}
+\def\filedate{2020-07-19}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -1386,9 +1392,10 @@ not within the \env{PSTexample} environment.
 \vspace{\baselineskip}
 
 \DescribeTE{postscript}
-Environment provide by \pkgname{pst-pdf}\cite{pst-pdf} and \pkgname{auto-pst-pdf}\cite{auto-pst-pdf} packages.
+Environment provide by \pkgname{pst-pdf}\cite{pst-pdf}, \pkgname{auto-pst-pdf}\cite{auto-pst-pdf}  and \pkgname{auto-pst-pdf-lua}\cite{auto-pst-pdf-lua} packages.
 Since the \pkgname{pst-pdf} and \pkgname{auto-pst-pdf} packages internally use
-the \pkgname{preview} package, is better comment this in preamble.
+the \pkgname{preview} package, is better comment this in preamble. This \enquote{encapsulation} environment
+is removed when processed by the script.
 
 \vspace{\baselineskip}
 
@@ -1625,6 +1632,9 @@ Sometimes it is better to use it together with \cmdopt{force}.
 \DescribeCmd[m]{margin}{integer}{0}
 Set margins in bp for \scriptname{pdfcrop}.
 
+\DescribeCmd[r]{runs}{integer}{1}
+Set the number of times the compiler will run on the \meta[cf=optcolor]{input file} for environment extraction.
+
 \DescribeCmd[o]{output}{file name}{empty}
 Create \meta{file name} whit all extracted environments converted to \ics{includegraphics}.
 Only \meta{file name} must be passed \emph{without} relative or absolute paths.
@@ -1632,7 +1642,7 @@ Only \meta{file name} must be passed \emph{without} relative or absolute paths.
 \DescribeCmd{prefix}{string}{fig}
 Set \meta{prefix} append to each generated files.
 
-\DescribeCmd{verbcmd}{macro name}{myverb}
+\DescribeCmd{myverb}{macro name}{myverb}
 Set custom verbatim command \lstinline+\myverb+. Just pass the \meta{name}
 of the macro \emph{without} \enquote{\textcolor{optcolor}{\texttt{\bfseries\textbackslash}}}.
 
@@ -1682,6 +1692,10 @@ compiler in \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=
 \DescribeCmd{dvips}{bolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
 for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+
+\DescribeCmd{dvilua}{bolean}{off}
+Using \prgname*{dvilualatex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
+for compiler \meta[cf=optcolor]{input file} and \prgname*{lualatex} for \meta[cf=optcolor]{output file}.
 
 \DescribeCmd{dvipdf}{bolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvipdfmx}
@@ -1756,7 +1770,7 @@ the \textcolor{optcolor}{\texttt{=}} sign between an option and its value is man
 short names are disabled and options found in the \meta[cf=optcolor]{input file} overwrite
 those passed on the command line.
 
-\newpage
+%\newpage
 
 Valid values for \meta[ac=lightgray,cf=optcolor]{argument} are the following:
 
@@ -1814,11 +1828,9 @@ using \prgname*{lualatex} and \pkgname{preview} package for \meta[cf=optcolor]{i
 
 \section{The way of \texttt{arara}}
 \label{sec:arara}
-
-By design, the script only runs \emph{\enquote{one compilation}} on top
-of the \meta[cf=optcolor]{input file}, but, sometimes you need to process the \meta[cf=optcolor]{input file}
-more than once or needs to be processed with something other than \hologo{LaTeX},
-\hologo{XeLaTeX}, \hologo{pdfLaTeX} or \hologo{LuaLaTeX} engine.
+By design, the script only runs \emph{\enquote{one or more compilation}} on top
+of the \meta[cf=optcolor]{input file}, but, sometimes you need to process in a specific mode the \meta[cf=optcolor]{input file}
+or needs to be processed with something other than \hologo{LaTeX}, \hologo{XeLaTeX}, \hologo{pdfLaTeX} or \hologo{LuaLaTeX} engine.
 
 This is where \arara\cite{arara} comes in, this \emph{\enquote{great little tool}},
 is able to have complete control over the compilation of the \meta[cf=optcolor]{input file}, we just
@@ -1847,7 +1859,7 @@ After the last \enquote{rule} you have at the beginning of the file. With all th
 in mind it is possible to extract and convert environments
 from \emph{any file}.
 
-\newpage
+%\newpage
 
 For example, by adding these lines at the beginning of the file:
 
@@ -1942,7 +1954,7 @@ then:
 
 With this we can generate \iext{svg} files that preserve our typographic fonts.
 
-\newpage
+%\newpage
 
 \section{Using \texttt{arara} and \texttt{dvisvgm}}
 
@@ -2062,6 +2074,7 @@ versions, both development (devp) and public (ctan).
     \begin{itemize}
         \item It is now possible to extract any environment.
         \item Fix \texttt{verbose} option.
+        \item Add \texttt{runs} and \texttt{dvilua} options.
         \item Add \texttt{log} option.
         \item All calls to the system are captured.
         \item Re-write source code acording to \texttt{perl} v5.3x.
@@ -2151,6 +2164,10 @@ Packages}. Available from
 \bibitem{auto-pst-pdf} \textsc{Robertson, Will}. \enquote{The \textsf{auto-pst-pdf}
 Packages}. Available from
 \textsc{ctan}, \url{https://www.ctan.org/pkg/auto-pst-pdf}, 2009.
+
+\bibitem{auto-pst-pdf-lua} \textsc{Voß, Herbert}. \enquote{\textsf{auto-pst-pdf-lua} - Using
+\hologo{LuaLaTeX} with \textsf{PSTricks}}. Available from
+\textsc{ctan}, \url{https://www.ctan.org/pkg/auto-pst-pdf-lua}, 2018.
 
 \bibitem{pstexa} \textsc{Voß, Herbert}. \enquote{\textsf{pst-exa} - Typeset
 \textsf{PSTricks} examples, with \hologo{pdfTeX}}. Available from
