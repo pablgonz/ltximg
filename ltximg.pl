@@ -90,7 +90,7 @@ sub errorUsage {
 }
 
 ### Extended error messages
-sub exterr () {
+sub exterr {
     chomp(my $msg_errno = $!);
     chomp(my $msg_extended_os_error = $^E);
     if ($msg_errno eq $msg_extended_os_error) {
@@ -234,7 +234,7 @@ sub RUNOSCMD {
 }
 
 ### Help for command line
-sub usage ($) {
+sub usage {
 find_ghostscript();
 
 my $usage = <<"END_OF_USAGE";
@@ -293,7 +293,7 @@ ${title}** Description
                       Create output file                            [off]
 --imgdir <dirname>    Set name of directory to save images/files    [images]
 --prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\\macroname" to verbatim inline search   [myverb]
+--myverb <macroname>  Add "\\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
@@ -418,7 +418,7 @@ my $archname = $Config{'archname'};
 $archname = 'unknown' unless defined $Config{'archname'};
 
 # Get ghostscript command name
-sub find_ghostscript () {
+sub find_ghostscript {
     if ($log) {
         Log('General information about the Perl instalation and operating system');
         print {$LogWrite} "* Perl executable: $^X\n";
@@ -510,7 +510,7 @@ sub find_ghostscript () {
     }
 }
 
-sub SearchRegistry () {
+sub SearchRegistry {
     my $found = 0;
     # The module Win32::TieRegistry not aviable in cygwin/msys
     eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';
@@ -598,7 +598,7 @@ sub SearchRegistry () {
 ### This part is only necessary if you're using Git on windows and don't
 ### have gs configured in the PATH. Git for windows don't have a Win32::TieRegistry
 ### and this module is not supported in the current versions.
-sub Searchbyregquery (){
+sub Searchbyregquery {
     my $found = 0;
     my $gs_regkey;
     my $opt_reg = '//s //v';
@@ -2487,8 +2487,8 @@ if ($findgraphicx eq 'true' and $outfile) {
     }
 }
 
-# Regex for clean file (pst) in preamble
-my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add | -pdf )? | psfrag |psgo |vaucanson-g| auto-pst-pdf )/x;
+### Regex for clean file (pst) in preamble
+my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add | -pdf )? | psfrag |psgo |vaucanson-g| auto-pst-pdf(?: -lua )? )/x;
 my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
 
 if ($clean{pst}) {
@@ -2751,7 +2751,7 @@ if (@deldirs) {
     }
 }
 
-### End of script process
+### End script process
 if (!$opts_cmd{boolean}{norun} and ($opts_cmd{boolean}{srcenv} or $opts_cmd{boolean}{subenv})) {
     Log("The image files: $format and generated files are in $imgdirpath");
 }
