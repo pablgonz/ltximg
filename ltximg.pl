@@ -14,7 +14,7 @@ use v5.26;
 ########################################################################
 
 use Getopt::Long qw(:config bundling_values require_order no_ignore_case);
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile devnull);
 use File::Basename;
 use Archive::Tar;
 use Data::Dumper;
@@ -2189,12 +2189,12 @@ opendir (my $DIR, $workdir);
                 RUNOSCMD("$compiler $opt_compiler","$+{name}$+{type}",'show');
             }
             # Compiling file using latex>dvips>ps2pdf
-            if ($opts_cmd{compiler}{dvips} or $opts_cmd{compiler}{latex} or $opts_cmd{compiler}{dvilua}) {
+            if ($compiler eq 'dvips' or $compiler eq 'latex' or $compiler eq 'dvilua') {
                 RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi",'show');
                 RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf",'show');
             }
             # Compiling file using latex>dvipdfmx
-            if ($opts_cmd{compiler}{dvipdf}) {
+            if ($compiler eq 'dvipdf') {
                 RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi",'show');
             }
             # Moving and renaming tmp file with source
@@ -2425,63 +2425,45 @@ if ($findgraphicx eq 'true' and $outfile) {
     Log("Couldn't capture the graphicx package for $opts_cmd{string}{output}$ext in preamble");
     my $ltxlog;
     my @graphicx;
-    # If norun and not arara
-    if ($opts_cmd{boolean}{norun} and !$opts_cmd{compiler}{arara}) {
-        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext with only preamble");
-        open my $OUTfile, '>', "$name-$opts_cmd{string}{prefix}-$tmp$ext";
-            print {$OUTfile} "$preamble\n\\stop";
-        close $OUTfile;
-        if ($opts_cmd{compiler}{latex}) { $compiler = 'pdflatex'; }
-        if ($opts_cmd{compiler}{dvilua}) { $compiler = 'lualatex'; }
-        if ($verbose) { say "Creating [$name-$opts_cmd{string}{prefix}-$tmp$ext] with only preamble"; }
-        RUNOSCMD("$compiler $write18 -interaction=batchmode", "$name-$opts_cmd{string}{prefix}-$tmp$ext", 'only');
-        Log("Read $name-$opts_cmd{string}{prefix}-$tmp.log");
-        open my $LaTeXlog, '<', "$name-$opts_cmd{string}{prefix}-$tmp.log";
-            {
-                local $/;
-                $ltxlog = <$LaTeXlog>;
+    my $null = devnull();
+    Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext [only preamble]");
+    if ($verbose) { say "Creating [$name-$opts_cmd{string}{prefix}-$tmp$ext] with only preamble"; }
+    open my $OUTfile, '>', "$name-$opts_cmd{string}{prefix}-$tmp$ext";
+        print {$OUTfile} "$preamble\n\\stop";
+    close $OUTfile;
+    # Set compiler
+    if ($opts_cmd{compiler}{arara}) {
+        my @engine = $preamble =~ m/$arara_rule/msx;
+        my %engine = map { $_ => 1 } @engine;
+        if (%engine) {
+            for my $var (@arara_engines) {
+                if (defined $engine{$var}) {
+                    $compiler = $var;
+                }
             }
-        close $LaTeXlog;
-        @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg; # capture graphicx
-    }
-    if (!$opts_cmd{boolean}{norun}) {
-        # The file always exists unless "arara" it removed.
-        if (-e "$name-$opts_cmd{string}{prefix}-$tmp.log") {
-            Log("Read $name-$opts_cmd{string}{prefix}-$tmp.log");
-            open my $LaTeXlog, '<', "$name-$opts_cmd{string}{prefix}-$tmp.log";
-                {
-                    local $/;
-                    $ltxlog = <$LaTeXlog>;
-                }
-            close $LaTeXlog;
-            @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg; # capture graphicx
         }
-        else {
-            Log('Read arara.log');
-            open my $LaTeXlog, '<', 'arara.log';
-                {
-                    local $/;
-                    $ltxlog = <$LaTeXlog>;
-                }
-            close $LaTeXlog;
-            @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg; # capture graphicx
-        }
+        else { $compiler = 'pdflatex'; }
     }
+    if ($opts_cmd{compiler}{latex}) { $compiler = 'pdflatex'; }
+    if ($opts_cmd{compiler}{dvilua}) { $compiler = 'lualatex'; }
+    # Compiling file
+    RUNOSCMD("$compiler $write18 -interaction=batchmode", "$name-$opts_cmd{string}{prefix}-$tmp$ext >$null", 'only');
+    # Restore arara compiler
+    if ($opts_cmd{compiler}{arara}) { $compiler = 'arara'; }
+    Log("Search graphicx package in $name-$opts_cmd{string}{prefix}-$tmp.log");
+    open my $LaTeXlog, '<', "$name-$opts_cmd{string}{prefix}-$tmp.log";
+        {
+            local $/;
+            $ltxlog = <$LaTeXlog>;
+        }
+    close $LaTeXlog;
+    # Try to capture graphicx
+    @graphicx = $ltxlog =~ m/.+? (graphicx\.sty)/xg;
     if (@graphicx) {
-        if ($opts_cmd{compiler}{arara}) {
-            Log('Found graphicx package in arara.log');
-        }
-        else {
-            Log("Found graphicx package in $name-$opts_cmd{string}{prefix}-$tmp.log");
-        }
+        Log("Found graphicx package in $name-$opts_cmd{string}{prefix}-$tmp.log");
     }
     else {
-        if ($opts_cmd{compiler}{arara}) {
-            Log('Not found graphicx package in arara.log');
-        }
-        else {
-            Log("Not found graphicx package in $name-$opts_cmd{string}{prefix}-$tmp.log");
-        }
+        Log("Not found graphicx package in $name-$opts_cmd{string}{prefix}-$tmp.log");
         Log("Add \\usepackage\{graphicx\} to preamble of $opts_cmd{string}{output}$outext");
         $preamble= "$preamble\n\\usepackage\{graphicx\}";
     }
@@ -2526,7 +2508,7 @@ if ($outfile) {
 }
 
 ### We remove environments from the output file
-if (%delete_env) {
+if (%delete_env and $outfile) {
     Log("Remove environments in body of $opts_cmd{string}{output}$ext");
     %replace = (%delete_env);
     $find    = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %replace;
@@ -2611,17 +2593,17 @@ if ($outfile) {
     $find    = join q{|}, map {quotemeta} sort { length $a <=> length $b } keys %replace;
     $out_file =~ s/($find)/$replace{$1}/g;
     if (-e "$opts_cmd{string}{output}$outext") {
-        Log("Rewriting the file $opts_cmd{string}{output}$outext");
+        Log("Rewriting the file $opts_cmd{string}{output}$outext in $workdir");
         Infocolor('Warning', "The file [$opts_cmd{string}{output}$outext] already exists and will be rewritten");
     }
-    else{ Infoline("Creating the file $opts_cmd{string}{output}$outext"); }
-
+    else{
+        Infoline("Creating the file $opts_cmd{string}{output}$outext");
+        Log("Write the file $opts_cmd{string}{output}$outext in $workdir");
+    }
     # Write <output file>
-    Log("Write the file $opts_cmd{string}{output}$outext in $workdir");
     open my $OUTfile, '>', "$opts_cmd{string}{output}$outext";
         print {$OUTfile} $out_file;
     close $OUTfile;
-
     # Process <output file>
     if (!$opts_cmd{boolean}{norun}) {
         if ($opts_cmd{compiler}{latex}) {
@@ -2684,10 +2666,12 @@ my @protected = qw();
 my $flsline = 'OUTPUT';
 my @flsfile;
 
+### Protect files
 if (defined $opts_cmd{string}{output}) {
     push @protected, "$opts_cmd{string}{output}$outext", "$opts_cmd{string}{output}.pdf";
 }
 
+### Find files
 find(\&aux_files, $workdir);
 sub aux_files{
     my $findtmpfiles = $_;
@@ -2697,6 +2681,7 @@ sub aux_files{
     return;
 }
 
+### Add if exists
 if (-e 'arara.log') {
     push @flsfile, 'arara.log';
 }
@@ -2710,22 +2695,21 @@ if (-e "$opts_cmd{string}{output}.fls") {
     push @flsfile, "$opts_cmd{string}{output}.fls";
 }
 
+### Read .fls file
 for my $filename(@flsfile){
     open my $RECtmp, '<', $filename;
         push @tmpfiles, grep /^$flsline/,<$RECtmp>;
     close $RECtmp;
 }
-
 foreach (@tmpfiles) { s/^$flsline\s+|\s+$//g; }
 push @tmpfiles, @flsfile;
-
 @tmpfiles = uniq(@tmpfiles);
 @tmpfiles = array_minus(@tmpfiles, @protected);
 
 Log('The files that will be deleted are:');
 Logarray(\@tmpfiles);
 
-### Only If exist
+### Remove only if exist
 if (@tmpfiles) {
     Infoline("Remove temporary files created in $workdir");
     foreach my $tmpfiles (@tmpfiles) {
@@ -2743,7 +2727,7 @@ if (-e $mintdirexa) { push @deldirs, $mintdirexa; }
 Log('The directory that will be deleted are:');
 Logarray(\@deldirs);
 
-### Only If exist
+### Remove only if exist
 if (@deldirs) {
     Infoline("Remove temporary directories created by minted in $workdir");
     foreach my $deldirs (@deldirs) {
