@@ -58,7 +58,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       on the input file for environment extraction  [1]
 -d <integer>, --dpi <integer>
                       Dots per inch resolution for images           [150]
--m <integer>, --margin <integer>
+-m <integer>, --margins <integer>
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
@@ -82,6 +82,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--latexmk             Using latexmk for compiler output             [off]
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
@@ -131,7 +132,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-19.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-24.
 
 ## Copyright
 

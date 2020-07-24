@@ -41,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-07-19';
+my $date       = '2020-07-24';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -71,7 +71,7 @@ my $gscmd;                 # ghostscript executable name
 my $log      = 0;          # log file
 my @currentopt;            # storing current options for log file
 
-### Hash to store Getopt::Long options
+### Hash to store options for Getopt::Long and log file
 my %opts_cmd;
 $opts_cmd{string}{prefix} = 'fig';
 $opts_cmd{string}{dpi}    = '150';
@@ -287,7 +287,7 @@ ${title}** Description
                       on the input file for environment extraction  [1]
 -d <integer>, --dpi <integer>
                       Dots per inch resolution for images           [150]
--m <integer>, --margin <integer>
+-m <integer>, --margins <integer>
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
@@ -311,6 +311,7 @@ ${title}** Description
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--luatexmk            Using latexmk for compiler output file        [off]
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
@@ -354,13 +355,14 @@ my $result=GetOptions (
     'e|eps'          => \$opts_cmd{image}{eps}, # pdftops
     'P|ppm'          => \$opts_cmd{image}{ppm}, # pdftoppm
 # compilers
-    'arara'          => \$opts_cmd{compiler}{arara},  # arara compiler
-    'xetex'          => \$opts_cmd{compiler}{xetex},  # xelatex compiler
-    'latex'          => \$opts_cmd{compiler}{latex},  # latex compiler
-    'dvips'          => \$opts_cmd{compiler}{dvips},  # dvips compiler
-    'dvipdf'         => \$opts_cmd{compiler}{dvipdf}, # dvipdfmx compiler
-    'dvilua'         => \$opts_cmd{compiler}{dvilua}, # dvilualatex compiler
-    'luatex'         => \$opts_cmd{compiler}{luatex}, # lualatex compiler
+    'arara'          => \$opts_cmd{compiler}{arara},   # arara compiler
+    'xetex'          => \$opts_cmd{compiler}{xetex},   # xelatex compiler
+    'latex'          => \$opts_cmd{compiler}{latex},   # latex compiler
+    'latexmk'        => \$opts_cmd{compiler}{latexmk}, # latex compiler
+    'dvips'          => \$opts_cmd{compiler}{dvips},   # dvips compiler
+    'dvipdf'         => \$opts_cmd{compiler}{dvipdf},  # dvipdfmx compiler
+    'dvilua'         => \$opts_cmd{compiler}{dvilua},  # dvilualatex compiler
+    'luatex'         => \$opts_cmd{compiler}{luatex},  # lualatex compiler
 # bolean
     'zip'            => \$opts_cmd{boolean}{zip},    # zip images dir
     'tar'            => \$opts_cmd{boolean}{tar},    # tar images dir
@@ -373,9 +375,9 @@ my $result=GetOptions (
     'f|force'        => \$opts_cmd{boolean}{force},  # force (boolean)
     'n|noprew'       => \$opts_cmd{boolean}{noprew}, # no preview (boolean)
 # string
-    'd|dpi=i'        => \$opts_cmd{string}{dpi},    # integer
-    'r|runs=i'       => \$opts_cmd{string}{runs},   # integer
-    'm|margin=i'     => \$opts_cmd{string}{margin}, # integer
+    'd|dpi=i'        => \$opts_cmd{string}{dpi},     # positive integer < 2500
+    'r|runs=i'       => \$opts_cmd{string}{runs},    # positive integer 1,2,3
+    'm|margins=i'    => \$opts_cmd{string}{margins}, # integer
     'extrenv=s{1,9}' => \@extr_env_tmp, # extract environments
     'skipenv=s{1,9}' => \@skip_env_tmp, # skip environments
     'verbenv=s{1,9}' => \@verb_env_tmp, # verbatim environments
@@ -402,11 +404,11 @@ if ($log) {
     $LogWrite  = FileHandle->new("> $LogFile");
 }
 
-### Init log file
+### Init ltximg.log file
 Log("The script $scriptname $nv was started in $workdir");
 Log("Creating the temporary directory $tempDir");
 
-### Make ENV safer, see perldoc perlsec
+### Make ENV safer (perldoc perlsec)
 delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 
 ### The next code it's part of pdfcrop (adapted from TexLive 2014)
@@ -596,8 +598,8 @@ sub SearchRegistry {
 } # end GS search registry
 
 ### This part is only necessary if you're using Git on windows and don't
-### have gs configured in the PATH. Git for windows don't have a Win32::TieRegistry
-### and this module is not supported in the current versions.
+### have gs configured in PATH. Git for windows don't have a Win32::TieRegistry
+### module for perl (is not supported in the current versions of msys).
 sub Searchbyregquery {
     my $found = 0;
     my $gs_regkey;
@@ -670,7 +672,7 @@ if (defined $opts_cmd{internal}{version}) {
 @ARGV < 2 or errorUsage('Unknown option or too many input files');
 
 ### Check <input file> extention
-my @SuffixList = ('.tex', '.ltx'); # valid extention
+my @SuffixList = ('.tex', '.ltx');
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 if ($ext eq '.tex' or $ext eq '.ltx') {
     $ext = $ext;
@@ -679,7 +681,7 @@ else {
     errorUsage('Invalid or empty extention for input file');
 }
 
-### Read <input file> in memory
+### Read <input file> in memory, need :crlf for old windows files
 Log("Read input file $name$ext in memory");
 open my $INPUTfile, '<:crlf', "$name$ext";
     my $ltxfile;
@@ -904,7 +906,7 @@ if(%opts_file) {
     if (exists $opts_file{options}) {
         Log("Found \% ltximg\: options\: \{...\} in $name$ext");
         # Add compilers from <input file>
-        for my $opt (qw(arara xetex luatex latex dvips dvipdf dvilua)) {
+        for my $opt (qw(arara xetex luatex latex dvips dvipdf dvilua latexmk)) {
             if (exists $opts_file{options}{$opt}) {
                 Log("Found [$opt] compiler option in $name$ext");
                 $opts_cmd{compiler}{$opt} = 1;
@@ -941,6 +943,65 @@ if(%opts_file) {
     }
 }
 
+### Validate --dpi
+if( $opts_cmd{string}{dpi} <= 0 or $opts_cmd{string}{dpi} >= 2500) {
+    Log('Error!!: Invalid argument for --dpi, argument out of range');
+    errorUsage('Invalid argument for --dpi option');
+}
+
+### Validate --runs
+if( $opts_cmd{string}{runs} <= 0 or $opts_cmd{string}{runs} >= 3) {
+    Log('Error!!: Invalid argument for --runs, argument out of range');
+    errorUsage('Invalid argument for --runs option');
+}
+
+### Check --arara and --latexmk
+if ($opts_cmd{compiler}{arara} && $opts_cmd{compiler}{latexmk}) {
+    Log('Error!!: Options --arara and --latexmk  are mutually exclusive');
+    errorUsage('Options --arara and --latexmk  are mutually exclusive');
+}
+
+### Check --srcenv and --subenv option from command line
+if ($opts_cmd{boolean}{srcenv} && $opts_cmd{boolean}{subenv}) {
+    Log('Error!!: Options --srcenv and --subenv  are mutually exclusive');
+    errorUsage('Options --srcenv and --subenv  are mutually exclusive');
+}
+
+### If --srcenv or --subenv option are OK activate write sub files
+if ($opts_cmd{boolean}{srcenv}) {
+    $outsrc = 1;
+    $opts_cmd{boolean}{subenv} = 0;
+}
+if ($opts_cmd{boolean}{subenv}) {
+    $outsrc = 1;
+    $opts_cmd{boolean}{srcenv} = 0;
+}
+
+### Add pdf image format if --nopdf
+if (!$opts_cmd{boolean}{nopdf}) {
+    $opts_cmd{image}{pdf} = 1;
+}
+
+### Store defined image formats in $format
+my $format = join q{, },grep { defined $opts_cmd{image}{$_} } keys %{$opts_cmd{image}};
+
+### Write defined image format in log file
+if (!$opts_cmd{boolean}{norun}) {
+    Log("Defined image formats for creating: $format");
+}
+
+### Check --norun and no images type
+if (!$opts_cmd{boolean}{norun} and $format eq q{}) {
+    Log('Error!!: Option --nopdf need --norun or an image option');
+    errorUsage('Option --nopdf need --norun or an image option');
+}
+
+### Check --dvips and no eps image type
+if ($opts_cmd{compiler}{dvips} and !$opts_cmd{image}{eps} and !$opts_cmd{boolean}{norun}) {
+    Log('Error!!: Option --dvips need --eps');
+    errorUsage('Option --dvips need --eps');
+}
+
 ### Validate myverb = macro option
 if (defined $opts_cmd{string}{myverb}) {
     if ($opts_cmd{string}{myverb} =~ /^(?:\\|\-).+?/) {
@@ -957,11 +1018,6 @@ if (defined $opts_cmd{string}{imgdir}) {
         errorUsage('Invalid argument for --imgdir');
     }
     else { Log("Set imgdir = $opts_cmd{string}{imgdir}"); }
-}
-
-### Define key = pdf for image format
-if (!$opts_cmd{boolean}{nopdf}) {
-    $opts_cmd{image}{pdf} = 1;
 }
 
 ### Validate clean
@@ -981,8 +1037,8 @@ if ($clean{pst} or $clean{tkz}) { $clean{doc} = 1; }
 if ($clean{all}) { @clean{qw(pst doc tkz)} = (1) x 3; }
 if ($clean{off}) { undef %clean; }
 
-### Validating the output file name
-my $outext; # save extension of output file
+### Validating the <output file> name and save extension
+my $outext;
 if (defined $opts_cmd{string}{output}) {
     Log('Validating name and extension for output file');
     # Capture and split
@@ -1011,6 +1067,28 @@ if (defined $opts_cmd{string}{output}) {
     # If output name are ok, then $outfile = 1
     $outfile = 1;
 }
+
+### Storing the current options of script in array for log file
+foreach my $key (keys %{$opts_cmd{boolean}}) {
+    if (defined $opts_cmd{boolean}{$key}) { push @currentopt, "--$key"; }
+}
+foreach my $key (keys %{$opts_cmd{compiler}}) {
+    if (defined $opts_cmd{compiler}{$key}) { push @currentopt, "--$key"; }
+}
+foreach my $key (keys %{$opts_cmd{image}}) {
+    if (defined $opts_cmd{image}{$key}) { push @currentopt, "--$key"; }
+}
+foreach my $key (keys %{$opts_cmd{string}}) {
+    if (defined $opts_cmd{string}{$key}) { push @currentopt, "--$key=$opts_cmd{string}{$key}"; }
+}
+
+### Remove --pdf (not real option)
+@currentopt = grep !/--pdf/, @currentopt;
+my @sorted_words = sort { length $a <=> length $b } @currentopt;
+
+### Write all options in log file
+Log('The script will execute the following options:');
+Logarray(\@sorted_words);
 
 ### Rules to capture for regex
 my $braces      = qr/ (?:\{)(.+?)(?:\}) /msx;
@@ -1693,52 +1771,46 @@ my $EE = '\\\\end\{PSTexample\}';
 my @exa_extract = $bodydoc =~ m/(?:\\begin\{preview\}%$tmp\n)(\\begin\{PSTexample\}.+?\\end\{PSTexample\})/gmsx;
 my $exaNo = scalar @exa_extract;
 
-my $envEXA;
-my $fileEXA;
-if ($exaNo > 1) {
-    $envEXA   = 'PSTexample environments';
-    $fileEXA  = 'files';
-}
-else {
-    $envEXA   = 'PSTexample environment';
-    $fileEXA  = 'file';
-}
+### Set vars for log and print in terminal
+my $envEXA = $exaNo > 1 ? 'PSTexample environments'
+           :              'PSTexample environment'
+           ;
+my $fileEXA = $exaNo > 1 ? 'files'
+            :              'file'
+            ;
 
 ### Check if PSTexample environment found
 if ($exaNo!=0) {
     $PSTexa = 1;
     Log("Found $exaNo $envEXA in $name$ext");
-    my $fig = 1;
+    my $figNo = 1;
     for my $item (@exa_extract) {
-        Logline("%##### PSTexample environment captured number $fig ######%");
+        Logline("%##### PSTexample environment captured number $figNo ######%");
         Logline($item);
-        $fig++;
+        $figNo++;
     }
     # Add [graphic={[...]...}] to \begin{PSTexample}[...]
     Log('Append [graphic={[...]...}] to \begin{PSTexample}[...]');
-    $exaNo = 1;
+    $figNo = 1;
     while ($bodydoc =~ /\\begin\{preview\}%$tmp\n\\begin\{PSTexample\}(\[.+?\])?/gsm) {
         my $swpl_grap = "graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa";
         my $corchetes = $1;
         my ($pos_inicial, $pos_final) = ($-[1], $+[1]);
         if (not $corchetes) { $pos_inicial = $pos_final = $+[0]; }
         if (not $corchetes  or  $corchetes =~ /\[\s*\]/) {
-            $corchetes = "[$swpl_grap-$exaNo}]";
+            $corchetes = "[$swpl_grap-$figNo}]";
         }
-        else { $corchetes =~ s/\]/,$swpl_grap-$exaNo}]/; }
+        else { $corchetes =~ s/\]/,$swpl_grap-$figNo}]/; }
         substr($bodydoc, $pos_inicial, $pos_final - $pos_inicial) = $corchetes;
         pos($bodydoc) = $pos_inicial + length $corchetes;
     }
-    continue { $exaNo++; }
+    continue { $figNo++; }
     Log('Pass PSTexample environments to \begin{nopreview} ... \end{nopreview}');
     $bodydoc =~ s/\\begin\{preview\}%$tmp\n
                     (?<code>\\begin\{PSTexample\} .+? \\end\{PSTexample\})
                   \n\\end\{preview\}%$tmp
                  /\\begin\{nopreview\}%$tmp\n$+{code}\n\\end\{nopreview\}%$tmp/gmsx;
 }
-
-### Reset exaNo
-$exaNo = scalar @exa_extract;
 
 ### Second search standart environment for extract
 my $BP = "\\\\begin\{preview\}%$tmp";
@@ -1747,18 +1819,15 @@ my $EP = "\\\\end\{preview\}%$tmp";
 my @env_extract = $bodydoc =~ m/(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
-my $envSTD;
-my $fileSTD;
-if ($envNo > 1) {
-    $envSTD   = 'standard environments';
-    $fileSTD  = 'files';
-}
-else {
-    $envSTD   = 'standard environment';
-    $fileSTD  = 'file';
-}
+### Set vars for log and print in terminal
+my $envSTD = $envNo > 1 ? 'standard environments'
+           :              'standard environment'
+           ;
+my $fileSTD = $envNo > 1 ? 'files'
+            :              'file'
+            ;
 
-### Check if standard environments found
+### If any standard environments found
 if ($envNo!=0) {
     $STDenv = 1;
     Log("Found $envNo $envSTD in $name$ext");
@@ -1770,63 +1839,10 @@ if ($envNo!=0) {
     }
 }
 
-### Image formats
-my %format = (%{$opts_cmd{image}});
-my $format = join q{, },grep { defined $format{$_} } keys %format;
-
-if (!$opts_cmd{boolean}{norun}) {
-    Log("Defined image formats for creating: $format");
-}
-
-### Check run and no images
-if (!$opts_cmd{boolean}{norun} and $format eq q{}) {
-    errorUsage('--nopdf need --norun or an image option');
-}
-
-### Check dvips and no eps
-if ($opts_cmd{compiler}{dvips} and !$opts_cmd{image}{eps} and !$opts_cmd{boolean}{norun}) {
-    errorUsage('Option --dvips need --eps');
-}
-
-### Check --srcenv and --subenv option from command line
-if ($opts_cmd{boolean}{srcenv} && $opts_cmd{boolean}{subenv}) {
-    errorUsage('Options --srcenv and --subenv  are mutually exclusive');
-}
-
-### If --srcenv or --subenv option are OK then execute script
-if ($opts_cmd{boolean}{srcenv}) {
-    $outsrc = 1;
-    $opts_cmd{boolean}{subenv} = 0;
-}
-if ($opts_cmd{boolean}{subenv}) {
-    $outsrc = 1;
-    $opts_cmd{boolean}{srcenv} = 0;
-}
-
-### Check if enviroment(s) found in input file
+### Run script process only if any enviroment found in <input file>
 if ($envNo == 0 and $exaNo == 0) {
     errorUsage("$scriptname can not find any environment to extract in $name$ext");
 }
-
-### Storing the current options of script for log file
-foreach my $key (keys %{$opts_cmd{boolean}}) {
-    if (defined $opts_cmd{boolean}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{compiler}}) {
-    if (defined $opts_cmd{compiler}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{image}}) {
-    if (defined $opts_cmd{image}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{string}}) {
-    if (defined $opts_cmd{string}{$key}) { push @currentopt, "--$key=$opts_cmd{string}{$key}"; }
-}
-
-@currentopt = grep !/--pdf/, @currentopt;
-my @sorted_words = sort { length $a <=> length $b } @currentopt;
-
-Log('The script will execute the following options:');
-Logarray(\@sorted_words);
 
 ### Set directory to save generated files, need full path for goog log :)
 my $imgdirpath = File::Spec->rel2abs($opts_cmd{string}{imgdir});
@@ -2647,7 +2663,7 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
     Log('The files are compress are:');
     Logarray(\@savetozt);
     if ($opts_cmd{boolean}{zip}) {
-        Infoline("Creating  the file $archivetar.zip");
+        Infoline("Creating the file $archivetar.zip");
         zip \@savetozt => "$archivetar.zip";
         Log("The file $archivetar.zip are in $workdir");
     }
@@ -2666,7 +2682,7 @@ my @protected = qw();
 my $flsline = 'OUTPUT';
 my @flsfile;
 
-### Protect files
+### Protect generated files
 if (defined $opts_cmd{string}{output}) {
     push @protected, "$opts_cmd{string}{output}$outext", "$opts_cmd{string}{output}.pdf";
 }

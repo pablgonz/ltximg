@@ -66,7 +66,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       on the input file for environment extraction  [1]
 -d <integer>, --dpi <integer>
                       Dots per inch resolution for images           [150]
--m <integer>, --margin <integer>
+-m <integer>, --margins <integer>
                       Set margins in bp for pdfcrop                 [0]
 -o <filename>, --output <filename>
                       Create output file                            [off]
@@ -90,6 +90,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--latexmk             Using latexmk for compiler output             [off]
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
@@ -139,7 +140,7 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-19.
+Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-24.
 
 ## Copyright
 
@@ -251,7 +252,7 @@ Copyright 2013 - 2020 by Pablo González L
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{1.8}
-\def\filedate{2020-07-19}
+\def\filedate{2020-07-24}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -1701,6 +1702,9 @@ for compiler \meta[cf=optcolor]{input file} and \prgname*{lualatex} for \meta[cf
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvipdfmx}
 for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
+\DescribeCmd{latexmk}{bolean}{off}
+Using \scriptname{latexmk} for process \meta[cf=optcolor]{output file}. Need a compiler option.
+
 \DescribeCmd{luatex}{bolean}{off}
 Using \prgname*{lualatex} for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 
@@ -2074,7 +2078,7 @@ versions, both development (devp) and public (ctan).
     \begin{itemize}
         \item It is now possible to extract any environment.
         \item Fix \texttt{verbose} option.
-        \item Add \texttt{runs} and \texttt{dvilua} options.
+        \item Add \texttt{runs}, \texttt{latexmk} and \texttt{dvilua} options.
         \item Add \texttt{log} option.
         \item All calls to the system are captured.
         \item Re-write source code acording to \texttt{perl} v5.3x.
