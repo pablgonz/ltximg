@@ -52,7 +52,7 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
 -P, --ppm             Create .ppm files using poppler-utils         [pdftoppm]
 -g, --gray            Gray scale for images using ghostscript       [off]
 -f, --force           Capture "\psset" and "\tikzset" to extract    [off]
--n, --noprew          Create images files whitout "preview" package [off]
+-n, --noprew          Create images files without "preview" package [off]
 -r <integer>, --runs <integer>
                       Set the number of times the compiler will run
                       on the input file for environment extraction  [1]
@@ -69,8 +69,8 @@ and saved in the `/images` directory using `pdflatex` and `preview` package.
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
---srcenv              Create files whit only code environment       [off]
---subenv              Create files whit preamble and code           [off]
+--srcenv              Create files with only code environment       [off]
+--subenv              Create files with preamble and code           [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
@@ -100,9 +100,9 @@ $ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
 $ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
 ```
 
-Create a `./mypics` directory (if it doesn’t exist) wwhit all extracted environments
+Create a `./mypics` directory (if it doesn’t exist) with all extracted environments
 converted to individual files (`.pdf`, `.eps`, `.png`, `.ltx`), a file `test-out.ltx`
-whit all environments converted to `\includegraphics` and file `test-in-fig-all.ltx` with only the extracted environments using
+with all environments converted to `\includegraphics` and file `test-in-fig-all.ltx` with only the extracted environments using
 `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
 for `<output file>`.
 

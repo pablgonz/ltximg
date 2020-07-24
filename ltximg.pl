@@ -137,8 +137,8 @@ sub Infocolor {
         color('yellow'), "$info\r\n", color('reset');
     }
     if ($type eq 'Finish') {
-        print color('yellow'), '* ', color('reset'), color('bold red'),
-        "$type!: ", color('reset'),  color('yellow'), "$info\r\n",color('reset');
+        print color('cyan'), '* ', color('reset'), color('magenta'),
+        "$type!: ", color('reset'),  color('green'), "$info\r\n",color('reset');
     }
     return;
 }
@@ -261,7 +261,7 @@ ${title}** Description
 
    If used without [<compiler>] and [<options>] the extracted environments
    are converted to pdf image format and saved in the "./images" directory
-   using "pdflatex" and "preview" package.
+   using "pdflatex" and "preview" package for process <input file>.
 
 ** Default environments extract
    preview pspicture tikzpicture pgfpicture psgraph postscript PSTexample
@@ -281,7 +281,7 @@ ${title}** Description
 -P, --ppm             Create .ppm files using poppler-utils         [pdftoppm]
 -g, --gray            Gray scale for images using ghostscript       [off]
 -f, --force           Capture "\\psset" and "\\tikzset" to extract    [off]
--n, --noprew          Create images files whitout "preview" package [off]
+-n, --noprew          Create images files without "preview" package [off]
 -r <integer>, --runs <integer>
                       Set the number of times the compiler will run
                       on the input file for environment extraction  [1]
@@ -298,8 +298,8 @@ ${title}** Description
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
---srcenv              Create files whit only code environment       [off]
---subenv              Create files whit preamble and code           [off]
+--srcenv              Create files with only code environment       [off]
+--subenv              Create files with preamble and code           [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
@@ -321,13 +321,13 @@ ${title}** Description
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
 
-** Example
+** Examples
 \$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
-\$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
+\$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx test-in.ltx
 
-   Create a "./mypics" directory (if it doesn't exist) whit all extracted
+   Create a "./mypics" directory (if it doesn't exist) with all extracted
    environments converted to individual files (.pdf, .eps, .png, .ltx), a
-   file "test-in-fig-all.ltx" whit all extracted environments and the file
+   file "test-in-fig-all.ltx" with all extracted environments and the file
    "test-out.ltx" with all environments converted to \\includegraphics using
    latex>dvips>ps2pdf and preview package for <input file> and pdflatex for
    <output file>.
@@ -1307,7 +1307,7 @@ while ($document =~
 $document =~ s/\\[{]/<LTXSBO>/g;
 $document =~ s/\\[}]/<LTXSBC>/g;
 
-### Regex for verbatim inline/multiline whit braces {...}
+### Regex for verbatim inline/multiline with braces {...}
 my $nestedbr   = qr /   ( [{] (?: [^{}]++ | (?-1) )*+ [}]  )                      /x;
 my $fvextra    = qr /\\ (?: (Save|Esc)Verb [*]?) $no_corchete                     /x;
 my $mintedbr   = qr /\\ (?:$mintline|pygment) (?!\*) $no_corchete $no_llaves      /x;
@@ -1772,12 +1772,8 @@ my @exa_extract = $bodydoc =~ m/(?:\\begin\{preview\}%$tmp\n)(\\begin\{PSTexampl
 my $exaNo = scalar @exa_extract;
 
 ### Set vars for log and print in terminal
-my $envEXA = $exaNo > 1 ? 'PSTexample environments'
-           :              'PSTexample environment'
-           ;
-my $fileEXA = $exaNo > 1 ? 'files'
-            :              'file'
-            ;
+my $envEXA  = $exaNo > 1 ? 'PSTexample environments' : 'PSTexample environment';
+my $fileEXA = $exaNo > 1 ? 'files' : 'file';
 
 ### Check if PSTexample environment found
 if ($exaNo!=0) {
@@ -1820,12 +1816,8 @@ my @env_extract = $bodydoc =~ m/(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
 ### Set vars for log and print in terminal
-my $envSTD = $envNo > 1 ? 'standard environments'
-           :              'standard environment'
-           ;
-my $fileSTD = $envNo > 1 ? 'files'
-            :              'file'
-            ;
+my $envSTD  = $envNo > 1 ? 'standard environments' : 'standard environment';
+my $fileSTD = $envNo > 1 ? 'files' : 'file';
 
 ### If any standard environments found
 if ($envNo!=0) {
@@ -2065,9 +2057,9 @@ if ($outsrc) {
     if ($opts_cmd{boolean}{subenv}) {
         Log('Extract source code of all captured environments with preamble');
         if ($STDenv) {
-            Log("Creating a $envNo standalone $fileSTD [$ext] whit source code and preamble for $envSTD in $imgdirpath");
+            Log("Creating a $envNo standalone $fileSTD [$ext] for $envSTD in $imgdirpath");
             print "Creating a $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
-            color('reset'), " whit source code and preamble for $envSTD\r\n";
+            color('reset'), " for $envSTD\r\n";
             while ($tmpbodydoc =~ m/$BP(?:\s*)?(?<env_src>.+?)(?:\s*)?$EP/gms) {
                 open my $outstdfile, '>', "$opts_cmd{string}{imgdir}/$src_name$srcNo$ext";
                     print {$outstdfile} "$sub_prea\n$+{'env_src'}\n\\end\{document\}";
@@ -2076,9 +2068,9 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Log("Creating a $exaNo standalone $fileEXA [$ext] whit source code and preamble for $envEXA in $imgdirpath");
+            Log("Creating a $exaNo standalone $fileEXA [$ext] for $envEXA in $imgdirpath");
             print "Creating a $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
-            color('reset'), " whit source code and preamble for $envEXA\r\n";
+            color('reset'), " for $envEXA\r\n";
             while ($tmpbodydoc =~ m/$BE\[.+?(?<pst_exa_name>$opts_cmd{string}{imgdir}\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $outexafile, '>', "$+{'pst_exa_name'}$ext";
                     print {$outexafile} "$sub_prea\n$+{'exa_src'}\n\\end\{document\}";
@@ -2120,9 +2112,9 @@ $sub_prea = $opts_cmd{boolean}{noprew} ? "$atbeginout$pstpdfpkg$preamout".'\begi
           :                              "$atbeginout$previewpkg$preamout"
           ;
 
-### Create a one file whit "all" PSTexample environments extracted
+### Create a one file with "all" PSTexample environments extracted
 if ($PSTexa) {
-    Infoline("Creating $name-$opts_cmd{string}{prefix}-exa-$tmp$ext whit $exaNo $envEXA extracted");
+    Infoline("Creating $name-$opts_cmd{string}{prefix}-exa-$tmp$ext with $exaNo $envEXA extracted");
     @exa_extract = undef;
     Log("Adding packages to $name-$opts_cmd{string}{prefix}-exa-$tmp$ext");
     Logline($pstpdfpkg);
@@ -2133,16 +2125,16 @@ if ($PSTexa) {
         close $allexaenv;
     }
     if ($opts_cmd{boolean}{norun}) {
-        Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-exa-$tmp$ext");
+        Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to $name-$opts_cmd{string}{prefix}-exa-all$ext");
         if ($verbose) {
             Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-exa-all$ext");
         }
         else {
-            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-exa-$tmp$ext $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext");
+            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-exa-$tmp$ext ./$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext");
         }
         Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext, $imgdirpath/$name-$opts_cmd{string}{prefix}-exa-all$ext)");
         move("$workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext", "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext")
-        or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext";
+        or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to ./$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext";
     }
 }
 
@@ -2150,16 +2142,16 @@ if ($PSTexa) {
 $tmpbodydoc =~ s/($BE)(?:\[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\])/$1/gmsx;
 $tmpbodydoc =~ s/($BE\[.+?)(?:,graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\})(\])/$1$2/gmsx;
 
-### Create a one file whit "all" standard environments extracted
+### Create a one file with "all" standard environments extracted
 if ($STDenv) {
     if ($opts_cmd{boolean}{noprew}) {
-        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [no preview]");
-        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted",
+        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext with $envNo $envSTD extracted [no preview]");
+        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext with $envNo $envSTD extracted",
         color('magenta'), " [no preview]\r\n",color('reset');
     }
     else {
-        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted [preview]");
-        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext whit $envNo $envSTD extracted",
+        Log("Creating $name-$opts_cmd{string}{prefix}-$tmp$ext with $envNo $envSTD extracted [preview]");
+        print "Creating $name-$opts_cmd{string}{prefix}-$tmp$ext with $envNo $envSTD extracted",
         color('magenta'), " [preview]\r\n",color('reset');
     }
     open my $allstdenv, '>', "$name-$opts_cmd{string}{prefix}-$tmp$ext";
@@ -2179,16 +2171,16 @@ if ($STDenv) {
         }
     close $allstdenv;
     if ($opts_cmd{boolean}{norun}) {
-        Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-$tmp$ext");
+        Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-$tmp$ext to $name-$opts_cmd{string}{prefix}-all$ext");
         if ($verbose) {
             Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-all$ext");
         }
         else {
-            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-$tmp$ext $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext");
+            Infocolor('Running', "mv $name-$opts_cmd{string}{prefix}-$tmp$ext ./$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext");
         }
         Logline("[perl] move($workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext, $imgdirpath/$name-$opts_cmd{string}{prefix}-all$ext)");
         move("$workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext", "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext")
-        or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-$tmp$ext to $opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext";
+        or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-$tmp$ext to ./$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext";
     }
 }
 
@@ -2213,14 +2205,14 @@ opendir (my $DIR, $workdir);
             if ($compiler eq 'dvipdf') {
                 RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi",'show');
             }
-            # Moving and renaming tmp file with source
-            Log("Move $+{name}$+{type} file whit all source for environments to $imgdirpath");
-            Infoline("Moving and renaming $+{name}$+{type}");
+            # Moving and renaming temp files with source code
+            Log("Move $+{name}$+{type} file with all source for environments to $imgdirpath");
+            Infoline("Moving and renaming $+{name}$+{type} to $+{name}-all$ext");
             if ($verbose){
                 Infocolor('Running', "mv $workdir/$+{name}$+{type} $imgdirpath/$+{name}-all$ext");
             }
             else {
-                Infocolor('Running', "mv $+{name}$+{type} $opts_cmd{string}{imgdir}/$+{name}-all$ext");
+                Infocolor('Running', "mv $+{name}$+{type} ./$opts_cmd{string}{imgdir}/$+{name}-all$ext");
             }
             Logline("[perl] move($workdir/$+{name}$+{type}, $imgdirpath/$+{name}-all$ext)");
             move("$workdir/$+{name}$+{type}", "$opts_cmd{string}{imgdir}/$+{name}-all$ext")
@@ -2620,59 +2612,29 @@ if ($outfile) {
     open my $OUTfile, '>', "$opts_cmd{string}{output}$outext";
         print {$OUTfile} $out_file;
     close $OUTfile;
-    # Process <output file>
-    if (!$opts_cmd{boolean}{norun}) {
-        if ($opts_cmd{compiler}{latex}) {
-            $compiler     = 'pdflatex';
-            $msg_compiler = 'pdflatex';
-        }
-        if ($opts_cmd{compiler}{dvilua}) {
-            $compiler     = 'lualatex';
-            $msg_compiler = 'lualatex';
-        }
-        Log("Compiling the file $opts_cmd{string}{output}$outext using [$msg_compiler]");
-        print "Compiling the file $opts_cmd{string}{output}$outext using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
-        RUNOSCMD("$compiler $opt_compiler", "$opts_cmd{string}{output}$outext",'show');
-        # Compiling <output file> using dvips>ps2pdf
-        if ($opts_cmd{compiler}{dvips}) {
-            RUNOSCMD("dvips $quiet -Ppdf", "$opts_cmd{string}{output}.dvi",'show');
-            RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$opts_cmd{string}{output}.ps $opts_cmd{string}{output}.pdf", 'show');
-        }
-        # Compiling <output file> using latex>dvipdfmx
-        if ($opts_cmd{compiler}{dvipdf}) {
-            RUNOSCMD("dvipdfmx $quiet", "$opts_cmd{string}{output}.dvi", 'show');
-        }
-    }
 } # close outfile file
 
-### Compress ./images with generated files
-my $archivetar;
-if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
-    my $stamp = strftime("%Y-%m-%d", localtime);
-    $archivetar = "$opts_cmd{string}{imgdir}-$stamp";
-
-    my @savetozt;
-    find(\&zip_tar, $opts_cmd{string}{imgdir});
-    sub zip_tar{
-        my $filesto = $_;
-        if (-f $filesto && $filesto =~ m/$name-$opts_cmd{string}{prefix}-.+?$/) { # search
-            push @savetozt, $File::Find::name;
-        }
-        return;
+### Compiling <output file>
+if (!$opts_cmd{boolean}{norun} and $outfile) {
+    if ($opts_cmd{compiler}{latex}) {
+        $compiler     = 'pdflatex';
+        $msg_compiler = 'pdflatex';
     }
-    Log('The files are compress are:');
-    Logarray(\@savetozt);
-    if ($opts_cmd{boolean}{zip}) {
-        Infoline("Creating the file $archivetar.zip");
-        zip \@savetozt => "$archivetar.zip";
-        Log("The file $archivetar.zip are in $workdir");
+    if ($opts_cmd{compiler}{dvilua}) {
+        $compiler     = 'lualatex';
+        $msg_compiler = 'lualatex';
     }
-    if ($opts_cmd{boolean}{tar}) {
-        Infoline("Creating the file $archivetar.tar.gz");
-        my $imgdirtar = Archive::Tar->new();
-        $imgdirtar->add_files(@savetozt);
-        $imgdirtar->write( "$archivetar.tar.gz" , 9 );
-        Log("The file $archivetar.tar.gz are in $workdir");
+    Log("Compiling the file $opts_cmd{string}{output}$outext using [$msg_compiler]");
+    print "Compiling the file $opts_cmd{string}{output}$outext using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
+    RUNOSCMD("$compiler $opt_compiler", "$opts_cmd{string}{output}$outext",'show');
+    # Compiling <output file> using dvips>ps2pdf
+    if ($opts_cmd{compiler}{dvips}) {
+        RUNOSCMD("dvips $quiet -Ppdf", "$opts_cmd{string}{output}.dvi",'show');
+        RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$opts_cmd{string}{output}.ps $opts_cmd{string}{output}.pdf", 'show');
+    }
+    # Compiling <output file> using latex>dvipdfmx
+    if ($opts_cmd{compiler}{dvipdf}) {
+        RUNOSCMD("dvipdfmx $quiet", "$opts_cmd{string}{output}.dvi", 'show');
     }
 }
 
@@ -2748,6 +2710,39 @@ if (@deldirs) {
     Infoline("Remove temporary directories created by minted in $workdir");
     foreach my $deldirs (@deldirs) {
         remove_tree($deldirs);
+    }
+}
+
+### Compress ./images with all generated files
+my $archivetar;
+if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
+    my $stamp = strftime("%Y-%m-%d", localtime);
+    $archivetar = "$opts_cmd{string}{imgdir}-$stamp";
+
+    my @savetozt;
+    find(\&zip_tar, $opts_cmd{string}{imgdir});
+    sub zip_tar{
+        my $filesto = $_;
+        if (-f $filesto && $filesto =~ m/$name-$opts_cmd{string}{prefix}-.+?$/) { # search
+            push @savetozt, $File::Find::name;
+        }
+        return;
+    }
+    Log("The files are compress found in $imgdirpath are:");
+    Logarray(\@savetozt);
+    if ($opts_cmd{boolean}{zip}) {
+        print "Creating the file ", color('magenta'), "[$archivetar.zip]",
+        color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+        zip \@savetozt => "$archivetar.zip";
+        Log("The file $archivetar.zip are in $workdir");
+    }
+    if ($opts_cmd{boolean}{tar}) {
+        print "Creating the file ", color('magenta'), "[$archivetar.tar.gz]",
+        color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+        my $imgdirtar = Archive::Tar->new();
+        $imgdirtar->add_files(@savetozt);
+        $imgdirtar->write( "$archivetar.tar.gz" , 9 );
+        Log("The file $archivetar.tar.gz are in $workdir");
     }
 }
 
