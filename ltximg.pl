@@ -311,7 +311,7 @@ ${title}** Description
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
---luatexmk            Using latexmk for compiler output file        [off]
+--latexmk             Using latexmk for compiler output file        [off]
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
@@ -1673,29 +1673,29 @@ if (exists $plainsyntax{pgfpicture}) {
 ### Force mode for pstricks/psgraph/tikzpiture
 if ($opts_cmd{boolean}{force}) {
     if (exists $plainsyntax{pspicture} or exists $plainsyntax{psgraph}) {
-        Log('Capture \psset{...} for pstricks environments [force mode]');
+        Log('Try to capture \psset{...} for pstricks environments [force mode]');
         $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                       \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                       \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
                       \\begin\{PSTexample\}.+?\\end\{PSTexample\}(*SKIP)(*F)|
                       \\begin\{postscript\}.+?\\end\{postscript\}(*SKIP)(*F)|
-                      (?<code>
+                         (?<code>
                          (?:\\psset\{(?:\{.*?\}|[^\{])*\}.+?)?  # if exist ...save
                          \\begin\{(?<env> pspicture\*?| psgraph)\} .+? \\end\{\k<env>\}
-                      )
-                    /\\begin\{preview\}\n$+{code}\n\\end\{preview\}/gmsx;
+                         )
+                     /\\begin\{preview\}$+{code}\\end\{preview\}/gmsx;
     }
     if (exists $plainsyntax{tikzpicture}) {
-        Log('Capture \tikzset{...} for tikzpicture environments [force mode]');
+        Log('Try to capture \tikzset{...} for tikzpicture environments [force mode]');
         $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                       \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                       \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
                       \\begin\{postscript\}.+?\\end\{postscript\}(*SKIP)(*F)|
-                      (?<code>
+                        (?<code>
                         (?:\\tikzset\{(?:\{.*?\}|[^\{])*\}.+?)?  # if exist ...save
                         \\begin\{(?<env> tikzpicture)\} .+? \\end\{\k<env>\}
-                      )
-                    /\\begin\{preview\}\n$+{code}\n\\end\{preview\}/gmsx;
+                        )
+                     /\\begin\{preview\}\n$+{code}\n\\end\{preview\}/gmsx;
     }
 }
 
@@ -2197,7 +2197,7 @@ opendir (my $DIR, $workdir);
                 RUNOSCMD("$compiler $opt_compiler","$+{name}$+{type}",'show');
             }
             # Compiling file using latex>dvips>ps2pdf
-            if ($compiler eq 'dvips' or $compiler eq 'latex' or $compiler eq 'dvilua') {
+            if ($compiler eq 'dvips' or $compiler eq 'latex' or $compiler eq 'dvilualatex') {
                 RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi",'show');
                 RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf",'show');
             }
@@ -2612,18 +2612,42 @@ if ($outfile) {
     open my $OUTfile, '>', "$opts_cmd{string}{output}$outext";
         print {$OUTfile} $out_file;
     close $OUTfile;
-} # close outfile file
+}
+
+
+### Set compiler for process <output file>
+$compiler = $opts_cmd{compiler}{xetex}   ? 'xelatex'
+          : $opts_cmd{compiler}{luatex}  ? 'lualatex'
+          : $opts_cmd{compiler}{dvips}   ? 'latex'
+          : $opts_cmd{compiler}{dvilua}  ? 'lualatex'
+          : $opts_cmd{compiler}{dvipdf}  ? 'latex'
+          : $opts_cmd{compiler}{arara}   ? 'arara'
+          : $opts_cmd{compiler}{latexmk} ? 'latexmk'
+          :                                'pdflatex'
+          ;
+
+### Set options for latexmk
+my $ltxmkopt = $opts_cmd{compiler}{xetex}  ? "-pdfxe -silent -xelatex=\"xelatex $write18 -recorder %O %S\""
+             : $opts_cmd{compiler}{luatex} ? "-pdflua -silent -lualatex=\"lualatex $write18 -recorder %O %S\""
+             : $opts_cmd{compiler}{dvilua} ? "-pdflua -silent -lualatex=\"lualatex $write18 -recorder %O %S\""
+             : $opts_cmd{compiler}{dvips}  ? "-pdfps -silent -latex=\"latex $write18 -recorder %O %S\""
+             : $opts_cmd{compiler}{dvipdf} ? "-pdfdvi -silent -latex=\"latex $write18 -recorder %O %S\""
+             :                               "-pdf -silent -pdflatex=\"pdflatex $write18 -recorder %O %S\""
+             ;
+
+### Set options for compiler <output file>
+$opt_compiler = $opts_cmd{compiler}{arara}   ? '--log'
+              : $opts_cmd{compiler}{latexmk} ? "$ltxmkopt"
+              :                                "$write18 -interaction=nonstopmode -recorder"
+              ;
+
+### Now set latexmk
+if ($opts_cmd{compiler}{latexmk}) {
+    $compiler = $msg_compiler = 'latexmk';
+}
 
 ### Compiling <output file>
 if (!$opts_cmd{boolean}{norun} and $outfile) {
-    if ($opts_cmd{compiler}{latex}) {
-        $compiler     = 'pdflatex';
-        $msg_compiler = 'pdflatex';
-    }
-    if ($opts_cmd{compiler}{dvilua}) {
-        $compiler     = 'lualatex';
-        $msg_compiler = 'lualatex';
-    }
     Log("Compiling the file $opts_cmd{string}{output}$outext using [$msg_compiler]");
     print "Compiling the file $opts_cmd{string}{output}$outext using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
     RUNOSCMD("$compiler $opt_compiler", "$opts_cmd{string}{output}$outext",'show');
