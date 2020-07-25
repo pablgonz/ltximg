@@ -735,7 +735,7 @@ if (grep /(^\-|^\.).*?/, @delt_env_tmp) {
 
 ### Default environment to extract
 my @extr_tmp = qw (
-    postscript tikzpicture pgfpicture pspicture psgraph PSTexample
+    preview postscript tikzpicture pgfpicture pspicture psgraph PSTexample
     );
 push @extr_env_tmp, @extr_tmp;
 
@@ -970,11 +970,11 @@ if ($opts_cmd{boolean}{srcenv} && $opts_cmd{boolean}{subenv}) {
 ### If --srcenv or --subenv option are OK activate write sub files
 if ($opts_cmd{boolean}{srcenv}) {
     $outsrc = 1;
-    $opts_cmd{boolean}{subenv} = 0;
+    $opts_cmd{boolean}{subenv} = undef;
 }
 if ($opts_cmd{boolean}{subenv}) {
     $outsrc = 1;
-    $opts_cmd{boolean}{srcenv} = 0;
+    $opts_cmd{boolean}{srcenv} = undef;
 }
 
 ### Add pdf image format if --nopdf
@@ -1069,26 +1069,31 @@ if (defined $opts_cmd{string}{output}) {
 }
 
 ### Storing the current options of script in array for log file
-foreach my $key (keys %{$opts_cmd{boolean}}) {
-    if (defined $opts_cmd{boolean}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{compiler}}) {
-    if (defined $opts_cmd{compiler}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{image}}) {
-    if (defined $opts_cmd{image}{$key}) { push @currentopt, "--$key"; }
-}
-foreach my $key (keys %{$opts_cmd{string}}) {
-    if (defined $opts_cmd{string}{$key}) { push @currentopt, "--$key=$opts_cmd{string}{$key}"; }
+my @allopt = qw(arara xetex luatex latex dvips dvipdf dvilua latexmk
+    nopdf norun nocrop srcenv subenv zip tar gray force
+    noprew eps ppm svg png jpg bmp tif dpi myverb margins
+    prefix imgdir output runs
+    );
+
+for my $opt (@allopt) {
+    if (defined $opts_cmd{boolean}{$opt}) {
+        push @currentopt, "--$opt";
+    }
+    if (defined $opts_cmd{compiler}{$opt}) {
+        push @currentopt, "--$opt";
+    }
+    if (defined $opts_cmd{image}{$opt}) {
+        push @currentopt, "--$opt";
+    }
+    if (defined $opts_cmd{string}{$opt}) {
+        push @currentopt, "--$opt=$opts_cmd{string}{$opt}"
+    }
 }
 
-### Remove --pdf (not real option)
-@currentopt = grep !/--pdf/, @currentopt;
-my @sorted_words = sort { length $a <=> length $b } @currentopt;
-
-### Write all options in log file
+### Write all options in ltximg.log file
+@currentopt = sort { length $a <=> length $b } @currentopt;
 Log('The script will execute the following options:');
-Logarray(\@sorted_words);
+Logarray(\@currentopt);
 
 ### Rules to capture for regex
 my $braces      = qr/ (?:\{)(.+?)(?:\}) /msx;
@@ -1418,7 +1423,7 @@ my $verb_wrt = qr {
 
 ### An array with all environments to extract
 @extr_env_tmp = grep !/document/, @extr_env_tmp;
-my @extract_env = qw(preview nopreview);
+my @extract_env = qw(nopreview);
 push @extract_env,@extr_env_tmp;
 
 ### Some oprations
@@ -1709,6 +1714,7 @@ Log('Pass skip environments to \begin{nopreview} ... \end{nopreview}');
 $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
               \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
               \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
+              \\begin\{PSTexample\}.+?\\end\{PSTexample\}(*SKIP)(*F)|
               ($skip_env)/\\begin\{nopreview\}$1\\end\{nopreview\}/gmsx;
 
 ### Pass all captured environments in body \begin{preview} ... \end{preview}
@@ -2815,18 +2821,30 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
     Log("The files are compress found in $imgdirpath are:");
     Logarray(\@savetozt);
     if ($opts_cmd{boolean}{zip}) {
-        print "Creating the file ", color('magenta'), "[$archivetar.zip]",
-        color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+        if (-e "$archivetar.zip") {
+            Infocolor('Warning', "The file [$archivetar.zip] already exists and will be rewritten");
+            Log("Rewriting the file $archivetar.zip in $workdir");
+        }
+        else{
+            print "Creating the file ", color('magenta'), "[$archivetar.zip]",
+            color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+            Log("Writen the file $archivetar.tar.gz in $workdir");
+        }
         zip \@savetozt => "$archivetar.zip";
-        Log("The file $archivetar.zip are in $workdir");
     }
     if ($opts_cmd{boolean}{tar}) {
-        print "Creating the file ", color('magenta'), "[$archivetar.tar.gz]",
-        color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+        if (-e "$archivetar.tar.gz") {
+            Infocolor('Warning', "The file [$archivetar.tar.gz] already exists and will be rewritten");
+            Log("Rewriting the file $archivetar.tar.gz in $workdir");
+        }
+        else{
+            print "Creating the file ", color('magenta'), "[$archivetar.tar.gz]",
+            color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
+            Log("Writen the file $archivetar.tar.gz in $workdir");
+        }
         my $imgdirtar = Archive::Tar->new();
         $imgdirtar->add_files(@savetozt);
         $imgdirtar->write( "$archivetar.tar.gz" , 9 );
-        Log("The file $archivetar.tar.gz are in $workdir");
     }
 }
 
