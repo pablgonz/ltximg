@@ -38,11 +38,11 @@ my $tempDir = tempdir( CLEANUP => 1);
 my $workdir = cwd;
 
 ### Script identification
-my $scriptname = 'ltximg';
-my $program    = 'LTXimg';
-my $nv         = 'v1.8';
-my $date       = '2020-07-24';
-my $copyright  = <<"END_COPYRIGHT" ;
+our $scriptname = 'ltximg';
+our $program    = 'LTXimg';
+our $nv         = 'v1.8';
+our $date       = '2020-07-25';
+our $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
@@ -1214,7 +1214,7 @@ if (@mint_cline) {
 }
 
 ### Add standart mint, mintinline and lstinline
-my @mint_tmp = qw(mint  mintinline lstinline);
+my @mint_tmp = qw(mint mintinline lstinline);
 
 ### Join all inline verbatim macros captured
 push @mintline, @mint_tmp;
@@ -1417,10 +1417,15 @@ my $verb_wrt = qr {
                   }x;
 
 ### An array with all environments to extract
-my @extract_env = qw (preview nopreview);
+@extr_env_tmp = grep !/document/, @extr_env_tmp;
+my @extract_env = qw(preview nopreview);
 push @extract_env,@extr_env_tmp;
+
+### Some oprations
 @extract_env = array_minus(@extract_env, @skip_env_tmp);
 @extract_env = uniq(@extract_env);
+
+### Hash for regex
 my %extract_env = crearhash(@extract_env);
 
 Log('The environments that will be searched for extraction:');
@@ -1503,7 +1508,7 @@ my $skip_env = qr {
 # that's done in a second pass.                                        #
 ########################################################################
 
-Log('Making changes to verbatim/verbatim write environments before extraction');
+Log('Making changes to verbatim and verbatim write environments before extraction');
 
 ### First, revert %<*TAGS> to %<*tags> in all document
 my $ltxtags = join q{|}, map { quotemeta } sort { length $a <=> length $b } keys %reverse_tag;
@@ -1563,7 +1568,7 @@ if (@tag_noextract) {
 ########################################################################
 # We now make the real changes for environment extraction. Since we    #
 # don't know what kind of environments are passed, need to redefine    #
-# the environments to make the changes.                                #
+# all regex to make the changes.                                       #
 ########################################################################
 
 my @new_verb_tmp = array_minus(@verbatim, @extract_env);
@@ -1617,27 +1622,28 @@ while ($bodydoc =~ /$verb_wrt | $verb_std /pgmx) {
     pos ($bodydoc) = $pos_inicial + length $encontrado;
 }
 
+### Now put a internal dtxmark in no extraction/replace environments
 Log("Pass verbatim write environments to %<*$dtxverb> ... %</$dtxverb>");
 $bodydoc  =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
-               ($verb_wrt)/\%<\*$dtxverb>\n$1\n\%<\/$dtxverb>/gmsx;
+               ($verb_wrt)/\%<\*$dtxverb>$1\%<\/$dtxverb>/gmsx;
 $preamble =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
-               ($verb_wrt)/\%<\*$dtxverb>\n$1\n\%<\/$dtxverb>/gmsx;
+               ($verb_wrt)/\%<\*$dtxverb>$1\%<\/$dtxverb>/gmsx;
 
 Log("Pass verbatim environments to %<*$dtxverb> ... %</$dtxverb>");
 $bodydoc  =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
-               ($verb_std)/\%<\*$dtxverb>\n$1\n\%<\/$dtxverb>/gmsx;
+               ($verb_std)/\%<\*$dtxverb>$1\%<\/$dtxverb>/gmsx;
 $preamble =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
-               ($verb_std)/\%<\*$dtxverb>\n$1\n\%<\/$dtxverb>/gmsx;
+               ($verb_std)/\%<\*$dtxverb>$1\%<\/$dtxverb>/gmsx;
 
 ### Check plain TeX syntax
 my %plainsyntax = map { $_ => 1 } @extract_env; # anon hash
 
 if (exists $plainsyntax{pspicture}) {
-    Log('Convert plain \pspicture to LaTeX syntax');
+    Log('Convert plain \pspicture to LaTeX syntax [skip in PSTexample]');
     $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                   \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
@@ -1646,7 +1652,7 @@ if (exists $plainsyntax{pspicture}) {
 }
 
 if (exists $plainsyntax{psgraph}) {
-    Log('Convert plain \psgraph to LaTeX syntax');
+    Log('Convert plain \psgraph to LaTeX syntax [skip in PSTexample]');
     $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                   \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
@@ -1656,17 +1662,17 @@ if (exists $plainsyntax{psgraph}) {
 
 if (exists $plainsyntax{tikzpicture}) {
     Log('Convert plain \tikzpicture to LaTeX syntax');
-    $bodydoc =~ s/ \%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
-                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
-                   \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
+    $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+                  \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
+                  \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
     \\tikzpicture(.+?)\\endtikzpicture/\\begin{tikzpicture}$1\\end{tikzpicture}/gmsx;
 }
 
 if (exists $plainsyntax{pgfpicture}) {
     Log('Convert plain \pgfpicture to LaTeX syntax');
-    $bodydoc =~ s/ \%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
-                   \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
-                   \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
+    $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+                  \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
+                  \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
     \\pgfpicture(.+?)\\endpgfpicture/\\begin{pgfpicture}$1\\end{pgfpicture}/gmsx;
 }
 
@@ -1695,19 +1701,22 @@ if ($opts_cmd{boolean}{force}) {
                         (?:\\tikzset\{(?:\{.*?\}|[^\{])*\}.+?)?  # if exist ...save
                         \\begin\{(?<env> tikzpicture)\} .+? \\end\{\k<env>\}
                         )
-                     /\\begin\{preview\}\n$+{code}\n\\end\{preview\}/gmsx;
+                     /\\begin\{preview\}$+{code}\\end\{preview\}/gmsx;
     }
 }
 
 Log('Pass skip environments to \begin{nopreview} ... \end{nopreview}');
-$bodydoc =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
-              ($skip_env)/\\begin\{nopreview\}\n$1\n\\end\{nopreview\}\n/gmsx;
+$bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+              \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
+              \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
+              ($skip_env)/\\begin\{nopreview\}$1\\end\{nopreview\}/gmsx;
 
 ### Pass all captured environments in body \begin{preview} ... \end{preview}
 Log('Pass all captured environments to \begin{preview} ... \end{preview}');
-$bodydoc =~ s/\\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
+$bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+              \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
               \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
-              ($extr_tmp)/\\begin\{preview\}\n$1\n\\end\{preview\}/gmsx;
+              ($extr_tmp)/\\begin\{preview\}$1\\end\{preview\}/gmsx;
 
 ########################################################################
 #  All environments are now classified:                                #
@@ -1731,7 +1740,7 @@ $preamble =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
 $bodydoc =~ s/\\begin\{((no)?preview)\}/\\START\{$1\}/gmsx;
 $bodydoc =~ s/\\end\{((no)?preview)\}/\\STOP\{$1\}/gmsx;
 
-### We restore the changes in body
+### We restore the changes of all environments in body
 my @lineas = split /\n/, $bodydoc;
 my $NEWDEL;
 for (@lineas) {
@@ -1746,7 +1755,7 @@ for (@lineas) {
 }
 $bodydoc = join "\n", @lineas;
 
-### We restore the changes in preamble
+### We restore the changes of all environments in preamble
 while ($preamble =~ /\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/pgmsx) {
     %cambios = (%changes_out);
     my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
@@ -1758,17 +1767,34 @@ while ($preamble =~ /\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/pgmsx) {
     pos ($preamble) = $pos_inicial + length $encontrado;
 }
 
-### We put back the environments and tags with a special mark :)
-$bodydoc  =~ s/\\START\{((no)?preview)\}/\\begin\{$1\}\%$tmp/gmsx;
-$bodydoc  =~ s/\\STOP\{((no)?preview)\}/\\end\{$1\}\%$tmp/gmsx;
-$bodydoc  =~ s/($ltxtags)/$reverse_tag{$1}/gmsx;
-$preamble =~ s/($ltxtags)/$reverse_tag{$1}/gmsx;
+### Set wraped environments for extraction
+my $wrapping = "$scriptname$tmp";
+Log("Set up the environment [$wrapping] to encapsulate the extraction");
 
-### First search PSTexample environment for extract
+### Set vars for match/regex
+my $BP = "\\\\begin\{$wrapping\}";
+my $EP = "\\\\end\{$wrapping\}";
 my $BE = '\\\\begin\{PSTexample\}';
 my $EE = '\\\\end\{PSTexample\}';
 
-my @exa_extract = $bodydoc =~ m/(?:\\begin\{preview\}%$tmp\n)(\\begin\{PSTexample\}.+?\\end\{PSTexample\})/gmsx;
+### Wrap environments for extraction
+Log("Pass all captured environments to \\begin{$wrapping} ... \\end{$wrapping}");
+$bodydoc =~ s/\\START\{preview\}
+                (?<code>.+? )
+              \\STOP\{preview\}
+             /\\begin\{$wrapping\}$+{code}\\end\{$wrapping\}/gmsx;
+
+$bodydoc =~ s/\\START\{nopreview\}
+                (?<code>.+? )
+              \\STOP\{nopreview\}
+             /\\begin\{nopreview\}\%$tmp$+{code}\\end\{nopreview\}\%$tmp/gmsx;
+
+### We put back ltximg tags :)
+$bodydoc  =~ s/($ltxtags)/$reverse_tag{$1}/gmsx;
+$preamble =~ s/($ltxtags)/$reverse_tag{$1}/gmsx;
+
+### First search PSTexample environments for extract
+my @exa_extract = $bodydoc =~ m/(?:\\begin\{$wrapping\})($BE.+?$EE)(?:\\end\{$wrapping\})/gmsx;
 my $exaNo = scalar @exa_extract;
 
 ### Set vars for log and print in terminal
@@ -1788,7 +1814,7 @@ if ($exaNo!=0) {
     # Add [graphic={[...]...}] to \begin{PSTexample}[...]
     Log('Append [graphic={[...]...}] to \begin{PSTexample}[...]');
     $figNo = 1;
-    while ($bodydoc =~ /\\begin\{preview\}%$tmp\n\\begin\{PSTexample\}(\[.+?\])?/gsm) {
+    while ($bodydoc =~ /\\begin\{$wrapping\}(\s*)?\\begin\{PSTexample\}(\[.+?\])?/gsm) {
         my $swpl_grap = "graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa";
         my $corchetes = $1;
         my ($pos_inicial, $pos_final) = ($-[1], $+[1]);
@@ -1802,16 +1828,13 @@ if ($exaNo!=0) {
     }
     continue { $figNo++; }
     Log('Pass PSTexample environments to \begin{nopreview} ... \end{nopreview}');
-    $bodydoc =~ s/\\begin\{preview\}%$tmp\n
+    $bodydoc =~ s/\\begin\{$wrapping\}
                     (?<code>\\begin\{PSTexample\} .+? \\end\{PSTexample\})
-                  \n\\end\{preview\}%$tmp
-                 /\\begin\{nopreview\}%$tmp\n$+{code}\n\\end\{nopreview\}%$tmp/gmsx;
+                  \\end\{$wrapping\}
+                 /\\begin\{nopreview\}\%$tmp$+{code}\\end\{nopreview\}\%$tmp/gmsx;
 }
 
-### Second search standart environment for extract
-my $BP = "\\\\begin\{preview\}%$tmp";
-my $EP = "\\\\end\{preview\}%$tmp";
-
+### Second search standart environments for extract
 my @env_extract = $bodydoc =~ m/(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
@@ -1823,11 +1846,11 @@ my $fileSTD = $envNo > 1 ? 'files' : 'file';
 if ($envNo!=0) {
     $STDenv = 1;
     Log("Found $envNo $envSTD in $name$ext");
-    my $fig = 1;
-    for my $item (@exa_extract) {
-        Logline("%##### PSTexample environment captured number $fig ######%");
+    my $figNo = 1;
+    for my $item (@env_extract) {
+        Logline("%##### Standard environment captured number $figNo ######%");
         Logline($item);
-        $fig++;
+        $figNo++;
     }
 }
 
@@ -2007,14 +2030,13 @@ else {
     $preamout = $preamout."\\pagestyle\{empty\}\n";
 }
 
-#### Remove wraped postscript environments (pst-pdf, auto-pst-pdf, auto-pst-pdf-lua)
-Log('Convert postscript environments to \begin{preview} ... \end{preview} for standalone files');
-$tmpbodydoc =~ s/(?:$BP)(?:\n\\begin\{postscript\})(?:\s*\[ [^]]*? \])?
+#### Remove wraped postscript environments provide by pst-pdf, auto-pst-pdf, auto-pst-pdf-lua pkgs
+Log("Convert postscript environments to \\begin\{$wrapping\} ... \\end\{$wrapping\} for standalone files");
+$tmpbodydoc =~ s/(?:$BP)(?:\\begin\{postscript\})(?:\s*\[ [^]]*? \])?
                  (?<code>.+?)
-                 (?:\\end\{postscript\}\n)
+                 (?:\\end\{postscript\})
                  (?:$EP)
-               /\\begin\{preview\}%$tmp$+{code}\\end\{preview\}%$tmp/gmsx;
-
+                /\\begin\{$wrapping\}$+{code}\\end\{$wrapping\}/gmsx;
 
 ### We created a preamble for the individual files
 my $sub_prea = "$atbeginout$preamout".'\begin{document}';
@@ -2096,9 +2118,36 @@ my $pstpdfpkg = <<'EXTRA';
 \RequirePackage[inactive]{pst-pdf}}%
 EXTRA
 
-### Remove %<*$dtxverb> ... %</$dtxverb> in bodyout and preamout
-$tmpbodydoc =~ s/\%<\*$dtxverb>\s*(.+?)\s*\%<\/$dtxverb>/$1/gmsx;
-$preamout   =~ s/\%<\*$dtxverb>\s*(.+?)\s*\%<\/$dtxverb>/$1/gmsx;
+### First match preview package in preamble (prevent option clash)
+my $REQPACK   = quotemeta'\RequirePackage';
+my $USEPACK   = quotemeta'\usepackage';
+my $CORCHETES = qr/\[ [^]]*? \]/x;
+
+my $PALABRAS = qr/\b (?: preview )/x;
+my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
+
+Log('Remove preview package (if found) in preamble [memory]');
+$preamout =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+               ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
+$preamout =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+               (?: ^ $USEPACK \{ | \G) [^}]*? \K (,?) \s* $PALABRAS (\s*) (,?) /$1 and $3 ? ',' : $1 ? $2 : ''/gemsx;
+$preamout =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
+
+### Remove %<*$dtxverb> ... %</$dtxverb> in tmpbodydoc and preamout
+$tmpbodydoc =~ s/\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/$1/gmsx;
+$preamout   =~ s/\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/$1/gmsx;
+
+### Adjust nopreview environments
+$tmpbodydoc =~ s/\\begin\{nopreview\}\%$tmp
+                    (?<code> .+?)
+                  \\end\{nopreview\}\%$tmp
+                /\\begin\{nopreview\}\n$+{code}\n\\end\{nopreview\}\n/gmsx;
+
+### Adjust $wrapping environments (need for some environments, like a Verbatim)
+$tmpbodydoc =~ s/\\begin\{$wrapping\}
+                    (?<code>.+?)
+                  \\end\{$wrapping\}
+                /\\begin\{$wrapping\}\n$+{code}\n\\end\{$wrapping\}/gmsx;
 
 ### Reverse changes for temporary file with all env (no in -exa file)
 $tmpbodydoc =~ s/($find)/$replace{$1}/g;
@@ -2114,16 +2163,30 @@ $sub_prea = $opts_cmd{boolean}{noprew} ? "$atbeginout$pstpdfpkg$preamout".'\begi
 
 ### Create a one file with "all" PSTexample environments extracted
 if ($PSTexa) {
-    Infoline("Creating $name-$opts_cmd{string}{prefix}-exa-$tmp$ext with $exaNo $envEXA extracted");
     @exa_extract = undef;
     Log("Adding packages to $name-$opts_cmd{string}{prefix}-exa-$tmp$ext");
     Logline($pstpdfpkg);
+    Log('Convert plain Tex syntax for pspicture and psgraph to LaTeX syntax in PSTexample environments');
+    while ($tmpbodydoc =~ m/$BE\[.+? $opts_cmd{string}{imgdir}\/.+?-\d+\}\] .+?$EE/pgsmx ) { # search
+        my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
+        my $encontrado = ${^MATCH};
+        $encontrado =~ s/\\pspicture(\*)?(.+?)\\endpspicture/\\begin\{pspicture$1\}$2\\end\{pspicture$1\}/gmsx;
+        $encontrado =~ s/\\psgraph(\*)?(.+?)\\endpsgraph/\\begin\{psgraph$1\}$2\\end\{psgraph$1\}/gmsx;
+        substr $tmpbodydoc, $pos_inicial, $pos_final-$pos_inicial, $encontrado;
+        pos ($tmpbodydoc) = $pos_inicial + length $encontrado;
+    }
+    # Write files
+    Infoline("Creating $name-$opts_cmd{string}{prefix}-exa-$tmp$ext with $exaNo $envEXA extracted");
     while ($tmpbodydoc =~ m/$BE\[.+? $opts_cmd{string}{imgdir}\/.+?-\d+\}\](?<exa_src>.+?)$EE/gmsx ) { # search
         push @exa_extract, $+{'exa_src'}."\\newpage\n";
         open my $allexaenv, '>', "$name-$opts_cmd{string}{prefix}-exa-$tmp$ext";
             print {$allexaenv} "$atbeginout$pstpdfpkg$preamout".'\begin{document}'."@exa_extract"."\\end\{document\}";
         close $allexaenv;
     }
+    # Remove [graphic={...}] in PSTexample example environments
+    $tmpbodydoc =~ s/($BE)(?:\[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\])/$1/gmsx;
+    $tmpbodydoc =~ s/($BE\[.+?)(?:,graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\})(\])/$1$2/gmsx;
+    # Moving and renaming
     if ($opts_cmd{boolean}{norun}) {
         Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to $name-$opts_cmd{string}{prefix}-exa-all$ext");
         if ($verbose) {
@@ -2137,10 +2200,6 @@ if ($PSTexa) {
         or die "* Error!!: Couldn't be renamed $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to ./$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext";
     }
 }
-
-### Remove \begin{PSTexample}[graphic={...}]
-$tmpbodydoc =~ s/($BE)(?:\[graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\}\])/$1/gmsx;
-$tmpbodydoc =~ s/($BE\[.+?)(?:,graphic=\{\[scale=1\]$opts_cmd{string}{imgdir}\/.+?-\d+\})(\])/$1$2/gmsx;
 
 ### Create a one file with "all" standard environments extracted
 if ($STDenv) {
@@ -2157,7 +2216,7 @@ if ($STDenv) {
     open my $allstdenv, '>', "$name-$opts_cmd{string}{prefix}-$tmp$ext";
         if ($opts_cmd{boolean}{noprew}) {
             my @env_extract;
-            while ($tmpbodydoc =~ m/(?:\\begin\{preview\})(?<env_src>.+?)(?:\\end\{preview\})/gms) {
+            while ($tmpbodydoc =~ m/(?:$BP)(?<env_src>.+?)(?:$EP)/gms) {
                 push @env_extract, $+{'env_src'}."\\newpage\n";
             }
             Log("Adding packages to $name-$opts_cmd{string}{prefix}-$tmp$ext");
@@ -2167,6 +2226,10 @@ if ($STDenv) {
         else {
             Log("Adding packages to $name-$opts_cmd{string}{prefix}-$tmp$ext");
             Logline($previewpkg);
+            Log("Convert $wrapping to preview environments in $name-$opts_cmd{string}{prefix}-$tmp$ext");
+            # Convert $wrapping to preview environments
+            $tmpbodydoc =~ s/\\begin\{$wrapping\}(?<code>.+?)\\end\{$wrapping\}
+                            /\\begin\{preview\}$+{code}\\end\{preview\}\n/gmsx;
             print {$allstdenv} $sub_prea.$tmpbodydoc."\n\\end{document}";
         }
     close $allstdenv;
@@ -2311,8 +2374,6 @@ if (!$opts_cmd{boolean}{norun}) {
 } # close run
 
 ### Constant
-my $USEPACK   = quotemeta'\usepackage';
-my $CORCHETES = qr/\[ [^]]*? \]/x;
 my $findgraphicx = 'true';
 
 ### pst-exa package
@@ -2478,8 +2539,8 @@ if ($findgraphicx eq 'true' and $outfile) {
 }
 
 ### Regex for clean file (pst) in preamble
-my $PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add | -pdf )? | psfrag |psgo |vaucanson-g| auto-pst-pdf(?: -lua )? )/x;
-my $FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
+$PALABRAS = qr/\b (?: pst-\w+ | pstricks (?: -add | -pdf )? | psfrag |psgo |vaucanson-g| auto-pst-pdf(?: -lua )? )/x;
+$FAMILIA  = qr/\{ \s* $PALABRAS (?: \s* [,] \s* $PALABRAS )* \s* \}(\%*)?/x;
 
 if ($clean{pst}) {
     Log("Remove pstricks packages in preamble for $opts_cmd{string}{output}$outext");
@@ -2589,7 +2650,7 @@ if ($outfile) {
                        \\tikzset\{(?:\{.*?\}|[^\{])*\}(?:[\t ]*(?:\r?\n|\r))?+//gmsx;
     }
     # Revert all changes in outfile
-    $out_file =~ s/\\begin\{nopreview\}%$tmp\s*(.+?)\s*\\end\{nopreview\}%$tmp/$1/gmsx;
+    $out_file =~ s/\\begin\{nopreview\}\%$tmp\s*(.+?)\s*\\end\{nopreview\}\%$tmp/$1/gmsx;
     my @tag_remove_outfile = $out_file =~ m/(?:^\%<\*remove$tmp>.+?\%<\/remove$tmp>)/gmsx;
     if (@tag_remove_outfile) {
         Log("Removing the content between <*remove> ... </remove> tags in all $opts_cmd{string}{output}$outext");
@@ -2613,7 +2674,6 @@ if ($outfile) {
         print {$OUTfile} $out_file;
     close $OUTfile;
 }
-
 
 ### Set compiler for process <output file>
 $compiler = $opts_cmd{compiler}{xetex}   ? 'xelatex'
