@@ -72,13 +72,13 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
                       Create output file                            [off]
 --imgdir <dirname>    Set name of directory to save images/files    [images]
 --prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\\macroname" to verbatim inline search   [myverb]
+--myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
 --clean (doc|pst|tkz|all|off)
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
---srcenv              Create files with only code environment       [off]
---subenv              Create files with preamble and code           [off]
+--srcenv              Create files with only code of environments   [off]
+--subenv              Create standalone files for environments      [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
@@ -90,7 +90,7 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 --arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
---latexmk             Using latexmk for compiler output             [off]
+--latexmk             Using latexmk for compiler output file        [off]
 --nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
@@ -104,15 +104,14 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 ## Example
 
 ```
-$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
-$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx  test-in.ltx
+$ ltximg --latex -e -p --subenv --imgdir=mypics -o test-out test-in.ltx
+$ ltximg --latex -ep --subenv --imgdir mypics -o test-out.ltx test-in.ltx
 ```
 
 Create a `./mypics` directory (if it doesn’t exist) with all extracted environments
-converted to individual files (`.pdf`, `.eps`, `.png`, `.ltx`), a file `test-out.ltx`
-with all environments converted to `\includegraphics` and file `test-in-fig-all.ltx` with only the extracted environments using
-`latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex`
-for `<output file>`.
+converted to images (`.pdf`, `.eps`, `.png`) and _standalone_ files (`.ltx`), a file `test-in-fig-all.ltx`
+with only the extracted environments and the file `test-out.ltx` with all environments converted to `\includegraphics`
+using `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex` for `<output file>`.
 
 ## Documentation
 

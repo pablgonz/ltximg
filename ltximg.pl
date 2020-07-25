@@ -298,8 +298,8 @@ ${title}** Description
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
---srcenv              Create files with only code environment       [off]
---subenv              Create files with preamble and code           [off]
+--srcenv              Create files with only code of environments   [off]
+--subenv              Create standalone files for environments      [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
@@ -322,15 +322,15 @@ ${title}** Description
 --deltenv <env1,...>  Delete environments in output file            [empty]
 
 ** Examples
-\$ ltximg --latex -e -p --srcenv --imgdir=mypics -o test-out test-in.ltx
-\$ ltximg --latex -ep --srcenv --imgdir mypics -o test-out.ltx test-in.ltx
+\$ ltximg --latex -e -p --subenv --imgdir=mypics -o test-out test-in.ltx
+\$ ltximg --latex -ep --subenv --imgdir mypics -o test-out.ltx test-in.ltx
 
    Create a "./mypics" directory (if it doesn't exist) with all extracted
-   environments converted to individual files (.pdf, .eps, .png, .ltx), a
-   file "test-in-fig-all.ltx" with all extracted environments and the file
-   "test-out.ltx" with all environments converted to \\includegraphics using
-   latex>dvips>ps2pdf and preview package for <input file> and pdflatex for
-   <output file>.
+   environments converted to images (.pdf, .eps, .png) and standalone files
+   (.ltx), a file "test-in-fig-all.ltx" with all extracted environments and
+   the file "test-out.ltx" with all environments converted to \\includegraphics
+   using latex>dvips>ps2pdf and preview package for <input file> and pdflatex
+   for <output file>.
 
 ** Documentation
 For full documentation use:
