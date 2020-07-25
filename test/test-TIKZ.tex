@@ -1,0 +1,94 @@
+% arara: xelatex: { shell: yes, options: [-recorder] }
+% arara: clean: { extensions : [ log ] }
+% !arara: clean: { extensions : [ aux, log, out, ps, dvi,listing] }
+\documentclass{article}
+\begin{filecontents*}{images/temp.tex}
+graphicx
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\begin{tikzpicture}
+\end{filecontents*}
+\usepackage{tikz} % {graphicx}
+\usepackage{minted} % \tikzpicture
+% \end{tikzpicture}
+
+\begin{document}
+
+\begin{filecontents*}{images/temp2.tex}
+Hola
+\end{filecontents*}
+
+
+% \usepackage{graphicx}
+                                                     %\begin{tikzpicture}
+A test whit %\begin{tikzpicture} A test
+\begin{minted}{python}
+import numpy as np
+
+def incmatrix(genl1,genl2):
+    m = len(genl1)
+    n = len(genl2)
+    M = None #to become the incidence matrix
+    VT = np.zeros((n*m,1), int)  #dummy variable
+
+    #compute the bitwise xor matrix
+    M1 = bitxormatrix(genl1)
+    M2 = np.triu(bitxormatrix(genl2),1)
+
+    for i in range(m-1):
+        for j in range(i+1, m):
+            [r,c] = np.where(M2 == M1[i,j])
+            for k in range(len(r)):
+                VT[(i)*n + r[k]] = 1;
+                VT[(i)*n + c[k]] = 1;
+                VT[(j)*n + r[k]] = 1;
+                VT[(j)*n + c[k]] = 1;
+
+                if M is None:
+                    M = np.copy(VT)
+                else:
+                    M = np.concatenate((M, VT), 1)
+
+                VT = np.zeros((n*m,1), int)
+
+    return M
+\end{minted}
+
+Probando el paquete \verb|tikz| junto al entorno \verb|\begin{tikzpicture}| % \begin{tikzpicture}
+
+% Fig 1
+\begin{tikzpicture}
+  \path[fill,draw] (0,0) rectangle (2,1);
+\end{tikzpicture}
+
+
+verbatim
+\begin{verbatim}
+% \begin{tikzpicture}
+\begin{tikzpicture}
+\draw (0,0) -- (1,0);
+\draw (0,0) -- (0,1);
+\end{tikzpicture}
+\end{verbatim}
+
+% Fig 2
+\begin{tikzpicture}
+  \path[shade,top color=yellow!80!black,
+        bottom color=white,draw] (0,0) rectangle (2,1);
+\end{tikzpicture}
+
+No tocar \verb|\begin{preview}| junto a \verb|\end{preview}| y no reemplazar
+van algunas linea
+%<*remove>
+Texto al final del archivo
+%</remove>
+siguen mas lineas
+fin documento
+\end{document}
+
+After end document
+\begin{tikzpicture}
+\draw[-{latex[red,scale=2.0]}] (0,0) -- (1,0)  node [right] {$x$};
+\draw[-{latex[red,scale=2.0]}] (0,0) -- (0,1)  node [above] {$y$};
+\draw[->,evaluate={\r1=2;}] (0,0) -- (30:\r1) node [pos=1.1]  {$v$};
+\end{tikzpicture}

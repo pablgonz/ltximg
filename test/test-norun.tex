@@ -1,0 +1,185 @@
+\documentclass{article}
+\usepackage{minted}
+\usepackage{pstricks-add}
+\usepackage{auto-pst-pdf}
+\usepackage{scontents}
+\usepackage{tcolorbox}
+\newenvsc{muakGGGGGGc}
+\DefineVerbatimEnvironment{MyVerbatim}
+\newtcblisting[opcional]{mytcbliting}
+\NewTCBListing[
+			opcion
+			]{
+			opcionaluno
+			}
+\begin{document}
+
+\SaveVerb{Verb}|\begin{postscript}| and \SaveVerb[many]{Verb}|\begin{postscript}|
+
+\begin{other}
+Te c cood d wqee
+\end{other}
+
+% Se convierte EXTRAIDO-fig-1
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se convierte
+\end{pspicture}
+\end{postscript}
+
+
+\begin{opcionaluno}
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se Queda
+\end{pspicture}
+\end{postscript}
+\end{opcionaluno}
+
+Usamos \qverb|\begin{postscript} junto a\begin{MyVerbatim}| y \fverb |\begin{postscript}|
+\qverb | \begin{document} |
+%Se convierte EXTRAIDO-fig-2
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se convierte
+\end{pspicture}
+\end{postscript}
+
+\begin{MyVerbatim*}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+\end{MyVerbatim*}
+
+\begin{mytcbliting}
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+\end{postscript}
+\end{mytcbliting}
+
+\begin{MyVerbatim}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+\end{MyVerbatim}
+
+
+
+\newminted[langA]{latex}{linenos}
+
+\begin{langA}
+%\begin{MyVerbatim}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+%\end{MyVerbatim}
+\end{langA}
+
+\newminted{latex}{linenos}
+
+\begin{latexcode}
+%\begin{MyVerbatim}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+%\end{MyVerbatim}
+\end{latexcode}
+
+%Se convierte EXTRAIDO-fig-3
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se convierte
+\end{pspicture}
+\end{postscript}
+
+\section{minted inline default}
+Original delimitado \mintinline{latex}|\mintinline{lang}<del> code <del>| text
+Ejemplo delimitado \mintinline{latex}|\begin{langA} y\end{langA}| text
+
+Original delimitado con opciones \mintinline{latex}|\mintinline[opt]{lang}<del> code <del>| text
+Ejemplo delimitado con opciones \mintinline[linenos]{latex}/\begin{pspicture} y \end{pspicture}/ text
+
+
+Original anidado \mintinline{latex}|\mintinline{lang}{ code }| text
+Ejemplo original anidado \mintinline{latex}{\begin{pspicture} y \end{pspicture}}
+
+Original anidado con opciones \mintinline{latex}|\mintinline[opt]{lang}{ code }| text
+Ejemplo original anidado con opciones \mintinline[linenos]{latex}{ \begin{pspicture} y \end{pspicture}}
+
+\section{minted inline custom}
+
+Definicion por defecto del comando  \mintinline{latex}|\newmintinline{lang}{opt}|
+\newmintinline{perl}{showspaces}
+
+Ejemplo sin opciones X\perlinline/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\nameinline<del> code <del>|
+
+Ejemplo con opciones X\perlinline[linenos]/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\nameinline[opt]<del> code <del>|
+
+Ejemplo con opciones anidado \perlinline[linenos]{\begin{pspicture} y \end{pspicture}} de forma  \mintinline{latex}|\nameinline[opt]{ code }|
+
+Ejemplo sin opciones anidado \perlinline{\begin{pspicture} y \end{pspicture}} de forma  \mintinline{latex}|\nameinline{ code }|
+
+Definicion personalizada del comando  \mintinline{latex}|\newmintinline[name]{lang}{opt}|
+\newmintinline[name]{latex}{showspaces}
+
+Ejemplo sin opciones X\name/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\name<del> code <del>|
+
+Ejemplo con opciones X\name[linenos]/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\name[opt]<del> code <del>|
+
+Ejemplo con opciones anidado \name[linenos]{\begin{pspicture} y \end{pspicture}} de forma  \mintinline{latex}|\name[opt]{ code }|
+
+Ejemplo sin opciones anidado \name{\begin{pspicture} y \end{pspicture}} de forma  \mintinline{latex}|\name{ code }|
+
+\section{mint short}
+
+Original delimitado \mintinline{latex}|\mint{lang}<del> code <del>| text
+Ejemplo delimitado \mint{latex}|\begin{pspicture} y \end{pspicture}| text
+
+Original delimitado con opciones \mintinline{latex}|\mint[opt]{lang}<del> code <del>| text
+Ejemplo delimitado con opciones \mint[linenos]{latex}/\begin{pspicture} y \end{pspicture}/ text
+
+
+Original anidado \mintinline{latex}|\mint{lang}{ code }| text
+Ejemplo original anidado \mint{latex}{\begin{pspicture} y \end{pspicture}}
+
+Original anidado con opciones \mintinline{latex}|\mint[opt]{lang}{ code }| text
+Ejemplo original anidado con opciones \mint[linenos]{latex}{ \begin{pspicture} y \end{pspicture}}
+
+\section{mint short custom}
+Definicion por defecto comando  \mintinline{latex}|\newmint{lang}{opt}|
+\newmint{latex}{showspaces}
+
+Ejemplo sin opciones X\latex/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\lang<del> code <del>|
+
+Ejemplo con opciones X\latex[linenos]/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\lang[opt]<del> code <del>|
+
+Definicion personalizada del comando  \mintinline{latex}|\newmint[name]{lang}{opt}|
+\newmint[mylatex]{latex}{showspaces}
+
+
+Ejemplo sin opciones X\mylatex/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\name<del> code <del>|
+
+Ejemplo con opciones X\mylatex[linenos]/\begin{pspicture} y \end{pspicture}/X de forma  \mintinline{latex}|\name[opt]<del> code <del>|
+
+Ejemplo sin opciones anidado X\mylatex{\begin{pspicture} y \end{pspicture}}X de forma  \mintinline{latex}|\name<del> code <del>|
+
+Ejemplo con opciones X\mylatex[linenos]{\begin{pspicture} y \end{pspicture}}X de forma  \mintinline{latex}|\name[opt]<del> code <del>|
+
+%Se convierte EXTRAIDO-fig-4
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se convierte
+\end{pspicture}
+\end{postscript}
+
+\end{document}
+
+IGNORAR
+\begin{postscript}
+\begin{pspicture}[showgrid](0,3)(10,10)
+Se queda
+\end{pspicture}
+\end{postscript}
+

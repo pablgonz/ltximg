@@ -1,0 +1,124 @@
+% arara: latex
+% arara: dvips
+% arara: ps2pdf
+% arara: clean: { extensions : [ aux, log, out, ps, dvi,listing] }
+\documentclass{article}
+% Usando filecontents preambulo
+\begin{filecontents*}{images/temp.tex}
+\usepackage{graphicx}
+\end{verbatim}
+\begin{preview}
+\begin{PSTexample}
+\end{filecontents*}
+\usepackage{tikz}
+\usepackage{pstricks,pstricks-add,pst-pdf}
+\usepackage[swpl]{pst-exa}
+% algunas lineas comentadas
+\begin{document}
+
+SOme code  \begin{preview} SOy un preview \end{preview} in same line
+
+% Entorno postscript
+XXX\begin{postscript}
+Postscript
+\end{postscript}YYY
+
+
+\begin{verbatim}
+% Us post script :)
+\begin{postscript}
+Postscript
+\end{postscript}
+\end{verbatim}
+
+
+Podemos colocar \verb+\begin{document}+
+Hli \begin{verbatim}
+% Inicia 1
+\begin{document}
+\begin{filecontents}
+Este tag no vale, es verbatim
+%<*ltximg>
+\begin{nopreview}
+% Termina 1
+\end{verbatim}
+sasdads
+
+Syntaxix plain TeX ...esto debería hacerse primero o no?
+usando \verb|\pspicture(4,6)| o \verb+\psset{unit=2cm}+ o No lo se
+\begin{PSTexample}
+% Esto es example 1
+\begin{postscript}
+Postscript en PSTexample
+\end{postscript}
+\pspicture(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\endpspicture
+\end{PSTexample}
+
+% Syntax plain
+\psset{unit=2cm}
+\pspicture(4,6)
+% Esto es fig 2
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\endpspicture
+
+\begin{PSTexample}
+% Esto es example 2
+\pspicture(4,6)
+\psset{unit=2cm}
+\pslineByHand[linecolor=red](0,0)(0,2)(2,2)
+(2,0)(0,0)(2,2)(1,3)(0,2)(2,0)
+\endpspicture
+\end{PSTexample}
+
+
+Inicio del archivo usando \verb|%<*ltximg> ... %</ltximg>|
+Aquí hay extracción
+%<*ltximg>
+% Esto se debería extraer, fig 3
+Some codeinput
+
+\begin{verbatim}
+\begin{filecontents}
+%<*ltximg>
+\begin{preview}
+\end{verbatim}
+
+More code input
+%</ltximg>
+Termina extracción
+
+Inicio del archivo usando \verb|%<*noltximg> ... %</noltximg>|
+
+Esto es no extracción
+%<*noltximg>
+% Esto no se debería extrarer
+Some codeinput
+
+\begin{verbatim}
+\begin{filecontents}
+%<*noltximg>
+\begin{preview}
+\end{verbatim}
+
+More code input
+%</noltximg>
+Termina no extracción
+
+Usando \verb|\begin{preview}| junto a \verb|\end{preview}|
+
+XXX\begin{preview}
+%</noltximg>
+% Esto será fig 4
+\begin{verbatim}
+\begin{filecontents}
+\begin{preview}
+\end{verbatim}
+
+\end{preview}YYYY
+
+\end{document}
