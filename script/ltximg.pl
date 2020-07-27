@@ -41,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-07-25';
+my $date       = '2020-07-27';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -300,23 +300,23 @@ ${title}** Description
 --tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files with only code of environments   [off]
 --subenv              Create standalone files for environments      [off]
+--latex               Using latex>dvips>ps2pdf for compiler input
+                      and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
                       input and lualatex for compiler output        [off]
 --dvipdf              Using latex>dvipdfmx for compiler input and
                       latex>dvipdfmx for compiler output            [off]
---latex               Using latex>dvips>ps2pdf for compiler input
-                      and pdflatex for compiler output              [off]
---arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--arara               Use arara for compiler input and output       [off]
 --latexmk             Using latexmk for compiler output file        [off]
---nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
+--nocrop              Don't run pdfcrop                             [off]
 --extrenv <env1,...>  Add new environments to extract               [empty]
---skipenv <env1,...>  Skip default environments to extract          [empty]
+--skipenv <env1,...>  Skip some default environments to extract     [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
@@ -955,19 +955,24 @@ if( $opts_cmd{string}{runs} <= 0 or $opts_cmd{string}{runs} >= 3) {
     errorUsage('Invalid argument for --runs option');
 }
 
-### Check --arara and --latexmk
-if ($opts_cmd{compiler}{arara} && $opts_cmd{compiler}{latexmk}) {
-    Log('Error!!: Options --arara and --latexmk  are mutually exclusive');
-    errorUsage('Options --arara and --latexmk  are mutually exclusive');
+### Check --arara and others compilers
+if ($opts_cmd{compiler}{arara}) {
+    # Search others compilers options
+    for my $opt (qw(xetex luatex latex dvips dvipdf dvilua latexmk)) {
+        if (exists $opts_cmd{compiler}{$opt}) {
+            Log("Error!!: Options --arara and --$opt are mutually exclusive");
+            errorUsage("Options --arara and --$opt are mutually exclusive");
+        }
+    }
 }
 
-### Check --srcenv and --subenv option from command line
+### Check --srcenv and --subenv option
 if ($opts_cmd{boolean}{srcenv} && $opts_cmd{boolean}{subenv}) {
     Log('Error!!: Options --srcenv and --subenv  are mutually exclusive');
     errorUsage('Options --srcenv and --subenv  are mutually exclusive');
 }
 
-### If --srcenv or --subenv option are OK activate write sub files
+### If --srcenv or --subenv option are OK activate write <sub files>
 if ($opts_cmd{boolean}{srcenv}) {
     $outsrc = 1;
     $opts_cmd{boolean}{subenv} = undef;
@@ -1433,12 +1438,8 @@ if (@skip_env_tmp) {
         Log('The [preview] environment is not allowed for skipping');
         @skip_env_tmp = grep !/preview/, @skip_env_tmp;
     }
-    if (exists $envcheck{postscript}) {
-        Log('The [postscript] environment is not allowed for skipping');
-        @skip_env_tmp = grep !/postscript/, @skip_env_tmp;
-    }
-    # Only a valid envrionments for skip are: pspicture tikzpicture psgraph
-    for my $skip (qw(pspicture tikzpicture psgraph)) {
+    # Valid environments for skip
+    for my $skip (qw(pspicture tikzpicture pgfpicture psgraph postscript)) {
         if (exists $envcheck{$skip}) {
             push @skipped,$skip;
         }
@@ -1485,7 +1486,7 @@ if (exists $envcheck{nopreview}) {
 my @extract_env = qw(nopreview);
 push @extract_env,@extr_env_tmp;
 
-### Some oprations
+### Some oprations for skip environments
 @extract_env = array_minus(@extract_env, @skip_env_tmp);
 @extract_env = uniq(@extract_env);
 
