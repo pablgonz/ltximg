@@ -38,11 +38,11 @@ my $tempDir = tempdir( CLEANUP => 1);
 my $workdir = cwd;
 
 ### Script identification
-our $scriptname = 'ltximg';
-our $program    = 'LTXimg';
-our $nv         = 'v1.8';
-our $date       = '2020-07-25';
-our $copyright  = <<"END_COPYRIGHT" ;
+my $scriptname = 'ltximg';
+my $program    = 'LTXimg';
+my $nv         = 'v1.8';
+my $date       = '2020-07-25';
+my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
@@ -1421,8 +1421,67 @@ my $verb_wrt = qr {
                     )
                   }x;
 
-### An array with all environments to extract
-@extr_env_tmp = grep !/document/, @extr_env_tmp;
+### Check skip environments
+my @skipped;
+if (@skip_env_tmp) {
+    my %envcheck = map { $_ => 1 } @skip_env_tmp;
+    if (exists $envcheck{PSTexample}) {
+        Log('The [PSTexample] environment is not allowed for skipping');
+        @skip_env_tmp = grep !/PSTexample/, @skip_env_tmp;
+    }
+    if (exists $envcheck{preview}) {
+        Log('The [preview] environment is not allowed for skipping');
+        @skip_env_tmp = grep !/preview/, @skip_env_tmp;
+    }
+    if (exists $envcheck{postscript}) {
+        Log('The [postscript] environment is not allowed for skipping');
+        @skip_env_tmp = grep !/postscript/, @skip_env_tmp;
+    }
+    # Only a valid envrionments for skip are: pspicture tikzpicture psgraph
+    for my $skip (qw(pspicture tikzpicture psgraph)) {
+        if (exists $envcheck{$skip}) {
+            push @skipped,$skip;
+        }
+    }
+}
+
+### List of environments to be skiped from extraction
+@skipped = uniq(@skip_env_tmp);
+Log('The environments that will be skiped for extraction:');
+Logarray(\@skipped);
+
+### Create a Regex for skip environment
+my $skipenv = join q{|}, map { quotemeta } sort { length $a <=> length $b } @skipped;
+$skipenv = qr/$skipenv/x;
+my $skip_env = qr {
+                    (
+                      (?:
+                        \\begin\{$skipenv\*?\}
+                          (?:
+                            (?>[^\\]+)|
+                            \\
+                            (?!begin\{$skipenv\*?\})
+                            (?!end\{$skipenv\*?\})|
+                            (?-1)
+                          )*
+                        \\end\{$skipenv\*?\}
+                      )
+                    )
+                  }x;
+
+### Check reserved environments
+my %envcheck = map { $_ => 1 } @extr_env_tmp;
+
+if (exists $envcheck{document}) {
+    Log('The [document] environment is allowed for extraction');
+    @extr_env_tmp = grep !/document/, @extr_env_tmp;
+}
+if (exists $envcheck{nopreview}) {
+    Log('The [nopreview] environment is allowed for extraction');
+    @extr_env_tmp = grep !/nopreview/, @extr_env_tmp;
+}
+
+### An array with all environments to extract, including nopreview
 my @extract_env = qw(nopreview);
 push @extract_env,@extr_env_tmp;
 
@@ -1456,14 +1515,23 @@ my $extr_tmp = qr {
                     )
                   }x;
 
-### An array of environments to be removed from the output file
+### Check delete environments
+if (@delt_env_tmp) {
+    my %envcheck = map { $_ => 1 } @delt_env_tmp;
+    if (exists $envcheck{document}) {
+        Log('The [document] environment is not allowed for delete');
+        @delt_env_tmp = grep !/document/, @delt_env_tmp;
+    }
+}
+
+### An array of environments to be removed in <output file>
 my @delete_env = uniq(@delt_env_tmp);
 my %delete_env = crearhash(@delete_env);
 
 Log('The environments that will be removed in output file:');
 Logarray(\@delete_env);
 
-### Create a Regex for delete environment in output file
+### Create a Regex for delete environment in <output file>
 my $delenv = join q{|}, map { quotemeta } sort { length $a <=> length $b } @delete_env;
 $delenv = qr/$delenv/x;
 my $delt_env = qr {
@@ -1482,30 +1550,6 @@ my $delt_env = qr {
                     )
                   }x;
 
-### An array of environments to be skiped from extraction
-my @skipped = uniq(@skip_env_tmp);
-
-Log('The environments that will be skiped for extraction:');
-Logarray(\@skipped);
-
-### Create a Regex for skip environment
-my $skipenv = join q{|}, map { quotemeta } sort { length $a <=> length $b } @skipped;
-$skipenv = qr/$skipenv/x;
-my $skip_env = qr {
-                    (
-                      (?:
-                        \\begin\{$skipenv\*?\}
-                          (?:
-                            (?>[^\\]+)|
-                            \\
-                            (?!begin\{$skipenv\*?\})
-                            (?!end\{$skipenv\*?\})|
-                            (?-1)
-                          )*
-                        \\end\{$skipenv\*?\}
-                      )
-                    )
-                  }x;
 
 ########################################################################
 # In this first part the script only detects verbatim environments and #
