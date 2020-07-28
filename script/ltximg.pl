@@ -959,7 +959,7 @@ if( $opts_cmd{string}{runs} <= 0 or $opts_cmd{string}{runs} >= 3) {
 if ($opts_cmd{compiler}{arara}) {
     # Search others compilers options
     for my $opt (qw(xetex luatex latex dvips dvipdf dvilua latexmk)) {
-        if (exists $opts_cmd{compiler}{$opt}) {
+        if (defined $opts_cmd{compiler}{$opt}) {
             Log("Error!!: Options --arara and --$opt are mutually exclusive");
             errorUsage("Options --arara and --$opt are mutually exclusive");
         }
@@ -1785,6 +1785,10 @@ $preamble =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
                \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
                ^(\%<(?:\*|\/))(remove)(\>)/$1$2$tmp$3/gmsx;
+$atbegindoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
+                 \\begin\{nopreview\}.+?\\end\{nopreview\}(*SKIP)(*F)|
+                 \\begin\{preview\}.+?\\end\{preview\}(*SKIP)(*F)|
+                 ^(\%<(?:\*|\/))(remove)(\>)/$1$2$tmp$3/gmsx;
 
 ### Pass \begin{preview} ... \end{preview} to \START{preview} ... \STOP{preview}
 ### Pass \begin{nopreview} ... \end{nopreview} to \START{nopreview} ... \STOP{nopreview}
@@ -2205,7 +2209,9 @@ $tmpbodydoc =~ s/($find)/$replace{$1}/g;
 $tmpbodydoc =~ s/(\%$tmp)//g;
 $tmpbodydoc =~ s/(remove$tmp)/remove/g;
 $preamout   =~ s/($find)/$replace{$1}/g;
+$atbeginout =~ s/(remove$tmp)/remove/g;
 $atbeginout =~ s/($find)/$replace{$1}/g;
+
 
 ### We created a preamble for individual files with all environments
 $sub_prea = $opts_cmd{boolean}{noprew} ? "$atbeginout$pstpdfpkg$preamout".'\begin{document}'
