@@ -2212,7 +2212,6 @@ $preamout   =~ s/($find)/$replace{$1}/g;
 $atbeginout =~ s/(remove$tmp)/remove/g;
 $atbeginout =~ s/($find)/$replace{$1}/g;
 
-
 ### We created a preamble for individual files with all environments
 $sub_prea = $opts_cmd{boolean}{noprew} ? "$atbeginout$pstpdfpkg$preamout".'\begin{document}'
           :                              "$atbeginout$previewpkg$preamout"
