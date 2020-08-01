@@ -1679,11 +1679,11 @@ and run:
 
 Create a \sysdir{./pics} directory (if it does not exist) with all extracted environments,
 except \env{tikzpicture}, converted to image formats (\iext{pdf}) in individual files,
-an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} with all extracted environments
+an output file \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex} with all extracted environments
 converted to \ics{includegraphics} and environment \env{filecontents} removed,
-a single file \sysfile{test-in-env-all.ltx} with only the extracted environments
-using \prgname*{lualatex} and \pkgname{preview} package for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
-
+a single file \meta[ac=LightSlateGrey,cf=OrangeRed]{test-in-env-all.ltx} with \emph{only} the extracted environments
+using \prgname*{lualatex} and \pkgname{preview} package for process \meta[ac=LightSlateGrey,cf=OrangeRed]{file-in.tex}
+and \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex}.
 
 \section{The way of \texttt{arara}}
 \label{sec:arara}
@@ -1736,10 +1736,10 @@ and run:
 
 Create a \sysdir{./images} directory (if it does not exist) with all extracted
 environments converted to image format (\iext{pdf}) in individual files,
-an \meta[cf=optcolor]{output file} \sysfile{file-out.tex} with all exatracted environments
-converted to \ics{includegraphics}, a single file \sysfile{test-tkz-all.tex}
+an output file \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex} with all exatracted environments
+converted to \ics{includegraphics}, a single file \meta[ac=LightSlateGrey,cf=OrangeRed]{test-tkz-all.tex}
 with only the extracted environments using \pkgname{preview} package and \prgname*{lualatex} \emph{\enquote{two times}}
-for \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+for process \meta[ac=LightSlateGrey,cf=OrangeRed]{test.tex} and \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex}.
 
 Remember that the \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}
 will be compiled using the same \enquote{rule}. One \emph{trick} to get around this situation is to use:
@@ -1755,15 +1755,16 @@ will be compiled using the same \enquote{rule}. One \emph{trick} to get around t
 % arara: xelatex: { options: [-recorder] }
 \end{examplecode}
 
-The content betwen \lstinline|%<*remove> ... %</remove>| are remove from \meta[cf=optcolor]{output file}
-before compiling. Thus, the \meta{output file} will be compiled using \prgname*{xelatex} \emph{\enquote{two times}}.
+The content betwen \lstinline|%<*remove> ... %</remove>| are remove from output file
+before compiling. Thus, the output file \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex} will be
+compiled using \prgname*{xelatex} \emph{\enquote{two times}}.
 
 As a final consideration, \ltximg{} passes options to the \pkgname{preview} package and
 the \scriptname{pdfcrop} script according to the engine used. When using \cmdopt{arara} it
 will \emph{\enquote{try}} to detect the used engine by means of a regular expression, if the
 detection fails the default values will be used.
 
-This does not affect the process of creating \meta{standalone files} and can be prevented by using \cmdopt{noprew}
+This does not affect the process of creating \meta{standalone} files and can be prevented by using \cmdopt{noprew}
 or \cmdopt{nocrop} at the cost of not having the images cropped.
 
 In this way we can \meta{compile} and \meta{convert} any document as long as the conditions
@@ -1825,10 +1826,11 @@ We now run:
 
 Create a \sysdir{./images} directory (if it does not exist) with all \env{picture} environments,
 except \env{tikzpicture}, converted to image formats (\iext{svg}, \iext{png}, \iext{pdf}),
-an output file \meta[cf=optcolor]{file-out.tex} with all \env{picture} environments
-converted to \ics{includegraphics}, a single file \sysfile{file-in-fig-all.ltx} with only environments \env{picture} extracted
-using \prgname*{lualatex} and \pkgname{preview} package for process \meta[cf=optcolor]{file-in.tex} and
-\scriptname{latexmk} for \emph{full} process  \meta[cf=optcolor]{file-out.tex}.
+an output file \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex} with all \env{picture} environments
+converted to \ics{includegraphics}, a single file \meta[ac=LightSlateGrey,cf=OrangeRed]{file-in-fig-all.ltx} with
+only environments \env{picture} extracted using \prgname*{lualatex} and \pkgname{preview} package for process
+\meta[ac=LightSlateGrey,cf=OrangeRed]{file-in.tex} and \scriptname{latexmk} for \emph{full} process
+\meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex}.
 
 \section{Note for \texttt{dvisvgm} users}
 \label{sec:dvisvgm}
