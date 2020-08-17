@@ -41,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-07-27';
+my $date       = '2020-08-16';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -68,6 +68,7 @@ my $PSTexa   = 0;          # run extract PSTexample environments
 my $STDenv   = 0;          # run extract standart environments
 my $verbose  = 0;          # verbose info
 my $gscmd;                 # ghostscript executable name
+my $write18;               # storing write18 for compiler in TeXLive and MikTeX
 my $log      = 0;          # log file
 my @currentopt;            # storing current options for log file
 
@@ -238,35 +239,29 @@ sub usage {
 find_ghostscript();
 
 my $usage = <<"END_OF_USAGE";
-${title}** Description
+${title}Description
    LTXimg is a "perl" script that automates the process of extracting and
    converting "environments" provided by tikz, pstricks and other packages
-   from LaTeX file to image formats and "standalone files" using ghostscript
+   from LaTeX file to image formats and "standalone" files using ghostscript
    and poppler-utils. Generates a one file with only extracted environments
    and other with all extracted environments converted to \\includegraphics.
 
-** Syntax
-\$ ltximg [<compiler>] [<options>] [--] <filename>.<tex|ltx>
+Syntax
+\$ ltximg [<options>] [--] <filename>.<tex|ltx>
 
-   Relative or absolute paths for directories and files is not supported.
+   If used without [<options>] the extracted environments are converted
+   to pdf image format and saved in "./images" directory using pdflatex
+   and preview package for process <filename>.
+
+Default environments extract
+   preview pspicture tikzpicture pgfpicture psgraph postscript PSTexample
+
+Options
    Options that accept a value require either a blank space or = between
    the option and the value. Multiple short options can be bundling and
    if the last option takes a comma separated list you need -- at the end.
+   Relative or absolute paths for directories and files is not supported.
 
-** Usage
-\$ ltximg --latex [<options>] <file.tex>
-\$ ltximg --arara [<options>] <file.tex>
-\$ ltximg [<options>] <file.tex>
-\$ ltximg <file.tex>
-
-   If used without [<compiler>] and [<options>] the extracted environments
-   are converted to pdf image format and saved in the "./images" directory
-   using "pdflatex" and "preview" package for process <input file>.
-
-** Default environments extract
-   preview pspicture tikzpicture pgfpicture psgraph postscript PSTexample
-
-** Options
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
 -v, --version         Display current version ($nv) and exit       [off]
@@ -300,6 +295,7 @@ ${title}** Description
 --tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files with only code of environments   [off]
 --subenv              Create standalone files for environments      [off]
+--shell               Enable \\write18\{SHELL COMMAND\}              [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
                       and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
@@ -321,9 +317,8 @@ ${title}** Description
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
 
-** Examples
-\$ ltximg --latex -e -p --subenv --imgdir=mypics -o test-out test-in.ltx
-\$ ltximg --latex -ep --subenv --imgdir mypics -o test-out.ltx test-in.ltx
+Example
+\$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out test-in.ltx
 
    Create a "./mypics" directory (if it doesn't exist) with all extracted
    environments converted to images (.pdf, .eps, .png) and standalone files
@@ -332,11 +327,11 @@ ${title}** Description
    using latex>dvips>ps2pdf and preview package for <input file> and pdflatex
    for <output file>.
 
-** Documentation
+Documentation
 For full documentation use:
 \$ texdoc ltximg
 
-** Issues and reports
+Issues and reports
 Repository   : https://github.com/pablgonz/ltximg
 Bug tracker  : https://github.com/pablgonz/ltximg/issues
 END_OF_USAGE
@@ -366,6 +361,7 @@ my $result=GetOptions (
 # bolean
     'zip'            => \$opts_cmd{boolean}{zip},    # zip images dir
     'tar'            => \$opts_cmd{boolean}{tar},    # tar images dir
+    'shell'          => \$opts_cmd{boolean}{shell},  # set write18 for compiler
     'nopdf'          => \$opts_cmd{boolean}{nopdf},  # no pdf image format
     'norun'          => \$opts_cmd{boolean}{norun},  # no run compiler
     'nocrop'         => \$opts_cmd{boolean}{nocrop}, # no run pdfcrop
@@ -681,7 +677,7 @@ else {
     errorUsage('Invalid or empty extention for input file');
 }
 
-### Read <input file> in memory, need :crlf for old windows files
+### Read <input file> in memory, need [:crlf] for old windows files
 Log("Read input file $name$ext in memory");
 open my $INPUTfile, '<:crlf', "$name$ext";
     my $ltxfile;
@@ -920,7 +916,7 @@ if(%opts_file) {
             }
         }
         # Add boolean options
-        for my $opt (qw(nopdf norun nocrop srcenv subenv zip tar gray force noprew)) {
+        for my $opt (qw(shell nopdf norun nocrop srcenv subenv zip tar gray force noprew)) {
             if (exists $opts_file{options}{$opt}) {
                 Log("Found [$opt] option in $name$ext");
                 $opts_cmd{boolean}{$opt} = 1;
@@ -1073,9 +1069,9 @@ if (defined $opts_cmd{string}{output}) {
     $outfile = 1;
 }
 
-### Storing the current options of script in array for log file
-my @allopt = qw(arara xetex luatex latex dvips dvipdf dvilua latexmk
-    nopdf norun nocrop srcenv subenv zip tar gray force
+### Storing the current options of script in array for ltximg.log file
+my @allopt = qw (arara xetex luatex latex dvips dvipdf dvilua latexmk
+    shell nopdf norun nocrop srcenv subenv zip tar gray force
     noprew eps ppm svg png jpg bmp tif dpi myverb margins
     prefix imgdir output runs
     );
@@ -2021,8 +2017,14 @@ my $msg_compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
                  ;
 
 ### Set write18 for compiler
-my $write18 = '-shell-escape'; # TeXLive
-$write18 = '-enable-write18' if defined $ENV{'TEXSYSTEM'} and $ENV{'TEXSYSTEM'} =~ /miktex/i;
+if ($opts_cmd{boolean}{shell}) {
+    $write18 = '-shell-escape';
+    $write18 = '--enable-write18' if defined $ENV{'TEXSYSTEM'} and $ENV{'TEXSYSTEM'} =~ /miktex/i;
+}
+else {
+    $write18 = '-no-shell-escape';
+    $write18 = '--disable-write18' if defined $ENV{'TEXSYSTEM'} and $ENV{'TEXSYSTEM'} =~ /miktex/i;
+}
 
 ### Set options for compiler
 my $opt_compiler = $opts_cmd{compiler}{arara} ? '--log'
@@ -2093,7 +2095,7 @@ $tmpbodydoc =~ s/(?:$BP)(?:\\begin\{postscript\})(?:\s*\[ [^]]*? \])?
                  (?:$EP)
                 /\\begin\{$wrapping\}$+{code}\\end\{$wrapping\}/gmsx;
 
-### We created a preamble for the individual files
+### We created a preamble for standalone files
 my $sub_prea = "$atbeginout$preamout".'\begin{document}';
 
 ### Revert changes
@@ -2110,9 +2112,17 @@ if ($outsrc) {
     if ($opts_cmd{boolean}{srcenv}) {
         Log('Extract source code of all captured environments without preamble');
         if ($STDenv) {
-            Log("Creating $envNo $fileSTD [$ext] with source code for $envSTD in $imgdirpath");
-            print "Creating $envNo $fileSTD ", color('magenta'), "[$ext]",
-            color('reset'), " with source code for $envSTD\r\n";
+            if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-1$ext") {
+                Log("Recreating $envNo $fileSTD [$ext] with source code for $envSTD in $imgdirpath");
+                print "Recreating $envNo $fileSTD ", color('magenta'), "[$ext]",
+                color('reset'), " with source code for $envSTD\r\n";
+            }
+            else {
+                Log("Creating $envNo $fileSTD [$ext] with source code for $envSTD in $imgdirpath");
+                print "Creating $envNo $fileSTD ", color('magenta'), "[$ext]",
+                color('reset'), " with source code for $envSTD\r\n";
+            }
+            # Write files
             while ($tmpbodydoc =~ m/$BP\s*(?<env_src>.+?)\s*$EP/gms) {
                 open my $outexasrc, '>', "$opts_cmd{string}{imgdir}/$src_name$srcNo$ext";
                     print {$outexasrc} $+{'env_src'};
@@ -2121,9 +2131,17 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Log("Creating $exaNo $fileEXA [$ext] with source code for $envEXA in $imgdirpath");
-            print "Creating $exaNo $fileEXA ", color('magenta'), "[$ext]",
-            color('reset'), " with source code for $envEXA\r\n";
+            if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-1$ext") {
+                Log("Recreating $exaNo $fileEXA [$ext] with source code for $envEXA in $imgdirpath");
+                print "Recreating $exaNo $fileEXA ", color('magenta'), "[$ext]",
+                color('reset'), " with source code for $envEXA\r\n";
+            }
+            else {
+                Log("Creating $exaNo $fileEXA [$ext] with source code for $envEXA in $imgdirpath");
+                print "Creating $exaNo $fileEXA ", color('magenta'), "[$ext]",
+                color('reset'), " with source code for $envEXA\r\n";
+            }
+            # Write files
             while ($tmpbodydoc =~ m/$BE\[.+?(?<pst_exa_name>$opts_cmd{string}{imgdir}\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $outstdsrc, '>', "$+{'pst_exa_name'}$ext";
                     print {$outstdsrc} $+{'exa_src'};
@@ -2134,9 +2152,17 @@ if ($outsrc) {
     if ($opts_cmd{boolean}{subenv}) {
         Log('Extract source code of all captured environments with preamble');
         if ($STDenv) {
-            Log("Creating a $envNo standalone $fileSTD [$ext] for $envSTD in $imgdirpath");
-            print "Creating a $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
-            color('reset'), " for $envSTD\r\n";
+            if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-1$ext") {
+                Log("Recreating a $envNo standalone $fileSTD [$ext] for $envSTD in $imgdirpath");
+                print "Recreating a $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
+                color('reset'), " for $envSTD\r\n";
+            }
+            else {
+                Log("Creating a $envNo standalone $fileSTD [$ext] for $envSTD in $imgdirpath");
+                print "Creating a $envNo standalone $fileSTD ", color('magenta'), "[$ext]",
+                color('reset'), " for $envSTD\r\n";
+            }
+            # Write files
             while ($tmpbodydoc =~ m/$BP(?:\s*)?(?<env_src>.+?)(?:\s*)?$EP/gms) {
                 open my $outstdfile, '>', "$opts_cmd{string}{imgdir}/$src_name$srcNo$ext";
                     print {$outstdfile} "$sub_prea\n$+{'env_src'}\n\\end\{document\}";
@@ -2145,9 +2171,17 @@ if ($outsrc) {
             continue { $srcNo++; }
         }
         if ($PSTexa) {
-            Log("Creating a $exaNo standalone $fileEXA [$ext] for $envEXA in $imgdirpath");
-            print "Creating a $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
-            color('reset'), " for $envEXA\r\n";
+            if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-1$ext") {
+                Log("Recreating a $exaNo standalone $fileEXA [$ext] for $envEXA in $imgdirpath");
+                print "Recreating a $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
+                color('reset'), " for $envEXA\r\n";
+            }
+            else {
+                Log("Creating a $exaNo standalone $fileEXA [$ext] for $envEXA in $imgdirpath");
+                print "Creating a $exaNo standalone $fileEXA ", color('magenta'), "[$ext]",
+                color('reset'), " for $envEXA\r\n";
+            }
+            # Write files
             while ($tmpbodydoc =~ m/$BE\[.+?(?<pst_exa_name>$opts_cmd{string}{imgdir}\/.+?-\d+)\}\]\s*(?<exa_src>.+?)\s*$EE/gms) {
                 open my $outexafile, '>', "$+{'pst_exa_name'}$ext";
                     print {$outexafile} "$sub_prea\n$+{'exa_src'}\n\\end\{document\}";
@@ -2198,7 +2232,7 @@ $tmpbodydoc =~ s/\\begin\{nopreview\}\%$tmp
                   \\end\{nopreview\}\%$tmp
                 /\\begin\{nopreview\}\n$+{code}\n\\end\{nopreview\}\n/gmsx;
 
-### Adjust $wrapping environments (need for some environments, like a Verbatim)
+### Adjust $wrapping environments (need \n after close for some environments, like a Verbatim)
 $tmpbodydoc =~ s/\\begin\{$wrapping\}
                     (?<code>.+?)
                   \\end\{$wrapping\}
@@ -2245,6 +2279,13 @@ if ($PSTexa) {
     # Moving and renaming
     if ($opts_cmd{boolean}{norun}) {
         Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-exa-$tmp$ext to $name-$opts_cmd{string}{prefix}-exa-all$ext");
+        if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-exa-all$ext") {
+            Infocolor('Warning', "The file [$name-$opts_cmd{string}{prefix}-exa-all$ext] already exists and will be rewritten");
+            Log("Rewriting the file $name-$opts_cmd{string}{prefix}-exa-all$ext in $imgdirpath");
+        }
+        else {
+            Log("Writing the file $name-$opts_cmd{string}{prefix}-exa-all$ext in $imgdirpath");
+        }
         if ($verbose) {
             Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-exa-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-exa-all$ext");
         }
@@ -2290,7 +2331,15 @@ if ($STDenv) {
         }
     close $allstdenv;
     if ($opts_cmd{boolean}{norun}) {
+        # Moving and renaming
         Infoline("Moving and renaming $name-$opts_cmd{string}{prefix}-$tmp$ext to $name-$opts_cmd{string}{prefix}-all$ext");
+        if (-e "$opts_cmd{string}{imgdir}/$name-$opts_cmd{string}{prefix}-all$ext") {
+            Infocolor('Warning', "The file [$name-$opts_cmd{string}{prefix}-all$ext] already exists and will be rewritten");
+            Log("Rewriting the file $name-$opts_cmd{string}{prefix}-all$ext in $imgdirpath");
+        }
+        else {
+            Log("Writing the file $name-$opts_cmd{string}{prefix}-all$ext in $imgdirpath");
+        }
         if ($verbose) {
             Infocolor('Running', "mv $workdir/$name-$opts_cmd{string}{prefix}-$tmp$ext $imgdirpath/$name-$opts_cmd{string}{prefix}-all$ext");
         }
@@ -2325,8 +2374,14 @@ opendir (my $DIR, $workdir);
                 RUNOSCMD("dvipdfmx $quiet", "$+{name}-$tmp.dvi",'show');
             }
             # Moving and renaming temp files with source code
-            Log("Move $+{name}$+{type} file with all source for environments to $imgdirpath");
             Infoline("Moving and renaming $+{name}$+{type} to $+{name}-all$ext");
+            if (-e "$opts_cmd{string}{imgdir}/$+{name}-all$ext") {
+                Infocolor('Warning', "The file [$+{name}-all$ext] already exists and will be rewritten");
+                Log("Rewriting the file $+{name}-all$ext with all source for environments in $imgdirpath");
+            }
+            else {
+                Log("Writing the file $+{name}-all$ext with all source for environments in $imgdirpath");
+            }
             if ($verbose){
                 Infocolor('Running', "mv $workdir/$+{name}$+{type} $imgdirpath/$+{name}-all$ext");
             }

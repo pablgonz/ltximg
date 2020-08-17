@@ -1,5 +1,7 @@
 ## LTXimg &ndash; LaTeX environments to image format
 
+Release v1.8 \[2020/08/16\]
+
 ## Description
 
 **ltximg** is a perl *script* that automates the process of extracting and converting
@@ -10,7 +12,7 @@ file with only extracted environments and another with all extracted environment
 ## Syntax
 
 ```
-$ ltximg [<compiler>] [<options>] [--] <input file>.<tex|ltx>
+$ ltximg [<options>] [--] <input file>.<tex|ltx>
 ```
 
 Relative or absolute `paths` for directories and files is not supported. Options that accept a _value_ require either a blank
@@ -26,7 +28,7 @@ $ ltximg [<options>] <file.tex>
 $ ltximg <file.tex>
 ```
 
-If used without `[<compiler>]` and `[<options>]` the extracted environments are converted to `pdf` image format
+If used without `[<options>]` the extracted environments are converted to `pdf` image format
 and saved in the `./images` directory using `pdflatex` and `preview` package to process `<input file>`.
 
 ## Default environments extract
@@ -71,23 +73,24 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 --tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files with only code of environments   [off]
 --subenv              Create standalone files for environments      [off]
+--shell               Enable \write18{SHELL COMMAND}                [off]
+--latex               Using latex>dvips>ps2pdf for compiler input
+                      and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
                       and latex>dvips>ps2pdf for compiler output    [off]
 --dvilua              Using dvilualatex>dvips>ps2pdf for compiler
                       input and lualatex for compiler output        [off]
 --dvipdf              Using latex>dvipdfmx for compiler input and
                       latex>dvipdfmx for compiler output            [off]
---latex               Using latex>dvips>ps2pdf for compiler input
-                      and pdflatex for compiler output              [off]
---arara               Use arara for compiler input and output       [off]
 --xetex               Using xelatex for compiler input and output   [off]
 --luatex              Using lualatex for compiler input and output  [off]
+--arara               Use arara for compiler input and output       [off]
 --latexmk             Using latexmk for compiler output file        [off]
---nocrop              Don't run pdfcrop                             [off]
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
+--nocrop              Don't run pdfcrop                             [off]
 --extrenv <env1,...>  Add new environments to extract               [empty]
---skipenv <env1,...>  Skip default environments to extract          [empty]
+--skipenv <env1,...>  Skip some default environments to extract     [empty]
 --verbenv <env1,...>  Add new verbatim environments                 [empty]
 --writenv <env1,...>  Add new verbatim write environments           [empty]
 --deltenv <env1,...>  Delete environments in output file            [empty]
@@ -96,13 +99,12 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 ## Example
 
 ```
-$ ltximg --latex -e -p --subenv --imgdir=mypics -o test-out test-in.ltx
-$ ltximg --latex -ep --subenv --imgdir mypics -o test-out.ltx test-in.ltx
+$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out test-in.ltx
 ```
 
 Create a `./mypics` directory (if it doesn’t exist) with all extracted environments
 converted to images (`.pdf`, `.eps`, `.png`) and _standalone_ files (`.ltx`), a file `test-in-fig-all.ltx`
-with only the extracted environments and the file `test-out.ltx` with all environments converted to `\includegraphics`
+with all extracted environments and the file `test-out.ltx` with all environments converted to `\includegraphics`
 using `latex>dvips>ps2pdf` and `preview` package for `<input file>` and `pdflatex` for `<output file>`.
 
 ## Documentation
@@ -131,8 +133,8 @@ License for more details.
 
 ## Author
 
-Written by Pablo González L <pablgonz@yahoo.com>, last update 2020-07-24.
+Written by Pablo González L `<pablgonz@yahoo.com>`.
 
 ## Copyright
 
-Copyright 2013 - 2020 by Pablo González L
+Copyright 2013 - 2020 by Pablo González L.
