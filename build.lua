@@ -5,7 +5,7 @@
 -- Identification
 module  = "ltximg"
 scriptv = "1.8"
-scriptd = "2020-08-17"
+scriptd = "2020-08-18"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
@@ -214,7 +214,7 @@ if options["target"] == "testpkg" then
 end
 
 -- Load personal data
-local ok, mydata = pcall(require, "pablgonz.lua")
+local ok, mydata = pcall(require, "mypersonaldata.lua")
 if not ok then
   mydata = {email="XXX", uploader="YYY"}
 end
@@ -229,8 +229,8 @@ uploadconfig = {
   license     = "lppl1.3c",
   summary     = "Extract LaTeX environments to image format and standalone files",
   description = [[ltximg is a perl script that automates the process of extracting and converting environments provided by TikZ, PStricks and other packages from input file to image formats and standalone files using ghostscript and poppler-utils. Generates a file with only extracted environments and another with all extracted environments converted to \includegraphics.]],
-  topic       = { "Chunks", "Graphics", "Subdocs" },
-  ctanPath    = "/tex-archive/support/"..ctanpkg,
+  topic       = { "chunks", "graphics", "subdocs" },
+  ctanPath    = "/support/"..ctanpkg,
   repository  = "https://github.com/pablgonz/"..ctanpkg,
   bugtracker  = "https://github.com/pablgonz/"..ctanpkg.."/issues",
   support     = "https://github.com/pablgonz/"..ctanpkg.."/issues",
@@ -301,4 +301,3 @@ if options["target"] == "release" then
   print("** If everything is OK run (manually): l3build upload")
   os.exit(0)
 end
-

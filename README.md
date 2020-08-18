@@ -1,6 +1,6 @@
 ## LTXimg &ndash; Extract LaTeX environments to image format and standalone files
 
-Release v1.8 \[2020-08-17\]
+Release v1.8 \[2020-08-18\]
 
 ## Description
 

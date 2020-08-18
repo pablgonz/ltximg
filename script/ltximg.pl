@@ -41,7 +41,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v1.8';
-my $date       = '2020-08-17';
+my $date       = '2020-08-18';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
