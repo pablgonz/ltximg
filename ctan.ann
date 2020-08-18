@@ -1,0 +1,6 @@
+Changes in this version:
+- It is now possible to extract any environment.
+- Add `log`, `runs`, `latexmk` and `dvilua` options.
+- All calls to the system are captured.
+- Re-write source code acording to Perl v5.3x.
+- Review of documentation.

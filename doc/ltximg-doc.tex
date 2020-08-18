@@ -86,7 +86,7 @@
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{1.8}
-\def\filedate{2020-08-16}
+\def\filedate{2020-08-17}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -137,12 +137,12 @@
   urlcolor           = magenta,%
   colorlinks         = true,%
   linktoc            = all,
-  pdftitle           = {.:: ltximg v\fileversion{} [\filedate] --- LaTeX environments to image formats ::.},%
+  pdftitle           = {.:: ltximg v\fileversion{} [\filedate] --- LaTeX environments to image format and standalone files ::.},%
   pdfauthor          = {Pablo Gonz\'{a}lez Luengo},%
   pdfsubject         = {Documentation for version \fileversion},%
   pdfcopyright       = {\textcopyright 2013 - 2020 by Pablo González Luengo},
   pdfcontacturl      = {https://github.com/pablgonz/ltximg},
-  pdfkeywords        = {extract, conversion, images, tikz, pstricks, standalone files},
+  pdfkeywords        = {extract, conversion, images, TikZ, PStricks, standalone files},
   pdfstartview       = {FitH},%
   bookmarksopenlevel = 2,%
 }
@@ -1927,11 +1927,9 @@ versions, both development (devp) and public (ctan).
 \item [v\fileversion\ (ctan), \filedate]
     \begin{itemize}
         \item It is now possible to extract any environment.
-        \item Fix \texttt{verbose} option.
-        \item Add \texttt{runs}, \texttt{latexmk} and \texttt{dvilua} options.
-        \item Add \texttt{log} option.
+        \item Add \texttt{--log}, \texttt{--runs}, \texttt{--latexmk} and \texttt{--dvilua} options.
         \item All calls to the system are captured.
-        \item Re-write source code acording to \texttt{perl} v5.3x.
+        \item Re-write source code acording to \texttt{Perl} v5.3x.
         \item Review of documentation.
     \end{itemize}
 \item [v1.7 (ctan), 2019-08-24]
@@ -1943,7 +1941,7 @@ versions, both development (devp) and public (ctan).
     \end{itemize}
 \item [v1.6 (ctan), 2019-07-13]
     \begin{itemize}
-        \item Add \texttt{zip} and \texttt{tar} options.
+        \item Add \texttt{--zip} and \texttt{--tar} options.
         \item Add new \texttt{Verb} from \texttt{fvextra}.
         \item Fix and update source code and documentation.
     \end{itemize}
@@ -1953,20 +1951,20 @@ versions, both development (devp) and public (ctan).
         \item Rewrite and optimize most part of source code and options.
         \item Change \texttt{pdf2svg} for \texttt{pdftocairo}.
         \item Complete support for \texttt{pst-exa} package.
-        \item Escape characters in regex according to \texttt{perl} v5.2x.
+        \item Escape characters in regex according to \texttt{Perl} v5.2x.
     \end{itemize}
 \item [v1.4 (devp), 2016-11-29]
     \begin{itemize}
         \item Remove and rewrite code for regex and system call.
-        \item Add \texttt{arara} compiler, clean and comment code.
-        \item Add \texttt{dvips} and \texttt{dvipdfm(x)} for creation images.
+        \item Add \texttt{--arara} compiler, clean and comment code.
+        \item Add \texttt{--dvips} and \texttt{--dvipdfm(x)} for creation images.
         \item Add \texttt{bmp}, \texttt{tiff} image format.
     \end{itemize}
 \item [v1.3 (devp), 2016-08-14]
     \begin{itemize}
         \item Rewrite some part of code (norun, nocrop, clean).
         \item Suport \texttt{minted} and \texttt{tcolorbox} package.
-        \item Escape some characters in regex according to \texttt{perl} v5.2x.
+        \item Escape some characters in regex according to \texttt{Perl} v5.2x.
         \item All options read from command line and input file.
         \item Use \texttt{/tmp} dir for work process.
     \end{itemize}

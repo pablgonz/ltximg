@@ -1,11 +1,11 @@
-## LTXimg &ndash; LaTeX environments to image format
+## LTXimg &ndash; Extract LaTeX environments to image format and standalone files
 
-Release v1.8 \[2020/08/16\]
+Release v1.8 \[2020-08-17\]
 
 ## Description
 
 **ltximg** is a perl *script* that automates the process of extracting and converting
-environments provided by **tikz**, **pstricks** and other packages from input file
+environments provided by **TikZ**, **PStricks** and other packages from input file
 to image formats and standalone files using `ghostscript` and `poppler-utils`. Generates a
 file with only extracted environments and another with all extracted environments converted to `\includegraphics`.
 
