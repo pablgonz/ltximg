@@ -238,3 +238,67 @@ uploadconfig = {
   note_file   = "ctan.note",
   update      = true,
 }
+
+-- GitHub release version
+local function os_capture(cmd, raw)
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  if raw then return s end
+    s = string.gsub(s, '^%s+', '')
+    s = string.gsub(s, '%s+$', '')
+    s = string.gsub(s, '[\n\r]+', ' ')
+  return s
+end
+
+local gitbranch = os_capture("git symbolic-ref --short HEAD")
+local gitstatus = os_capture("git status --porcelain")
+local tagongit  = os_capture('git for-each-ref refs/tags --sort=-taggerdate --format="%(refname:short)" --count=1')
+local gitpush   = os_capture("git log --branches --not --remotes")
+
+if options["target"] == "release" then
+  if gitbranch == "master" then
+    os_message("Checking git branch '"..gitbranch.."'")
+  else
+    error("** Error!!: You must be on the 'master' branch")
+  end
+  if gitstatus == "" then
+    os_message("Checking status of the files")
+  else
+    error("** Error!!: Files have been edited, please commit all changes")
+  end
+  if gitpush == "" then
+    os_message("Checking pending commits")
+  else
+    error("** Error!!: There are pending commits, please run git push")
+  end
+  -- Check tags
+  check_readme_tags()
+  check_marked_tags()
+  check_script_tags()
+
+  local scriptv = "v"..scriptv
+  errorlevel = os.execute("git tag -a "..scriptv.." -m 'Release "..scriptv.." "..scriptd.."'")
+  if errorlevel ~= 0 then
+    error("** Error!!: tag "..tagongit.." already exists, run git tag -d "..scriptv.." && git push --delete origin "..scriptv)
+    return errorlevel
+  else
+    os_message("Checking last tag marked in GitHub '"..tagongit.."'")
+    print("** Running: git tag -a "..scriptv.." -m 'Release "..scriptv.." "..scriptd.."'")
+  end
+
+  os_message("** Running: git push --tags --quiet")
+  os.execute("git push --tags --quiet")
+  if fileexists(ctanzip..".zip") then
+    os_message("** Checking "..ctanzip..".zip file to send to CTAN: OK")
+  else
+    os_message("** Creating "..ctanzip..".zip file to send to CTAN")
+    os.execute("l3build ctan > "..os_null)
+  end
+  os_message("** Running: l3build upload --debug")
+  os.execute("l3build upload --debug > "..os_null)
+  print("** Now check "..ctanzip..".curlopt file and add changes to ctan.ann")
+  print("** If everything is OK run (manually): l3build upload")
+  os.exit(0)
+end
+
