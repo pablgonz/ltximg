@@ -40,8 +40,8 @@ my $workdir = cwd;
 ### Script identification
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
-my $nv         = 'v1.8';
-my $date       = '2020-08-18';
+my $nv         = 'v1.9';
+my $date       = '2020-08-22';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT
@@ -2630,7 +2630,7 @@ if (@graphicxpkg  and $outfile and $findgraphicx ne 'false') {
     $findgraphicx = 'false';
 }
 
-### Revert changes for preamble for <output file>
+### Revert changes in preamble for temp <output file>
 my %tmpoutreplace = (
     'TMPGRAPHICXTMP'     => 'graphicx',
     'TMPGRAPHICSPATHTMP' => 'graphicspath',

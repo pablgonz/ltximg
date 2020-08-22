@@ -65,8 +65,8 @@
 \newcommand{\HP}[1]{\emph{\hyperpage{#1}}\normalsize}
 \def\SortIndex#1#2{\index{#1\actualchar#2|HP}}
 \indexsetup{level=\section,firstpagestyle=myheader}
-%\makeindex[options=-s gind.ist,columnsep=15pt,title={Index of Documentation}] %noautomatic
-\makeindex[noautomatic,columnsep=15pt,title={Index of Documentation}] %
+\makeindex[options=-q -s gind.ist,columnsep=15pt,title={Index of Documentation}] %noautomatic
+%\makeindex[noautomatic,columnsep=15pt,title={Index of Documentation}] %
 
 % parindent
 \setlength{\parindent}{0pt}
@@ -85,8 +85,8 @@
 
 % Identification
 \def\myscript{ltximg}
-\def\fileversion{1.8}
-\def\filedate{2020-08-18}
+\def\fileversion{1.9}
+\def\filedate{2020-08-22}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -720,8 +720,8 @@
 
 \begin{abstract}
 \ltximg{} is a \prgname{perl} \emph{script} that automates the process of
-extracting and converting environments provided by \pkgname{tikz}, %
-\pkgname{pstricks} and other packages from \meta[cf=optcolor]{input file} to image
+extracting and converting environments provided by \pkgname{TikZ}, %
+\pkgname{PStricks} and other packages from \meta[cf=optcolor]{input file} to image
 formats and standalone files using \prgname{ghostscript} and %
 \prgname{poppler-utils}. Generates a file with only extracted environments
 and another with all extracted environments converted to \ics{includegraphics}.
@@ -745,7 +745,7 @@ for more details.
 \section{Motivation and Acknowledgments}
 
 The original idea was to extend the functionality of the \scriptname{pst2pdf}\cite{pst2pdf}
-script to work with \env{tikzpicture} and other environments. The \pkgname{tikz}\cite{tikz} package
+script to work with \env{tikzpicture} and other environments. The \pkgname{TikZ}\cite{tikz} package
 allows to \emph{externalize} the environments, but, the idea was to be able to extend this
 to \emph{any type} of environment covering three central points:
 
@@ -758,12 +758,6 @@ to \emph{any type} of environment covering three central points:
 \item Generate a file replacing the environments by \ics{includegraphics}.
 \end{enumerate}
 
-\thispagestyle{plain}
-
-\newpage
-
-\pagestyle{myheader}
-
 From the side of \hologo{TeX} there are some packages that cover several of these
 points such as the \pkgname{preview}\cite{preview}, \pkgname{xcomment}\cite{xcomment}, \pkgname{extract}\cite{extract}
 and \pkgname{cachepic}\cite{cachepic} packages among others, but none covered all points.
@@ -772,6 +766,12 @@ In the network there are some solutions in \texttt{bash} that were able to
 extract and convert environments, but in general they presented problems
 when the document contained \emph{\enquote{verbatim style}} code or were only
 available for \OSsystem{Linux}.
+
+\thispagestyle{plain}
+
+\newpage
+
+\pagestyle{myheader}
 
 Analysed the situation the best thing was to create a new \emph{\enquote{script}} that
 was able to cover the three points and was multi platform, the union of all
@@ -817,7 +817,7 @@ that everything works correctly, for this we must be clear about some
 concepts related to how to work with the \meta[cf=optcolor]{input file}, the \meta{verbatim content}
 and the \meta{steps process}.
 
-\section{The input file}
+\subsection{The input file}
 \label{sec:inputfile}
 
 The \meta[cf=optcolor]{input file} must comply with \emph{certain characteristics} in order to
@@ -862,11 +862,12 @@ parts and then processing them:
 
 If for some reason you have an environment \LWenv{filecontens} before \lstinline|\documentclass| or
 in the preamble of the \meta{input file} that contains a \emph{sub-document} or \emph{environment}
-you want to extract, the script will ignore them.
+you want to extract, the script will ignore them. Similarly, the content after \lstinline|\end{document}|
+is ignored in the extraction process.
 
 \newpage
 
-\section{Verbatim contents}
+\subsection{Verbatim contents}
 \label{sec:verbatim}
 
 One of the greatest capabilities of this script is to \emph{\enquote{skip}}
@@ -882,7 +883,7 @@ three types:
     \item Verbatim write.
 \end{itemize}
 
-\subsection{Verbatim in line}
+\subsection*{Verbatim in line}
 \label{sec:verbatim:inline}
 
 The small pieces of code written using a \emph{\enquote{verbatim macro}}
@@ -935,7 +936,7 @@ depending on the package you are using. If your \emph{\enquote{verbatim macro}} 
 supported by default or can not detect, use the options described in \ref%
 {sec:optline} and \ref{sec:optfile}.
 
-\subsection{Verbatim standard}
+\subsection*{Verbatim standard}
 \label{sec:verbatim:std}
 
 These are the \emph{\enquote{classic}} environments for \emph{\enquote{writing code}} are considered %
@@ -1011,7 +1012,7 @@ If any of the \meta{verbatim standard} environments is not supported by
 default or can not detected, you can use the options described in \ref%
 {sec:optline} and \ref{sec:optfile}.
 
-\subsection{Verbatim write}
+\subsection*{Verbatim write}
 \label{sec:verbatim:write}
 
 Some environments have the ability to write \emph{\enquote{external files}}
@@ -1059,7 +1060,7 @@ If any of the \meta{verbatim write} environments is not supported by default
 or can not detected, you can use the options described in \ref{sec:optline}
 and \ref{sec:optfile}.
 
-\section{Steps process}
+\subsection{Steps process}
 \label{sec:steps:process}
 
 For creation of the image formats, extraction of source code of environments and creation of an
@@ -1097,7 +1098,7 @@ Some text
 Some lines that will be ignored by the script
 \end{examplecode}
 
-\subsection{Validating Options}
+\subsection*{Validating Options}
 
 The first step is read and validated \oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} from the command
 line and \sysfile{test.tex}, verifying that \sysfile{test.tex} contains \emph{some} environment to extract,
@@ -1108,7 +1109,7 @@ The entire \sysfile{test.tex} file is loaded into memory and \emph{\enquote{spli
 
 \newpage
 
-\subsection{Comment and ignore}
+\subsection*{Comment and ignore}
 In the second step, once the file \sysfile{test.tex} is loaded and divided in memory,
 proceeds (in general terms) as follows:
 
@@ -1120,7 +1121,7 @@ extract inside the \lstinline|\begin{preview}| \ldots \lstinline|\end{preview}|.
 
 At this point \emph{\enquote{all}} the code you want to extract is inside \lstinline|\begin{preview}|\ldots\lstinline|\end{preview}|.
 
-\subsection{Creating files and extracting}
+\subsection*{Creating files and extracting}
 
 In the third step, the script generate \meta{standalone} files: \sysfile{test-fig-1.tex},
 \sysfile{test-fig-2.tex}, \dots{} and saved in \sysdir{./images} then proceed in two ways
@@ -1164,7 +1165,7 @@ in a temporary file \sysfile{test-fig-1981.tex} in \enquote{\sysdir{./}}.
 If \cmdopt{norun} is passed, the temporary file \sysfile{test-fig-1981.tex}
 is renamed to \sysfile{test-fig-all.tex} and moved to \sysdir{./images}.
 
-\subsection{Generate image formats}
+\subsection*{Generate image formats}
 
 In the fourth step, the script generating the file \sysfile{test-fig-1981.pdf} with all code extracted and croping, running:
 \begin{examplecmd}
@@ -1178,10 +1179,10 @@ moved to the \sysdir{./images} and rename to \sysfile{test-fig-all.tex}.
 
 Note the options passed to \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} always use \prgopt*{no-shell-escape}
 and \prgopt*{recorder}, to generate the \fext{fls} file which is used to delete temporary files and directories after
-the process is completed and. The \cmdopt{shell} option activates \prgopt*{shell-escape} for compatibility with packages
+the process is completed. The \cmdopt{shell} option activates \prgopt*{shell-escape} for compatibility with packages
 such as \pkgname{minted} or others.
 
-\subsection{Create output file}
+\subsection*{Create output file}
 
 In the fifth step, the script apply the option \cmdopt{clean}, remove all content betwen \lstinline|%<*remove> ... %</remove>|
 and try to detect whether the \pkgname{graphicx} package and the \ics{graphicspath} command are in the preamble of the \meta[cf=optcolor]{output file} (in memory).
@@ -1204,7 +1205,7 @@ in \enquote{\sysdir{./}}, then proceed to run:
 
 generating the file \sysfile{test-out.pdf}.
 
-\subsection{Clean temporary files and dirs}
+\subsection*{Clean temporary files and dirs}
 
 In the sixth step, the script read the files \sysfile{test-fig-1981.fls}
 and \sysfile{test-out.fls}, extract the information from the
@@ -1277,7 +1278,7 @@ cannot be passed as an argument to the option \cmdopt{skipenv}{}.
 \vspace{0.25\baselineskip}
 
 \DescribeTE{pspicture}
-Environment provide by \pkgname{pstricks}\cite{pstricks} package. The plain \hologo{TeX}
+Environment provide by \pkgname{PStricks}\cite{pstricks} package. The plain \hologo{TeX}
 syntax \lstinline|\pspicture ... \endpspicture| its converted to \hologo{LaTeX} syntax
 \lstinline|\begin{pspicture} ... \end{pspicture}| if not within the \env{PSTexample} or \env{postscript} environments.
 
@@ -1291,7 +1292,7 @@ not within the \env{PSTexample} or \env{postscript} environments.
 \newpage
 
 \DescribeTE{tikzpicture}
-Environment provide by \pkgname{tikz}\cite{tikz} package. The plain \hologo{TeX} syntax \lstinline|\tikzpicture ... \tikzpicture|
+Environment provide by \pkgname{TikZ}\cite{tikz} package. The plain \hologo{TeX} syntax \lstinline|\tikzpicture ... \tikzpicture|
 its converted to \hologo{LaTeX} syntax \lstinline|\begin{tikzpicture} ... \end{tikzpicture}|
 but no a short syntax \lstinline|\tikz ... ;|.
 
@@ -1600,7 +1601,7 @@ Removes specific content in \meta[cf=optcolor]{output file}. Valid values for th
 
 \begin{description}[font=\ttfamily, nosep, noitemsep, leftmargin=0pt]
 \item[\textcolor{gray}{doc}] All content after \lstinline+\end{document}+ is removed.
-\item[\textcolor{gray}{pst}] All \lstinline|\psset|\marg[type=tt]{code} and \pkgname{pstricks} package is removed in \meta{preamble} and \meta{body}.
+\item[\textcolor{gray}{pst}] All \lstinline|\psset|\marg[type=tt]{code} and \pkgname{PStricks} package is removed in \meta{preamble} and \meta{body}.
 \item[\textcolor{gray}{tkz}] All \lstinline|\tikzset|\marg[type=tt]{code} is removed in \meta{body}.
 \item[\textcolor{gray}{all}] Activates \textcolor{gray}{\texttt{doc}}, \textcolor{gray}{\texttt{pst}} and \textcolor{gray}{\texttt{tkz}}.
 \item[\textcolor{gray}{off}] Deactivate all.
@@ -1629,7 +1630,7 @@ delete only in \meta{body} of \meta[cf=optcolor]{output file}, if it's the last 
 passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end. The environment \env{document}
 is not supported in this option.\par
 
-\subsection{Passing options from command line}
+\subsection*{Passing options from command line}
 
 An example of usage from command line:
 
@@ -1696,7 +1697,7 @@ place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
 %</remove>
 \end{examplecode}
 
-\subsection{Passing options from input file}
+\subsection*{Passing options from input file}
 
 Adding the following lines to the beginning of the file \sysfile{file-in.tex}:
 
@@ -1925,6 +1926,12 @@ versions, both development (devp) and public (ctan).
 \settowidth{\descrwidth}{\textsf{v1.4.5, (ctan), 2013-01-23}}
 \begin{description}[font=\small\sffamily,wide=0pt,style=multiline,leftmargin=\descrwidth,nosep,noitemsep]
 \item [v\fileversion\ (ctan), \filedate]
+    \begin{itemize}
+        \item Fix \texttt{graphicx} detection.
+        \item Fix typos in documentation.
+        \item Add more contents to \texttt{.log} file.
+    \end{itemize}
+\item [v1.8 (ctan), 2020-08-18]
     \begin{itemize}
         \item It is now possible to extract any environment.
         \item Add \texttt{--log}, \texttt{--runs}, \texttt{--latexmk} and \texttt{--dvilua} options.

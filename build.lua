@@ -4,8 +4,8 @@
 
 -- Identification
 module  = "ltximg"
-scriptv = "1.8"
-scriptd = "2020-08-18"
+scriptv = "1.9"
+scriptd = "2020-08-22"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
@@ -143,7 +143,27 @@ typesetfiles  = {"ltximg-doc.tex"}
 typesetexe    = "lualatex"
 typesetopts   = "--interaction=batchmode"
 typesetruns   = 2
-makeindexopts = "-q"
+
+
+
+function typeset(file)
+  local file = jobname(docfiledir.."/ltximg-doc.tex")
+  -- lualatex
+  print("** Running: lualatex -interaction=batchmode "..file..".tex")
+  errorlevel = runcmd("lualatex "..file..".tex >"..os_null, typesetdir, {"TEXINPUTS","LUAINPUTS"})
+  if errorlevel ~= 0 then
+    error("** Error!!: lualatex -interaction=batchmode "..file..".tex")
+    return errorlevel
+  end
+  -- lualatex second run
+  print("** Running: lualatex -interaction=batchmode "..file..".tex")
+  errorlevel = runcmd("lualatex "..file..".tex >"..os_null, typesetdir, {"TEXINPUTS","LUAINPUTS"})
+  if errorlevel ~= 0 then
+    error("** Error!!: lualatex -interaction=batchmode "..file..".tex")
+    return errorlevel
+  end
+  return 0
+end
 
 -- Create make_tmp_dir() function
 local function make_tmp_dir()
