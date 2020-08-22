@@ -2227,6 +2227,7 @@ $preamout =~ s/^\\usepackage\{\}(?:[\t ]*(?:\r?\n|\r))+/\n/gmsx;
 ### Remove %<*$dtxverb> ... %</$dtxverb> in tmpbodydoc and preamout
 $tmpbodydoc =~ s/\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/$1/gmsx;
 $preamout   =~ s/\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/$1/gmsx;
+$atbeginout =~ s/\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/$1/gmsx;
 
 ### Adjust nopreview environments
 $tmpbodydoc =~ s/\\begin\{nopreview\}\%$tmp
@@ -2837,9 +2838,20 @@ $opt_compiler = $opts_cmd{compiler}{arara}   ? '--log'
               :                                "$write18 -interaction=nonstopmode -recorder"
               ;
 
-### Now set latexmk
+### Message in command line for compiler
+$msg_compiler = $opts_cmd{compiler}{xetex}  ? 'xelatex'
+              : $opts_cmd{compiler}{luatex} ? 'lualatex'
+              : $opts_cmd{compiler}{latex}  ? 'pdflatex'
+              : $opts_cmd{compiler}{dvips}  ? 'latex>dvips>ps2pdf'
+              : $opts_cmd{compiler}{dvilua} ? 'lualatex'
+              : $opts_cmd{compiler}{dvipdf} ? 'latex>dvipdfmx'
+              : $opts_cmd{compiler}{arara}  ? 'arara'
+              :                               'latexmk'
+              ;
+
+### Now set message for latexmk
 if ($opts_cmd{compiler}{latexmk}) {
-    $compiler = $msg_compiler = 'latexmk';
+    $msg_compiler = 'latexmk';
 }
 
 ### Compiling <output file>
