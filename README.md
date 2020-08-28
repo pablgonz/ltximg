@@ -1,6 +1,6 @@
 ## LTXimg &ndash; LaTeX environments to image format and standalone files
 
-Release v1.9 \[2020-08-22\]
+Release v1.9a \[2020-08-28\]
 
 ## Description
 
@@ -118,7 +118,7 @@ $ texdoc ltximg
 For recreation all documentation use:
 
 ```
-$ arara ltximg-doc.dtx -H
+$ arara ltximg-doc.tex -H
 ```
 
 ## Licence

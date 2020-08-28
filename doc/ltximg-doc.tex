@@ -85,8 +85,8 @@
 
 % Identification
 \def\myscript{ltximg}
-\def\fileversion{1.9}
-\def\filedate{2020-08-22}
+\def\fileversion{1.9a}
+\def\filedate{2020-08-28}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -1200,7 +1200,7 @@ Now converting all extracted code to \ics{includegraphics} and save \sysfile{tes
 in \enquote{\sysdir{./}}, then proceed to run:
 
 \begin{examplecmd}
-[user@machine ~:]§ `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}` -recorder -shell-escape test-out.tex
+[user@machine ~:]§ `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}` -recorder -no-shell-escape test-out.tex
 \end{examplecmd}
 
 generating the file \sysfile{test-out.pdf}.
@@ -1920,18 +1920,17 @@ tracker: \url{https://github.com/pablgonz/ltximg/issues}.
 This is a short list of some of the notable changes in the history of the \ltximg{} along with the
 versions, both development (devp) and public (ctan).
 
-\setlist[itemize,1]{label=\textendash,wide=0.5em,nosep,noitemsep,leftmargin=10pt}
-% length for change history
-\newlength\descrwidth
-\settowidth{\descrwidth}{\textsf{v1.4.5, (ctan), 2013-01-23}}
-\begin{description}[font=\small\sffamily,wide=0pt,style=multiline,leftmargin=\descrwidth,nosep,noitemsep]
-\item [v\fileversion\ (ctan), \filedate]
+\setlength{\columnsep}{30pt}
+\begin{multicols}{2}
+\setlist[itemize,1]{label=\textendash,nosep,noitemsep,leftmargin=-10pt}
+\begin{description}[font=\small\sffamily,style=nextline,nosep,noitemsep]
+\item [v\fileversion\ (ctan), \filedate] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Fix \texttt{graphicx} detection.
         \item Fix typos in documentation.
         \item Add more contents to \texttt{.log} file.
     \end{itemize}
-\item [v1.8 (ctan), 2020-08-18]
+\item [v1.8 (ctan), 2020-08-18] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item It is now possible to extract any environment.
         \item Add \texttt{--log}, \texttt{--runs}, \texttt{--latexmk} and \texttt{--dvilua} options.
@@ -1939,20 +1938,20 @@ versions, both development (devp) and public (ctan).
         \item Re-write source code acording to \texttt{Perl} v5.3x.
         \item Review of documentation.
     \end{itemize}
-\item [v1.7 (ctan), 2019-08-24]
+\item [v1.7 (ctan), 2019-08-24] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Add \texttt{scontents} environment support.
         \item Add \texttt{filecontentsdefmacro} environment support.
         \item Fix regex in source code.
         \item Update documentation.
     \end{itemize}
-\item [v1.6 (ctan), 2019-07-13]
+\item [v1.6 (ctan), 2019-07-13] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Add \texttt{--zip} and \texttt{--tar} options.
         \item Add new \texttt{Verb} from \texttt{fvextra}.
         \item Fix and update source code and documentation.
     \end{itemize}
-\item [v1.5 (ctan), 2018-04-12]
+\item [v1.5 (ctan), 2018-04-12] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Use \texttt{GitHub} to control version.
         \item Rewrite and optimize most part of source code and options.
@@ -1960,14 +1959,14 @@ versions, both development (devp) and public (ctan).
         \item Complete support for \texttt{pst-exa} package.
         \item Escape characters in regex according to \texttt{Perl} v5.2x.
     \end{itemize}
-\item [v1.4 (devp), 2016-11-29]
+\item [v1.4 (devp), 2016-11-29] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Remove and rewrite code for regex and system call.
         \item Add \texttt{--arara} compiler, clean and comment code.
         \item Add \texttt{--dvips} and \texttt{--dvipdfm(x)} for creation images.
         \item Add \texttt{bmp}, \texttt{tiff} image format.
     \end{itemize}
-\item [v1.3 (devp), 2016-08-14]
+\item [v1.3 (devp), 2016-08-14] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Rewrite some part of code (norun, nocrop, clean).
         \item Suport \texttt{minted} and \texttt{tcolorbox} package.
@@ -1975,24 +1974,25 @@ versions, both development (devp) and public (ctan).
         \item All options read from command line and input file.
         \item Use \texttt{/tmp} dir for work process.
     \end{itemize}
-\item [v1.2 (ctan), 2015-04-22]
+\item [v1.2 (ctan), 2015-04-22] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Remove unused modules.
         \item Add more image format.
         \item Fix regex.
     \end{itemize}
-\item [v1.1 (ctan), 2015-04-21]
+\item [v1.1 (ctan), 2015-04-21] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Change \texttt{mogrify} to \texttt{gs} for image formats.
         \item Create output file.
         \item Rewrite source code and fix regex.
         \item Change format date to iso format.
     \end{itemize}
-\item [v1.0 (ctan), 2013-12-01]
+\item [v1.0 (ctan), 2013-12-01] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item First public release.
     \end{itemize}
 \end{description}
+\end{multicols}
 
 \newpage
 

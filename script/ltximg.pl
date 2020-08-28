@@ -40,8 +40,8 @@ my $workdir = cwd;
 ### Script identification
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
-my $nv         = 'v1.9';
-my $date       = '2020-08-22';
+my $nv         = 'v1.9a';
+my $date       = '2020-08-28';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
 END_COPYRIGHT

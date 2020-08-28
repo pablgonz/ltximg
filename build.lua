@@ -4,8 +4,8 @@
 
 -- Identification
 module  = "ltximg"
-scriptv = "1.9"
-scriptd = "2020-08-22"
+scriptv = "1.9a"
+scriptd = "2020-08-28"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
