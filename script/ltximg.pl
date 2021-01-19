@@ -43,7 +43,7 @@ my $program    = 'LTXimg';
 my $nv         = 'v1.9a';
 my $date       = '2020-08-28';
 my $copyright  = <<"END_COPYRIGHT" ;
-[$date] (c) 2013-2020 by Pablo Gonzalez, pablgonz<at>yahoo.com
+[$date] (c) 2013-2020 by Pablo González, pablgonz<at>yahoo.com
 END_COPYRIGHT
 
 my $title = "$program $nv $copyright";
@@ -239,21 +239,18 @@ sub usage {
 find_ghostscript();
 
 my $usage = <<"END_OF_USAGE";
-${title}Description
+${title}Syntax
+\$ ltximg [<options>] [--] <filename>.<tex|ltx>
+
+Description
    LTXimg is a "perl" script that automates the process of extracting and
    converting "environments" provided by tikz, pstricks and other packages
    from LaTeX file to image formats and "standalone" files using ghostscript
    and poppler-utils. Generates a one file with only extracted environments
    and other with all extracted environments converted to \\includegraphics.
 
-Syntax
-\$ ltximg [<options>] [--] <filename>.<tex|ltx>
+   By default the extracted environments are:
 
-   If used without [<options>] the extracted environments are converted
-   to pdf image format and saved in "./images" directory using pdflatex
-   and preview package for process <filename>.
-
-Default environments extract
    preview pspicture tikzpicture pgfpicture psgraph postscript PSTexample
 
 Options
@@ -261,6 +258,10 @@ Options
    the option and the value. Multiple short options can be bundling and
    if the last option takes a comma separated list you need -- at the end.
    Relative or absolute paths for directories and files is not supported.
+
+   If used without [<options>] the extracted environments are converted
+   to pdf image format and saved in "./images" directory using pdflatex
+   and preview package for process.
 
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
@@ -295,7 +296,7 @@ Options
 --tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files with only code of environments   [off]
 --subenv              Create standalone files for environments      [off]
---shell               Enable \\write18\{SHELL COMMAND\}              [off]
+--shell               Enable \\write18\{SHELL COMMAND\}                [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
                       and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
@@ -318,22 +319,22 @@ Options
 --deltenv <env1,...>  Delete environments in output file            [empty]
 
 Example
-\$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out test-in.ltx
+\$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
 
    Create a "./mypics" directory (if it doesn't exist) with all extracted
    environments converted to images (.pdf, .eps, .png) and standalone files
    (.ltx), a file "test-in-fig-all.ltx" with all extracted environments and
    the file "test-out.ltx" with all environments converted to \\includegraphics
-   using latex>dvips>ps2pdf and preview package for <input file> and pdflatex
-   for <output file>.
+   using latex>dvips>ps2pdf and preview package for <test-in.ltx> and pdflatex
+   for <test-out.ltx>.
 
 Documentation
 For full documentation use:
 \$ texdoc ltximg
 
 Issues and reports
-Repository   : https://github.com/pablgonz/ltximg
-Bug tracker  : https://github.com/pablgonz/ltximg/issues
+Repository : https://github.com/pablgonz/ltximg
+Bug tracker: https://github.com/pablgonz/ltximg/issues
 END_OF_USAGE
 print $usage;
 exit 0;
@@ -3007,3 +3008,254 @@ Infocolor('Finish', "The execution of $scriptname has been successfully complete
 Log("The execution of $scriptname has been successfully completed");
 
 __END__
+# pod2man --utf8 --center='General Commands Manual' --name=ltximg --release=2.0 --date='2021-18-01' ltximg.pod ltximg.1
+
+=encoding UTF-8
+
+=head1 NAME
+
+ltximg - LaTeX environment to image format and standalone files
+
+=head1 SYNOPSIS
+
+B<ltximg> [E<lt>I<options>E<gt>] [S<-->] E<lt>I<filename>E<gt>.I<tex>|I<ltx>
+
+=head1 DESCRIPTION
+
+B<ltximg> automates the process of extracting and converting
+environments from LaTeX file to image formats and I<standalone> files
+using I<ghostscript> and I<poppler-utils>. Generates a one file with
+only extracted environments and other with all extracted environments
+converted to C<\includegraphics>.
+
+By default the extracted environments are:
+
+B<preview> B<pspicture> B<tikzpicture> B<pgfpicture> B<psgraph> B<postscript> B<PSTexample>
+
+=head1 OPTIONS
+
+Options that accept a value require either a blank space or C<=> between
+the option and the value. Multiple short options can be bundling and
+if the last option takes a comma separated list you need C<--> at the end.
+Relative or absolute paths for directories and files is not supported.
+
+If used without [E<lt>I<options>E<gt>] the extracted environments are converted
+to I<pdf> image format and saved in C<./images> directory using C<pdflatex>
+and I<preview> package for process.
+
+General script options:
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Display command line help and exit.
+
+=item B<-v>, B<--version>
+
+Display current version and exit.
+
+=item B<-V>, B<--verbose>
+
+Verbose printing information.
+
+=item B<-l>, B<--log>
+
+Write C<.log> file with debug information.
+
+=item B<-t>, B<--tif>
+
+Create C<.tif> files using I<ghostscript>.
+
+=item B<-b>, B<--bmp>
+
+Create C<.bmp> files using I<ghostscript>.
+
+=item B<-j>, B<--jpg>
+
+Create C<.jpg> files using I<ghostscript>.
+
+=item B<-p>, B<--png>
+
+Create C<.png> files using I<ghostscript>.
+
+=item B<-e>, B<--eps>
+
+Create C<.eps> files using I<pdftops>.
+
+=item B<-s>, B<--svg>
+
+Create C<.svg> files using I<pdftocairo>.
+
+=item B<-P>, B<--ppm>
+
+Create C<.ppm> files using I<pdftoppm>.
+
+=item B<-g>, B<--gray>
+
+Gray scale for images using I<ghostscript>.
+
+=item B<-f>, B<--force>
+
+Capture C<\psset> and C<\tikzset> to extract.
+
+=item B<-n>, B<--noprew>
+
+Create images files without I<preview> package.
+
+=item B<-r>=I<integer>, B<--runs>=I<integer>
+
+Set the number of times the compiler will run on the F<input> file for
+environment extraction (default: 1).
+
+=item B<-d>=I<integer>, B<--dpi>=I<integer>
+
+Dots per inch resolution for images (default: 150).
+
+=item B<-m>=I<integer>, B<--margins>=I<integer>
+
+Set margins in bp for I<pdfcrop> (default: 0).
+
+=item B<-o>=F<filename>, B<--output>=F<filename>
+
+Create F<output> file.
+
+=item B<--imgdir>=F<dirname>
+
+Set name of directory to save images and files (default: images).
+
+=item B<--prefix>=I<string>
+
+Set I<prefix> append to each generated files (default: fig).
+
+=item B<--myverb>=I<macroname>
+
+Add C<\macroname> to verbatim inline search (default: myverb).
+
+=item B<--clean>=I<doc>|I<pst>|I<tkz>|I<all>|I<off>
+
+Removes specific block text in F<output> file (default: doc).
+
+=item B<--zip>
+
+Compress files generated in C<.zip> format.
+
+=item B<--tar>
+
+Compress files generated in C<.tar.gz> format.
+
+=item B<--srcenv>
+
+Create files with only code of environments.
+
+=item B<--subenv>
+
+Create standalone files for environments.
+
+=item B<--shell>
+
+Enable C<\write18{SHELL COMMAND}>.
+
+=item B<--latex>
+
+Using C<latexE<gt>dvipsE<gt>ps2pdf> for compiler F<input> and C<pdflatex> for compiler
+F<output>.
+
+=item B<--dvips>
+
+Using C<latexE<gt>dvipsE<gt>ps2pdf> for compiler F<input> and C<latexE<gt>dvipsE<gt>ps2pdf> for
+compiler F<output>.
+
+=item B<--dvilua>
+
+Using C<dvilualatexE<gt>dvipsE<gt>ps2pdf> for compiler F<input> and C<lualatex> for
+compiler F<output>.
+
+=item B<--dvipdf>
+
+Using C<latexE<gt>dvipdfmx> for compiler F<input> and C<latexE<gt>dvipdfmx> for compiler
+F<output>.
+
+=item B<--xetex>
+
+Using C<xelatex> for compiler F<input> and F<output>.
+
+=item B<--luatex>
+
+Using C<lualatex> for compiler F<input> and F<output>.
+
+=item B<--arara>
+
+Use C<arara> for compiler F<input> and F<output>.
+
+=item B<--latexmk>
+
+Using C<latexmk> for compiler F<output> file.
+
+=item B<--norun>
+
+Run script, but no create images files.
+
+=item B<--nopdf>
+
+Don't create a C<.pdf> image files.
+
+=item B<--nocrop>
+
+Don't run I<pdfcrop>.
+
+=item B<--extrenv>=F<env1,env2,...>
+
+Add new environments to extract.
+
+=item B<--skipenv>=F<env1,env2,...>
+
+Skip some default environments to extract.
+
+=item B<--verbenv>=F<env1,env2,...>
+
+Add new verbatim environments.
+
+=item B<--writenv>=F<env1,env2,...>
+
+Add new verbatim write environments.
+
+=item B<--deltenv>=F<env1,env2,...>
+
+Delete environments in F<output> file.
+
+=back
+
+=head1 EXAMPLE
+
+B<ltximg> --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
+
+Create a C<./mypics> directory (if it doesn't exist) with all extracted
+environments converted to images (.pdf, .eps, .png) and standalone files
+(.ltx), a file F<test-in-fig-all.ltx> with all extracted environments and
+the file F<test-out.ltx> with all environments converted to \includegraphics
+using C<latexE<gt>dvipsE<gt>ps2pdf> and I<preview> package for F<test-in.ltx> and C<pdflatex>
+for F<test-out.ltx>.
+
+=head1 DOCUMENTATION
+
+For full documentation use:
+
+B<texdoc> ltximg
+
+=head1 ISSUES AND REPORTS
+
+B<Repository> : L<https://github.com/pablgonz/ltximg>
+
+B<Bug tracker>: L<https://github.com/pablgonz/ltximg/issues>
+
+=head1 SEE ALSO
+
+gs(1), dvips(1), ps2pdf(1), pdfcrop(1), pdftops(1), pdftocairo(1), pdftoppm(1)
+
+=head1 AUTHOR
+
+2013 - 2021 by Pablo González Luengo, I<pablgonz@yahoo.com>.
+
+=cut
+

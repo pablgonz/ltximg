@@ -144,8 +144,6 @@ typesetexe    = "lualatex"
 typesetopts   = "--interaction=batchmode"
 typesetruns   = 2
 
-
-
 function typeset(file)
   local file = jobname(docfiledir.."/ltximg-doc.tex")
   -- lualatex
