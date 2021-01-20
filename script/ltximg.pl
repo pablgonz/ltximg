@@ -44,8 +44,8 @@ my $workdir = cwd;
 ### Script identification
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
-my $nv         = 'v1.9a';
-my $date       = '2020-08-28';
+my $nv         = 'v2.0';
+my $date       = '2021-01-20';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
@@ -1554,7 +1554,6 @@ my $delt_env = qr {
                     )
                   }x;
 
-
 ########################################################################
 # In this first part the script only detects verbatim environments and #
 # verbatim write don't distinguish between which ones are extracted,   #
@@ -1776,9 +1775,9 @@ $bodydoc =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
 
 ########################################################################
 #  All environments are now classified:                                #
-#  Extraction       ->    \begin{preview} ... \end{preview}            #
+#  Extraction       ->    \begin{preview}   ... \end{preview}          #
 #  No Extraction    ->    \begin{nopreview} ... \end{nopreview}        #
-#  Verbatim's       ->    %<\*$dtxverb> ... <\/$dtxverb>               #
+#  Verbatim's       ->    %<\*$dtxverb>     ... <\/$dtxverb>           #
 ########################################################################
 
 ### The %<*remove> ... %</remove> tags need a special treatment :)
@@ -2362,7 +2361,7 @@ if ($STDenv) {
     }
 }
 
-### Compiler and generate PDF files
+### Compiler and generate PDF files -dALLOWPSTRANSPARENCY
 if (!$opts_cmd{boolean}{norun}) {
 Log('Generate a PDF file with all captured environments');
 my @compiler = (1..$opts_cmd{string}{runs});
@@ -2377,7 +2376,7 @@ opendir (my $DIR, $workdir);
             # Compiling file using latex>dvips>ps2pdf
             if ($compiler eq 'dvips' or $compiler eq 'latex' or $compiler eq 'dvilualatex') {
                 RUNOSCMD("dvips $quiet -Ppdf", "-o $+{name}-$tmp.ps $+{name}-$tmp.dvi",'show');
-                RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf",'show');
+                RUNOSCMD("ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None -dALLOWPSTRANSPARENCY", "$+{name}-$tmp.ps  $+{name}-$tmp.pdf",'show');
             }
             # Compiling file using latex>dvipdfmx
             if ($compiler eq 'dvipdf') {

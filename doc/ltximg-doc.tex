@@ -85,8 +85,8 @@
 
 % Identification
 \def\myscript{ltximg}
-\def\fileversion{1.9a}
-\def\filedate{2020-08-28}
+\def\fileversion{2.0}
+\def\filedate{2021-01-20}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -137,10 +137,10 @@
   urlcolor           = magenta,%
   colorlinks         = true,%
   linktoc            = all,
-  pdftitle           = {.:: ltximg v\fileversion{} [\filedate] --- LaTeX environments to image format and standalone files ::.},%
+  pdftitle           = {.:: ltximg v\fileversion{} [\filedate] --- LaTeX environments to image and standalone files ::.},%
   pdfauthor          = {Pablo Gonz\'{a}lez Luengo},%
   pdfsubject         = {Documentation for version \fileversion},%
-  pdfcopyright       = {\textcopyright 2013 - 2020 by Pablo González Luengo},
+  pdfcopyright       = {\textcopyright 2013 - 2021 by Pablo González Luengo},
   pdfcontacturl      = {https://github.com/pablgonz/ltximg},
   pdfkeywords        = {extract, conversion, images, TikZ, PStricks, standalone files},
   pdfstartview       = {FitH},%
@@ -161,7 +161,7 @@
 }
 \setfoot{\rlap{\hskip\dimexpr-\oddsidemargin-1in\relax%
          \parbox{1.93\paperwidth}{\hfil\thepage\,/\,\pageref{LastPage}}}}%
-        {\parbox{\textwidth}{\raggedright \textcolor{gray}{\raisebox{-1pt}{\textcopyright}{}2013 -- 2020 by Pablo González}}}%
+        {\parbox{\textwidth}{\raggedright \textcolor{gray}{\raisebox{-1pt}{\textcopyright}{}2013 -- 2021 by Pablo González}}}%
         {}%
 \sethead{\llap{\raisebox{0.55cm}{\parbox{\dimexpr\oddsidemargin+1in\relax}{\makebox[0pt][l]{\hspace{15pt}\pkglogo\space\fileversion}}}}}
         {\raisebox{0.55cm}{\parbox{\textwidth}{\hspace*{-\oddsidemargin}\centering\small\S.\firstextramarks{section}\thesection\space\sectiontitle}}}%
@@ -707,7 +707,7 @@
     This file describes a documentation for version \fileversion, last revised \filedate.}\\[25pt]%
     \author{%
     \large%
-    \raisebox{-1pt}{\textcopyright}{}2013--2020 by Pablo González L%
+    \raisebox{-1pt}{\textcopyright}{}2013--2021 by Pablo González L%
     \thanks{E-mail: \textcolor{optcolor}{\textsf{\guillemotleft}}\email{pablgonz@yahoo.com}\textcolor{optcolor}{\textsf{\guillemotright}}}
     }%
 \small
@@ -788,20 +788,27 @@ Several parts of the code have been taken and adapted from both scripts.
 For the complete operation of \ltximg{} you need to have a modern %
 \hologo{TeX} distribution such as \hologo{TeX} Live or \hologo{MiKTeX}, have
 a version equal to or greater than \liningnums{5.28} of \prgname{perl}, a
-version equal to or greater than \liningnums{9.24} of \prgname{ghostscript}, a
+version equal to or greater than \liningnums{9.52} of \prgname{ghostscript}, a
 version equal to or greater than \liningnums{1.40} of \scriptname{pdfcrop}
 and have a version equal to or greater than \liningnums{0.52} of %
-\prgname{poppler-utils}. The distribution of \hologo{TeX} Live 2020 for \OSsystem{Windows} includes %
-\ltximg{} and all requirements, \hologo{MiKTeX} users must install the
-appropriate software for full operation.
+\prgname{poppler-utils}.
+
+The script uses only packages from the core of the \prgname{perl}, the
+distribution encapsulated in \hologo{TeX} Live 2020 for \OSsystem{Windows}
+does not have the \verb|Win32::Console::ANSI| package, this does not
+affect the operation of the script, but it does affect the presentation
+of the messages when invoked from \verb|cmd|, it is recommended to use
+a more modern (and comfortable) application such as \prgname{Windows Terminal}.
+\hologo{MiKTeX} users must install the appropriate software for full
+operation.
 
 The script auto detects the \prgname{ghostscript}, but not \prgname{poppler-utils}.
 You should keep this in mind if you are using the script directly and not
 the version provided in your \hologo{TeX} distribution.
 
-The script has been tested on \OSsystem{Windows} (v10) and %
-\OSsystem{Linux} (fedora 32) using \prgname{ghostscript} %
-\liningnums{v9.52}, \prgname{poppler-utils} \liningnums{v0.84}, \prgname{perl} \liningnums{v5.30}
+The script has been tested on \OSsystem{Windows} (v10), \OSsystem{cygwin} (v3.1.6) and %
+\OSsystem{Linux} (fedora 33) using \prgname{ghostscript} %
+\liningnums{v9.53.3}, \prgname{poppler-utils} \liningnums{v0.90}, \prgname{perl} \liningnums{v5.32}
 and the standard classes offers by \hologo{LaTeX}: \myclass{book},
 \myclass{report}, \myclass{article} and \myclass{letter}. The \pkgname{preview}\cite{preview} and
 \pkgname{pst-pdf}\cite{pst-pdf} packages are required to process the \meta{input file} and if
@@ -1926,6 +1933,12 @@ versions, both development (devp) and public (ctan).
 \begin{description}[font=\small\sffamily,style=nextline,nosep,noitemsep]
 \item [v\fileversion\ (ctan), \filedate] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
+        \item Add \texttt{-dALLOWPSTRANSPARENCY} to \texttt{ps2pdf}.
+        \item Fix module detection under \hologo{TeX} Live on Windows.
+        \item Add \texttt{pod} and \texttt{man} documentation.
+    \end{itemize}
+\item [v1.9 (ctan), 2020-08-22] \leavevmode\vspace{-\baselineskip}
+    \begin{itemize}
         \item Fix \texttt{graphicx} detection.
         \item Fix typos in documentation.
         \item Add more contents to \texttt{.log} file.
@@ -1954,7 +1967,7 @@ versions, both development (devp) and public (ctan).
 \item [v1.5 (ctan), 2018-04-12] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Use \texttt{GitHub} to control version.
-        \item Rewrite and optimize most part of source code and options.
+        \item Rewrite and optimize code and options.
         \item Change \texttt{pdf2svg} for \texttt{pdftocairo}.
         \item Complete support for \texttt{pst-exa} package.
         \item Escape characters in regex according to \texttt{Perl} v5.2x.

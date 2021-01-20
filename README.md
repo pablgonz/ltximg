@@ -1,6 +1,6 @@
 ## LTXimg &ndash; LaTeX environments to image format and standalone files
 
-Release v1.9a \[2020-08-28\]
+Release v2.0 \[2021-01-20\]
 
 ## Description
 
