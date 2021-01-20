@@ -30,10 +30,10 @@ use autodie;
 use Config;
 use Cwd;
 use if $^O eq 'MSWin32', 'Win32';
-use Module::Load::Conditional qw(check_install can_load);
+use Module::Load::Conditional qw(can_load check_install requires);
 # TeX Live not provide 'Win32::Console::ANSI' need on Windows for colors
-if (can_load(modules => {'Win32::Console::ANSI' => undef })) {
-    use if $^O eq 'MSWin32', 'Win32::Console::ANSI';
+if(check_install( module => 'Win32::Console::ANSI')) {
+    require 'Win32::Console::ANSI';
 }
 use Term::ANSIColor;
 
@@ -247,7 +247,7 @@ ${title}Syntax
 \$ ltximg [<options>] [--] <filename>.<tex|ltx>
 
 Description
-   LTXimg is a "perl" script that automates the process of extracting and
+   ltximg is a "perl" script that automates the process of extracting and
    converting "environments" provided by tikz, pstricks and other packages
    from LaTeX file to image formats and "standalone" files using ghostscript
    and poppler-utils. Generates a one file with only extracted environments
@@ -282,25 +282,25 @@ Options
 -g, --gray            Gray scale for images using ghostscript       [off]
 -f, --force           Capture "\\psset" and "\\tikzset" to extract    [off]
 -n, --noprew          Create images files without "preview" package [off]
--r <integer>, --runs <integer>
+-r <integer>, --runs=<integer>
                       Set the number of times the compiler will run
                       on the input file for environment extraction  [1]
--d <integer>, --dpi <integer>
+-d <integer>, --dpi=<integer>
                       Dots per inch resolution for images           [150]
--m <integer>, --margins <integer>
+-m <integer>, --margins=<integer>
                       Set margins in bp for pdfcrop                 [0]
--o <filename>, --output <filename>
+-o <filename>, --output=<filename>
                       Create output file                            [off]
---imgdir <dirname>    Set name of directory to save images/files    [images]
---prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\\macroname" to verbatim inline search    [myverb]
---clean (doc|pst|tkz|all|off)
+--imgdir=<dirname>    Set name of directory to save images/files    [images]
+--prefix=<string>     Set prefix append to each generated files     [fig]
+--myverb=<macroname>  Add "\\macroname" to verbatim inline search    [myverb]
+--clean=doc|pst|tkz|all|off
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
 --srcenv              Create files with only code of environments   [off]
 --subenv              Create standalone files for environments      [off]
---shell               Enable \\write18\{SHELL COMMAND\}                [off]
+--shell               Enable \\write18\{shell command\}                [off]
 --latex               Using latex>dvips>ps2pdf for compiler input
                       and pdflatex for compiler output              [off]
 --dvips               Using latex>dvips>ps2pdf for compiler input
@@ -316,11 +316,11 @@ Options
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
 --nocrop              Don't run pdfcrop                             [off]
---extrenv <env1,...>  Add new environments to extract               [empty]
---skipenv <env1,...>  Skip some default environments to extract     [empty]
---verbenv <env1,...>  Add new verbatim environments                 [empty]
---writenv <env1,...>  Add new verbatim write environments           [empty]
---deltenv <env1,...>  Delete environments in output file            [empty]
+--extrenv=<env1,...>  Add new environments to extract               [empty]
+--skipenv=<env1,...>  Skip some default environments to extract     [empty]
+--verbenv=<env1,...>  Add new verbatim environments                 [empty]
+--writenv=<env1,...>  Add new verbatim write environments           [empty]
+--deltenv=<env1,...>  Delete environments in output file            [empty]
 
 Example
 \$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
@@ -365,7 +365,7 @@ my $result=GetOptions (
     'dvipdf'         => \$opts_cmd{compiler}{dvipdf},  # dvipdfmx compiler
     'dvilua'         => \$opts_cmd{compiler}{dvilua},  # dvilualatex compiler
     'luatex'         => \$opts_cmd{compiler}{luatex},  # lualatex compiler
-# bolean
+# boolean
     'zip'            => \$opts_cmd{boolean}{zip},    # zip images dir
     'tar'            => \$opts_cmd{boolean}{tar},    # tar images dir
     'shell'          => \$opts_cmd{boolean}{shell},  # set write18 for compiler
