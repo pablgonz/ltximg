@@ -30,7 +30,11 @@ use autodie;
 use Config;
 use Cwd;
 use if $^O eq 'MSWin32', 'Win32';
-use if $^O eq 'MSWin32', 'Win32::Console::ANSI'; # need for color :)
+use Module::Load::Conditional qw(check_install can_load);
+# TeX Live not provide 'Win32::Console::ANSI' need on Windows for colors
+if (can_load(modules => {'Win32::Console::ANSI' => undef })) {
+    use if $^O eq 'MSWin32', 'Win32::Console::ANSI';
+}
 use Term::ANSIColor;
 
 ### Directory for work and temp files
@@ -43,7 +47,7 @@ my $program    = 'LTXimg';
 my $nv         = 'v1.9a';
 my $date       = '2020-08-28';
 my $copyright  = <<"END_COPYRIGHT" ;
-[$date] (c) 2013-2020 by Pablo González, pablgonz<at>yahoo.com
+[$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
 
 my $title = "$program $nv $copyright";
@@ -321,12 +325,13 @@ Options
 Example
 \$ ltximg --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
 
-   Create a "./mypics" directory (if it doesn't exist) with all extracted
-   environments converted to images (.pdf, .eps, .png) and standalone files
-   (.ltx), a file "test-in-fig-all.ltx" with all extracted environments and
-   the file "test-out.ltx" with all environments converted to \\includegraphics
-   using latex>dvips>ps2pdf and preview package for <test-in.ltx> and pdflatex
-   for <test-out.ltx>.
+   Create a "./mypics" directory (if it doesn't exist) with all
+   extracted environments converted to ".pdf", ".eps", ".png" and
+   standalone files ".ltx", a file "test-in-fig-all.ltx" with all
+   extracted environments and the file "test-out.ltx" with all
+   environments converted to \\includegraphics using latex>dvips>ps2pdf
+   and preview package for <test-in.ltx> and pdflatex for
+   <test-out.ltx>.
 
 Documentation
 For full documentation use:
@@ -335,6 +340,7 @@ For full documentation use:
 Issues and reports
 Repository : https://github.com/pablgonz/ltximg
 Bug tracker: https://github.com/pablgonz/ltximg/issues
+Copyright(C) 2013-2021 by Pablo González, pablgonz<at>yahoo.com
 END_OF_USAGE
 print $usage;
 exit 0;
@@ -3014,7 +3020,7 @@ __END__
 
 =head1 NAME
 
-ltximg - LaTeX environment to image format and standalone files
+ltximg - LaTeX environments to image and standalone files
 
 =head1 SYNOPSIS
 
@@ -3103,20 +3109,20 @@ Capture C<\psset> and C<\tikzset> to extract.
 
 Create images files without I<preview> package.
 
-=item B<-r>=I<integer>, B<--runs>=I<integer>
+=item B<-r> I<integer>, B<--runs>=I<integer>
 
 Set the number of times the compiler will run on the F<input> file for
 environment extraction (default: 1).
 
-=item B<-d>=I<integer>, B<--dpi>=I<integer>
+=item B<-d> I<integer>, B<--dpi>=I<integer>
 
 Dots per inch resolution for images (default: 150).
 
-=item B<-m>=I<integer>, B<--margins>=I<integer>
+=item B<-m> I<integer>, B<--margins>=I<integer>
 
 Set margins in bp for I<pdfcrop> (default: 0).
 
-=item B<-o>=F<filename>, B<--output>=F<filename>
+=item B<-o> F<filename>, B<--output>=F<filename>
 
 Create F<output> file.
 
@@ -3231,17 +3237,17 @@ Delete environments in F<output> file.
 B<ltximg> --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
 
 Create a C<./mypics> directory (if it doesn't exist) with all extracted
-environments converted to images (.pdf, .eps, .png) and standalone files
-(.ltx), a file F<test-in-fig-all.ltx> with all extracted environments and
-the file F<test-out.ltx> with all environments converted to \includegraphics
-using C<latexE<gt>dvipsE<gt>ps2pdf> and I<preview> package for F<test-in.ltx> and C<pdflatex>
-for F<test-out.ltx>.
+environments converted to C<.pdf>, C<.eps>, C<.png> and I<standalone>
+files, a file F<test-in-fig-all.ltx> with all extracted environments
+and the file F<test-out.ltx> with all environments converted to
+C<\includegraphics> using C<latexE<gt>dvipsE<gt>ps2pdf> and I<preview>
+package for F<test-in.ltx> and C<pdflatex> for F<test-out.ltx>.
 
 =head1 DOCUMENTATION
 
 For full documentation use:
 
-B<texdoc> ltximg
+texdoc B<ltximg>
 
 =head1 ISSUES AND REPORTS
 
@@ -3249,13 +3255,22 @@ B<Repository> : L<https://github.com/pablgonz/ltximg>
 
 B<Bug tracker>: L<https://github.com/pablgonz/ltximg/issues>
 
+=head1 AUTHOR
+
+Pablo González Luengo, I<pablgonz@yahoo.com>.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2013-2021 Pablo González, I<pablgonz@yahoo.com>.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
 =head1 SEE ALSO
 
 gs(1), dvips(1), ps2pdf(1), pdfcrop(1), pdftops(1), pdftocairo(1), pdftoppm(1)
-
-=head1 AUTHOR
-
-2013 - 2021 by Pablo González Luengo, I<pablgonz@yahoo.com>.
 
 =cut
 
