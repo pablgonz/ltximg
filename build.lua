@@ -170,36 +170,40 @@ function typeset(file)
 end
 
 -- Generating man pages for script
-podcmd  = "--utf8 --center='General Commands Manual' --name=ltximg --release="..scriptv.." --date="..scriptd
 function docinit_hook()
-  local file = jobname(typesetdir.."/ltximg.pl")
-  print("Typesetting ltximg.1")
-  print("** Running: pod2man "..podcmd.." "..file..".pl "..file..".1")
-  errorlevel = run(typesetdir, "pod2man "..podcmd.." "..file..".pl "..file..".1")
-  if errorlevel ~= 0 then
-    error("** Error!!: pod2man "..podcmd.." "..file..".pl "..file..".1")
-    return errorlevel
+  if os_type == "windows" then
+    print("Cannot generate man pages in windows")
+  else
+    local podcmd  = "--utf8 --center='General Commands Manual' --name=ltximg --release="..scriptv.." --date="..scriptd
+    local file = jobname(typesetdir.."/ltximg.pl")
+    print("Typesetting ltximg.1")
+    print("** Running: pod2man "..podcmd.." "..file..".pl "..file..".1")
+    errorlevel = run(typesetdir, "pod2man "..podcmd.." "..file..".pl "..file..".1")
+    if errorlevel ~= 0 then
+      error("** Error!!: pod2man "..podcmd.." "..file..".pl "..file..".1")
+      return errorlevel
+    end
+    -- Update man file in ./script
+    errorlevel = cp(file..".1", typesetdir, sourcefiledir)
+    if errorlevel ~= 0 then
+      error("** Error!!: Can't copy "..file..".1 from "..typesetdir.." to "..sourcefiledir)
+      return errorlevel
+    end
+    print("Typesetting ltximg.man1.pdf")
+    print("** Running: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+    errorlevel = run(typesetdir, "man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+    if errorlevel ~= 0 then
+      error("** Error!!: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+      return errorlevel
+    end
+    -- Update man file in ./script
+    errorlevel = cp(file..".man1.pdf", typesetdir, sourcefiledir)
+    if errorlevel ~= 0 then
+      error("** Error!!: Can't copy "..file..".man1.pdf from "..typesetdir.." to "..sourcefiledir)
+      return errorlevel
+    end
+    return 0
   end
-  -- Update man file in ./script
-  errorlevel = cp(file..".1", typesetdir, sourcefiledir)
-  if errorlevel ~= 0 then
-    error("** Error!!: Can't copy "..file..".1 from "..typesetdir.." to "..sourcefiledir)
-    return errorlevel
-  end
-  print("Typesetting ltximg.man1.pdf")
-  print("** Running: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
-  errorlevel = run(typesetdir, "man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
-  if errorlevel ~= 0 then
-    error("** Error!!: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
-    return errorlevel
-  end
-  -- Update man file in ./script
-  errorlevel = cp(file..".man1.pdf", typesetdir, sourcefiledir)
-  if errorlevel ~= 0 then
-    error("** Error!!: Can't copy "..file..".man1.pdf from "..typesetdir.." to "..sourcefiledir)
-    return errorlevel
-  end
-  return 0
 end
 
 -- Create make_tmp_dir() function
