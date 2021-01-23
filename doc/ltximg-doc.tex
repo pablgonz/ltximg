@@ -1184,10 +1184,12 @@ generate image files \sysfile{test-fig-1.pdf} and \sysfile{test-fig-2.pdf} and c
 image files exist, they will be rewritten each time you run the script. The file \sysfile{test-fig-1981.tex} is
 moved to the \sysdir{./images} and rename to \sysfile{test-fig-all.tex}.
 
-Note the options passed to \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} always use \prgopt*{no-shell-escape}
-and \prgopt*{recorder}, to generate the \fext{fls} file which is used to delete temporary files and directories after
-the process is completed. The \cmdopt{shell} option activates \prgopt*{shell-escape} for compatibility with packages
-such as \pkgname{minted} or others.
+Note the options passed to \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}
+always use \prgopt*{no-shell-escape} and \prgopt*{recorder} to generate the
+\fext{fls} file which is used to delete temporary files and directories
+after the process is completed. The \cmdopt{shell} option activates
+\prgopt*{shell-escape} or \prgopt*{enable-write18} in \hologo{MiKTeX}
+for compatibility with packages such as \pkgname{minted} or others.
 
 \subsection*{Create output file}
 
@@ -1579,6 +1581,10 @@ and \meta[cf=optcolor]{output file}, is mutually exclusive with \emph{\enquote{a
 
 \DescribeCmd{xetex}{boolean}{off}
 Using \prgname*{xelatex} compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+In the execution \prgname*{xelatex} is called with the \prgopt*{no-pdf} option
+generating a \fext{xvd} file and then it is processed using \prgname*{xdvipdfmx},
+this is only to execute \emph{faster} the conversion of environments to images
+and it is only done on the \meta[cf=optcolor]{input file}.
 
 \DescribeCmd{latex}{boolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
@@ -1934,8 +1940,9 @@ versions, both development (devp) and public (ctan).
 \item [v\fileversion\ (ctan), \filedate] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Add \texttt{-dALLOWPSTRANSPARENCY} to \texttt{ps2pdf}.
+        \item The \texttt{--xetex} option now uses \texttt{xelatex} and then \texttt{xdvipdfmx}.
         \item Fix module detection under \hologo{TeX} Live on Windows.
-        \item Add \texttt{pod} and \texttt{man} documentation.
+        \item Add \texttt{POD} and \texttt{man} documentation.
     \end{itemize}
 \item [v1.9 (ctan), 2020-08-22] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}

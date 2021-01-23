@@ -3028,7 +3028,7 @@ ltximg - LaTeX environments to image and standalone files
 
 =head1 SYNOPSIS
 
-B<ltximg> [E<lt>I<options>E<gt>] [S<-->] E<lt>I<filename>E<gt>.I<tex>|I<ltx>
+B<ltximg> [E<lt>I<options>E<gt>] [S<-->] E<lt>I<filename>E<gt>.E<lt>I<tex>|I<ltx>E<gt>
 
 =head1 DESCRIPTION
 
@@ -3271,6 +3271,11 @@ This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
 
 =head1 SEE ALSO
 
