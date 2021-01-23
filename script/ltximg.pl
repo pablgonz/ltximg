@@ -45,7 +45,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v2.0';
-my $date       = '2021-01-20';
+my $date       = '2021-01-23';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
@@ -2036,6 +2036,7 @@ else {
 
 ### Set options for compiler
 my $opt_compiler = $opts_cmd{compiler}{arara} ? '--log'
+                 : $opts_cmd{compiler}{xetex} ? "$write18 -interaction=nonstopmode -recorder -no-pdf"
                  :                              "$write18 -interaction=nonstopmode -recorder"
                  ;
 
@@ -2372,6 +2373,10 @@ opendir (my $DIR, $workdir);
             print "Compiling the file $+{name}$+{type} using ", color('magenta'), "[$msg_compiler]\r\n",color('reset');
             for (@compiler){
                 RUNOSCMD("$compiler $opt_compiler","$+{name}$+{type}",'show');
+            }
+            # Using xdvipdfmx
+            if ($compiler eq 'xelatex') {
+                RUNOSCMD("xdvipdfmx $quiet -E", "-o $+{name}-$tmp.pdf $+{name}-$tmp.xdv",'show');
             }
             # Compiling file using latex>dvips>ps2pdf
             if ($compiler eq 'dvips' or $compiler eq 'latex' or $compiler eq 'dvilualatex') {

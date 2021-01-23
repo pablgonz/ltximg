@@ -1,6 +1,6 @@
-## LTXimg &ndash; LaTeX environments to image format and standalone files
+## LTXimg &ndash; LaTeX environments to image and standalone files
 
-Release v2.0 \[2021-01-20\]
+Release v2.0 \[2021-01-23\]
 
 ## Description
 
@@ -42,7 +42,7 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 ```
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
--v, --version         Display current version (1.8) and exit        [off]
+-v, --version         Display current version (2.0) and exit        [off]
 -V, --verbose         Verbose printing information                  [off]
 -l, --log             Write .log file with debug information        [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
@@ -55,19 +55,19 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 -g, --gray            Gray scale for images using ghostscript       [off]
 -f, --force           Capture "\psset" and "\tikzset" to extract    [off]
 -n, --noprew          Create images files without "preview" package [off]
--r <integer>, --runs <integer>
+-r <integer>, --runs=<integer>
                       Set the number of times the compiler will run
                       on the input file for environment extraction  [1]
--d <integer>, --dpi <integer>
+-d <integer>, --dpi=<integer>
                       Dots per inch resolution for images           [150]
--m <integer>, --margins <integer>
+-m <integer>, --margins=<integer>
                       Set margins in bp for pdfcrop                 [0]
--o <filename>, --output <filename>
+-o <filename>, --output=<filename>
                       Create output file                            [off]
---imgdir <dirname>    Set name of directory to save images/files    [images]
---prefix <string>     Set prefix append to each generated files     [fig]
---myverb <macroname>  Add "\macroname" to verbatim inline search    [myverb]
---clean (doc|pst|tkz|all|off)
+--imgdir=<dirname>    Set name of directory to save images/files    [images]
+--prefix=<string>     Set prefix append to each generated files     [fig]
+--myverb=<macroname>  Add "\macroname" to verbatim inline search    [myverb]
+--clean=doc|pst|tkz|all|off
                       Removes specific block text in output file    [doc]
 --zip                 Compress files generated in .zip              [off]
 --tar                 Compress files generated in .tar.gz           [off]
@@ -89,11 +89,11 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 --norun               Run script, but no create images files        [off]
 --nopdf               Don't create a ".pdf" image files             [off]
 --nocrop              Don't run pdfcrop                             [off]
---extrenv <env1,...>  Add new environments to extract               [empty]
---skipenv <env1,...>  Skip some default environments to extract     [empty]
---verbenv <env1,...>  Add new verbatim environments                 [empty]
---writenv <env1,...>  Add new verbatim write environments           [empty]
---deltenv <env1,...>  Delete environments in output file            [empty]
+--extrenv=<env1,...>  Add new environments to extract               [empty]
+--skipenv=<env1,...>  Skip some default environments to extract     [empty]
+--verbenv=<env1,...>  Add new verbatim environments                 [empty]
+--writenv=<env1,...>  Add new verbatim write environments           [empty]
+--deltenv=<env1,...>  Delete environments in output file            [empty]
 ```
 
 ## Example
@@ -121,7 +121,13 @@ For recreation all documentation use:
 $ arara ltximg-doc.tex -H
 ```
 
-## Licence
+## Author
+
+Pablo González L, `<pablgonz@yahoo.com>`.
+
+## Copyright and Licence
+
+Copyright 2013 - 2020 Pablo González L `<pablgonz@yahoo.com>`.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation; either version 3 of the License,
@@ -130,11 +136,3 @@ or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
 the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 License for more details.
-
-## Author
-
-Written by Pablo González L `<pablgonz@yahoo.com>`.
-
-## Copyright
-
-Copyright 2013 - 2020 by Pablo González L.

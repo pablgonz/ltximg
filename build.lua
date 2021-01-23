@@ -5,25 +5,27 @@
 -- Identification
 module  = "ltximg"
 scriptv = "2.0"
-scriptd = "2021-01-20"
+scriptd = "2021-01-23"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
 -- Configuration of files for build and installation
-maindir       = "."
-docfiledir    = "./doc"
-docfiles      = {"ltximg-doc.tex"}
-textfiledir   = "."
-textfiles     = {"README.md"}
-sourcefiledir = "./script"
-sourcefiles   = {"ltximg-doc.tex","ltximg-doc.pdf","ltximg.pl"}
-installfiles  = {"*.*"}
-scriptfiles   = {"*.pl"}
+maindir        = "."
+docfiledir     = "./doc"
+docfiles       = {"ltximg-doc.tex"}
+textfiles      = {"README.md"}
+sourcefiledir  = "./script"
+sourcefiles    = {"ltximg-doc.tex", "ltximg-doc.pdf", "ltximg.pl", "ltximg.1", "ltximg.man1.pdf" }
+installfiles   = {"*.*"}
+scriptfiles    = {"*.pl"}
+scriptmanfiles = {"ltximg.1", "ltximg.man1.pdf"}
 
 tdslocations  = {
   "doc/support/ltximg/ltximg-doc.pdf",
   "doc/support/ltximg/ltximg-doc.tex",
   "doc/support/ltximg/README.md",
+  "doc/man/man1/ltximg.1",
+  "doc/man/man1/ltximg.man1.pdf",
   "scripts/ltximg/ltximg.pl",
 }
 
@@ -33,11 +35,12 @@ cleanfiles = {
   ctanzip..".zip",
 }
 
+-- For CTAN distribution
 flatten = false
-packtdszip = false
+packtdszip = true
 
 -- Update date and version
-tagfiles = {"ltximg-doc.tex", "README.md","ltximg.pl"}
+tagfiles = {"ltximg-doc.tex", "README.md", "ltximg.pl"}
 
 function update_tag(file, content, tagname, tagdate)
   if string.match(file, "%.tex$") then
@@ -52,6 +55,9 @@ function update_tag(file, content, tagname, tagdate)
     content = string.gsub(content,
                           "Release v%d+.%d+%a* \\%[%d%d%d%d%-%d%d%-%d%d\\%]",
                           "Release v"..scriptv.." \\["..scriptd.."\\]")
+   content = string.gsub(content,
+                          "version %((.-)%)",
+                          "version ("..scriptv..")")
   end
   if string.match(file, "ltximg.pl$") then
     local scriptv = "v"..scriptv
@@ -138,7 +144,7 @@ if options["target"] == "tagged" then
   os.exit()
 end
 
--- Generating documentation
+-- Generating LaTeX documentation
 typesetfiles  = {"ltximg-doc.tex"}
 typesetexe    = "lualatex"
 typesetopts   = "--interaction=batchmode"
@@ -158,6 +164,39 @@ function typeset(file)
   errorlevel = runcmd("lualatex "..file..".tex >"..os_null, typesetdir, {"TEXINPUTS","LUAINPUTS"})
   if errorlevel ~= 0 then
     error("** Error!!: lualatex -interaction=batchmode "..file..".tex")
+    return errorlevel
+  end
+  return 0
+end
+
+-- Generating man pages for script
+podcmd  = "--utf8 --center='General Commands Manual' --name=ltximg --release="..scriptv.." --date="..scriptd
+function docinit_hook()
+  local file = jobname(typesetdir.."/ltximg.pl")
+  print("Typesetting ltximg.1")
+  print("** Running: pod2man "..podcmd.." "..file..".pl "..file..".1")
+  errorlevel = run(typesetdir, "pod2man "..podcmd.." "..file..".pl "..file..".1")
+  if errorlevel ~= 0 then
+    error("** Error!!: pod2man "..podcmd.." "..file..".pl "..file..".1")
+    return errorlevel
+  end
+  -- Update man file in ./script
+  errorlevel = cp(file..".1", typesetdir, sourcefiledir)
+  if errorlevel ~= 0 then
+    error("** Error!!: Can't copy "..file..".1 from "..typesetdir.." to "..sourcefiledir)
+    return errorlevel
+  end
+  print("Typesetting ltximg.man1.pdf")
+  print("** Running: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+  errorlevel = run(typesetdir, "man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+  if errorlevel ~= 0 then
+    error("** Error!!: man -Tpdf ./"..file..".1 > "..file..".man1.pdf")
+    return errorlevel
+  end
+  -- Update man file in ./script
+  errorlevel = cp(file..".man1.pdf", typesetdir, sourcefiledir)
+  if errorlevel ~= 0 then
+    error("** Error!!: Can't copy "..file..".man1.pdf from "..typesetdir.." to "..sourcefiledir)
     return errorlevel
   end
   return 0
@@ -187,7 +226,7 @@ if options["target"] == "testpkg" then
   check_readme_tags()
   check_marked_tags()
   check_script_tags()
-  -- Create a tmp dir
+  -- Create a ./tmp dir
   make_tmp_dir()
   -- Copy script
   errorlevel = cp("ltximg.pl", sourcefiledir, tmpdir)
