@@ -171,11 +171,12 @@ end
 
 -- Generating man pages for script
 function docinit_hook()
-  if os_type == "windows" then
-    print("Cannot generate man pages in windows")
-  else
-    local podcmd  = "--utf8 --center='General Commands Manual' --name=ltximg --release="..scriptv.." --date="..scriptd
-    local file = jobname(typesetdir.."/ltximg.pl")
+  -- Check OS
+  local my_os = package.config:sub(1,1)
+  local podcmd  = "--utf8 --center='General Commands Manual' --name=ltximg --release="..scriptv.." --date="..scriptd
+  local file = jobname(typesetdir.."/ltximg.pl")
+  -- If Linux
+  if my_os == "/" then
     print("Typesetting ltximg.1")
     print("** Running: pod2man "..podcmd.." "..file..".pl "..file..".1")
     errorlevel = run(typesetdir, "pod2man "..podcmd.." "..file..".pl "..file..".1")
@@ -202,8 +203,10 @@ function docinit_hook()
       error("** Error!!: Can't copy "..file..".man1.pdf from "..typesetdir.." to "..sourcefiledir)
       return errorlevel
     end
-    return 0
+  else
+    print("Cannot generate man pages in Windows")
   end
+  return 0
 end
 
 -- Create make_tmp_dir() function
@@ -283,10 +286,10 @@ if options["target"] == "testpkg" then
 end
 
 -- Load personal data
-local ok, mydata = pcall(require, "mypersonaldata.lua")
-if not ok then
-  mydata = {email="XXX", uploader="YYY"}
-end
+--local ok, mydata = pcall(require, "mypersonaldata.lua")
+--if not ok then
+mydata = {email="XXX", uploader="YYY"}
+--end
 
 -- CTAN upload config
 uploadconfig = {
@@ -320,12 +323,15 @@ local function os_capture(cmd, raw)
   return s
 end
 
-local gitbranch = os_capture("git symbolic-ref --short HEAD")
-local gitstatus = os_capture("git status --porcelain")
-local tagongit  = os_capture('git for-each-ref refs/tags --sort=-taggerdate --format="%(refname:short)" --count=1')
-local gitpush   = os_capture("git log --branches --not --remotes")
-
+-- Create a target for CLI
 if options["target"] == "release" then
+  -- Capture
+  local gitbranch = os_capture("git symbolic-ref --short HEAD")
+  local gitstatus = os_capture("git status --porcelain")
+  local tagongit  = os_capture('git for-each-ref refs/tags --sort=-taggerdate --format="%(refname:short)" --count=1')
+  local gitpush   = os_capture("git log --branches --not --remotes")
+
+  -- Execute
   if gitbranch == "master" then
     os_message("Checking git branch '"..gitbranch.."'")
   else

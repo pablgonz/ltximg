@@ -30,10 +30,10 @@ use autodie;
 use Config;
 use Cwd;
 use if $^O eq 'MSWin32', 'Win32';
-use Module::Load::Conditional qw(can_load check_install requires);
-# TeX Live not provide 'Win32::Console::ANSI' need on Windows for colors
-if(check_install( module => 'Win32::Console::ANSI')) {
-    require 'Win32::Console::ANSI';
+use if $^O eq 'MSWin32', 'Module::Load::Conditional' => qw(can_load check_install requires);
+# Need on Windows cmd for colors, TeX Live not provide 'Win32::Console::ANSI'
+if($^O eq 'MSWin32' && check_install( module => 'Win32::Console::ANSI')) {
+    require Win32::Console::ANSI;
 }
 use Term::ANSIColor;
 
@@ -50,6 +50,7 @@ my $copyright  = <<"END_COPYRIGHT" ;
 [$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
 
+### Standart info in terminal
 my $title = "$program $nv $copyright";
 
 ### Log vars
@@ -2997,7 +2998,7 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
         }
         my $imgdirtar = Archive::Tar->new();
         $imgdirtar->add_files(@savetozt);
-        $imgdirtar->write( "$archivetar.tar.gz" , 9 );
+        $imgdirtar->write("$archivetar.tar.gz", 9);
     }
 }
 
@@ -3018,8 +3019,6 @@ Infocolor('Finish', "The execution of $scriptname has been successfully complete
 Log("The execution of $scriptname has been successfully completed");
 
 __END__
-# pod2man --utf8 --center='General Commands Manual' --name=ltximg --release=2.0 --date='2021-18-01' ltximg.pod ltximg.1
-
 =encoding UTF-8
 
 =head1 NAME
@@ -3238,9 +3237,9 @@ Delete environments in F<output> file.
 
 =head1 EXAMPLE
 
-B<ltximg> --latex -e -p --subenv --imgdir mypics -o test-out.ltx test-in.ltx
+B<ltximg> --latex -e -p --subenv -o test-out.ltx test-in.ltx
 
-Create a C<./mypics> directory (if it doesn't exist) with all extracted
+Create a C<./images> directory (if it doesn't exist) with all extracted
 environments converted to C<.pdf>, C<.eps>, C<.png> and I<standalone>
 files, a file F<test-in-fig-all.ltx> with all extracted environments
 and the file F<test-out.ltx> with all environments converted to
