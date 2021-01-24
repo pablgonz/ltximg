@@ -36,7 +36,7 @@ cleanfiles = {
 }
 
 -- For CTAN distribution
-flatten = false
+flatten = true
 packtdszip = true
 
 -- Update date and version

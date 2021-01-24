@@ -3130,7 +3130,7 @@ Set margins in bp for I<pdfcrop> (default: 0).
 
 Create F<output> file.
 
-=item B<--imgdir>=F<dirname>
+=item B<--imgdir>=I<dirname>
 
 Set name of directory to save images and files (default: images).
 
@@ -3214,23 +3214,23 @@ Don't create a C<.pdf> image files.
 
 Don't run I<pdfcrop>.
 
-=item B<--extrenv>=F<env1,env2,...>
+=item B<--extrenv>=I<env1,env2,...>
 
 Add new environments to extract.
 
-=item B<--skipenv>=F<env1,env2,...>
+=item B<--skipenv>=I<env1,env2,...>
 
 Skip some default environments to extract.
 
-=item B<--verbenv>=F<env1,env2,...>
+=item B<--verbenv>=I<env1,env2,...>
 
 Add new verbatim environments.
 
-=item B<--writenv>=F<env1,env2,...>
+=item B<--writenv>=I<env1,env2,...>
 
 Add new verbatim write environments.
 
-=item B<--deltenv>=F<env1,env2,...>
+=item B<--deltenv>=I<env1,env2,...>
 
 Delete environments in F<output> file.
 
