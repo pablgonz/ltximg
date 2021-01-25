@@ -286,10 +286,10 @@ if options["target"] == "testpkg" then
 end
 
 -- Load personal data
---local ok, mydata = pcall(require, "mypersonaldata.lua")
---if not ok then
-mydata = {email="XXX", uploader="YYY"}
---end
+local ok, mydata = pcall(require, "mypersonaldata.lua")
+if not ok then
+  mydata = {email="XXX", uploader="YYY"}
+end
 
 -- CTAN upload config
 uploadconfig = {
