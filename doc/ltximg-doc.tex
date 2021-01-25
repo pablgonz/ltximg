@@ -86,7 +86,7 @@
 % Identification
 \def\myscript{ltximg}
 \def\fileversion{2.0}
-\def\filedate{2021-01-23}
+\def\filedate{2021-01-24}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -637,7 +637,7 @@
           #1,%
     }% close lstset
 }%
-{}% close examplecode
+{\vspace{-\parskip}}% close examplecode
 
 % \begin{examplecmd}...\end{examplecmd}
 \lstnewenvironment{examplecmd}{%
@@ -663,7 +663,7 @@
 % % Reserved words (cmd line options)
     classoffset=8,%
     keywordstyle={\color{ForestGreen}},%
-    morekeywords={gs,pdftoppm,pdftocairo,pdftops,cd,perl,pdfcrop},%
+    morekeywords={gs,ps2pdf,pdftoppm,pdftocairo,pdftops,cd,perl,pdfcrop},%
 % Only for command line options
     classoffset=5,%
     keywordstyle=\color{blue},%
@@ -678,7 +678,7 @@
               {~}{{\textcolor{blue}{\bfseries\textasciitilde}}}{1}%
     }% close lstset
 }%
-{}% close examplecmd
+{\vspace{-\parskip}}% close examplecmd
 
 % \lstinline[style=inline]|...|
 \lstdefinestyle{inline}
@@ -711,7 +711,7 @@
     \thanks{E-mail: \textcolor{optcolor}{\textsf{\guillemotleft}}\email{pablgonz@yahoo.com}\textcolor{optcolor}{\textsf{\guillemotright}}}
     }%
 \small
-\textsc{ctan}: \url{https://www.ctan.org/pkg/ltximg}\\
+\textcolor{gray}{\textsc{ctan}}\,\,\,\url{https://www.ctan.org/pkg/ltximg}\\
 \textcolor{gray}{\scriptsize\faIcon[regular]{github}}\,\,\,\url{https://github.com/pablgonz/ltximg}
 \vspace*{-2cm}
 }%
@@ -806,14 +806,12 @@ The script auto detects the \prgname{ghostscript}, but not \prgname{poppler-util
 You should keep this in mind if you are using the script directly and not
 the version provided in your \hologo{TeX} distribution.
 
-The script has been tested on \OSsystem{Windows} (v10), \OSsystem{cygwin} (v3.1.6) and %
-\OSsystem{Linux} (fedora 33) using \prgname{ghostscript} %
-\liningnums{v9.53.3}, \prgname{poppler-utils} \liningnums{v0.90}, \prgname{perl} \liningnums{v5.32}
-and the standard classes offers by \hologo{LaTeX}: \myclass{book},
-\myclass{report}, \myclass{article} and \myclass{letter}. The \pkgname{preview}\cite{preview} and
-\pkgname{pst-pdf}\cite{pst-pdf} packages are required to process the \meta{input file} and if
-an \meta{output file} is generated, the \pkgname{graphicx}\cite{graphicx} and \pkgname{grfext}\cite{grfext}
-packages will be needed.
+The script has been tested on \OSsystem{Windows} v10, \prgname{cygwin} v3.1.6, \prgname{Git for Windows} v2.30 and %
+\OSsystem{Linux} (fedora 33) using \prgname{ghostscript} v9.53.3, \prgname{poppler-utils} v0.90, \prgname{perl} v5.32
+and the standard classes offers by \hologo{LaTeX}: \myclass{book}, \myclass{report}, \myclass{article} and
+\myclass{letter}. The \pkgname{preview}\cite{preview} and \pkgname{pst-pdf}\cite{pst-pdf} packages are
+required to process the \meta{input file} and if an \meta{output file} is generated, the \pkgname{graphicx}\cite{graphicx}
+and \pkgname{grfext}\cite{grfext} packages will be needed.
 
 \section{How it works}
 \label{sec:howtowork}
@@ -903,10 +901,9 @@ Most \emph{\enquote{verbatim macro}} provide by packages \pkgname{minted}\cite{m
 supported. They are automatically detected the \emph{verbatim macro} (including \texttt{\small\bfseries\textcolor{MediumOrchid}{*}} argument) generates by
 \ics{newmint} and \ics{newmintinline} and the following list:
 
-\vspace*{-10pt}
+\setlength{\multicolsep}{2ex}
 \begin{multicols}{3}
-\begin{itemize}[font=\sffamily\small,partopsep=5pt,parsep=5pt,nosep,leftmargin=*]
-\small
+\begin{itemize}[font=\sffamily\small,first=\small,partopsep=5pt,parsep=5pt,nosep,leftmargin=*]
 \item \ics{mint}
 \item \ics{spverb}
 \item \ics{qverb}
@@ -951,9 +948,9 @@ These are the \emph{\enquote{classic}} environments for \emph{\enquote{writing c
 environments. The following list (including \texttt{\small\bfseries\textcolor{MediumOrchid}{*}} argument)
 is considered as \meta{verbatim standard} environments:
 
+\setlength{\multicolsep}{2ex}
 \begin{multicols}{4}
-\begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
-\small
+\begin{itemize}[font=\sffamily\small, first=\small,noitemsep,leftmargin=*]
 \item \LVenv{Example}
 \item \LVenv{CenterExample}
 \item \LVenv{SideBySideExample}
@@ -996,9 +993,9 @@ They are automatically detected \meta{verbatim standard} environments
 (including \texttt{\small\bfseries\textcolor{MediumOrchid}{*}} argument)
 generates by commands:
 
+\setlength{\multicolsep}{2ex}
 \begin{multicols}{2}
-\begin{itemize}[font=\sffamily\small,noitemsep,leftmargin=*]
-\small
+\begin{itemize}[font=\sffamily\small,first=\small,noitemsep,leftmargin=*]
 \item \ics{DefineVerbatimEnvironment}
 \item \ics{NewListingEnvironment}
 \item \ics{DeclareTCBListing}
@@ -1028,9 +1025,9 @@ considered \meta{verbatim write}, such as \LWenv{scontents}, \LWenv{filecontents
 or \LWenv{VerbatimOut} environments. The following list is considered (including \texttt{\small\bfseries\textcolor{MediumOrchid}{*}} argument) as %
 \meta{verbatim write} environments:
 
+\setlength{\multicolsep}{2ex}
 \begin{multicols}{4}
-\begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
-\ttfamily\small
+\begin{itemize}[font=\sffamily\small, first=\ttfamily\small,noitemsep,leftmargin=*]
 \item \LWenv{scontents}
 \item \LWenv{filecontents}
 \item \LWenv{tcboutputlisting}
@@ -1054,8 +1051,7 @@ They are automatically detected \meta{verbatim write}
 (including \texttt{\small\bfseries\textcolor{MediumOrchid}{*}} argument) environments generates
 by commands:
 
-\begin{itemize}[font=\sffamily\small, noitemsep,leftmargin=*]
-\small
+\begin{itemize}[font=\sffamily\small, first=\small, noitemsep,leftmargin=*]
 \item \ics{renewtcbexternalizetcolorbox}
 \item \ics{renewtcbexternalizeenvironment}
 \item \ics{newtcbexternalizeenvironment}
@@ -1174,11 +1170,14 @@ is renamed to \sysfile{test-fig-all.tex} and moved to \sysdir{./images}.
 
 \subsection*{Generate image formats}
 
-In the fourth step, the script generating the file \sysfile{test-fig-1981.pdf} with all code extracted and croping, running:
+In the fourth step, the script generating the file \sysfile{test-fig-1981.pdf}
+with all code extracted and croping, running:
+
 \begin{examplecmd}
 [user@machine ~:]§ `\small\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler}` -no-shell-escape -interaction=nonstopmode -recorder test-fig-1981.tex
 [user@machine ~:]§ pdfcrop --margins `\small\textcolor{gray}{0}` test-fig-1981.pdf test-fig-1981.pdf
 \end{examplecmd}
+
 Now move \sysfile{test-fig-1981.pdf} to \sysdir{/tmp/hG45uVklv9} and rename to \sysfile{test-fig-all.pdf},
 generate image files \sysfile{test-fig-1.pdf} and \sysfile{test-fig-2.pdf} and copy to \sysdir{./images}, if the
 image files exist, they will be rewritten each time you run the script. The file \sysfile{test-fig-1981.tex} is
@@ -1339,9 +1338,10 @@ remove environments or arbitrary content. The script provides a convenient way t
 
 \DescribeTE{nopreview}
 Environment provide by \pkgname{preview} package. Internally the script
-converts all \emph{\enquote{skip}} environments to \lstinline|\begin{nopreview} ... \end{nopreview}|.
-Is better comment this package in preamble unless the option \cmdopt[n]{noprew}{} is used.
-This environment is reserved for the internal process of extraction and conversion, it
+converts all \emph{\enquote{skip}} environments to \lstinline|\begin{nopreview}| \dots
+\lstinline|\end{nopreview}|. Is better comment this package in preamble
+unless the option \cmdopt[n]{noprew}{} is used. This environment is
+reserved for the internal process of extraction and conversion, it
 cannot be passed as an argument to the option \cmdopt{extrenv}.
 
 \vspace{\baselineskip}
@@ -1439,12 +1439,15 @@ The image format generated using \prgname{ghostscript}. The line executed by the
 
 \section{How to use}
 \subsection{Syntax}
+
 The syntax for \ltximg{} is simple, if your use the version provided in your \hologo{TeX} distribution:
 
 \begin{examplecmd}
 [user@machine ~:]§ ltximg `\small\oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} \textcolor{gray}{\texttt{[-\/-]}} \meta[cf=optcolor]{input file}`
 \end{examplecmd}
+
 If the development version is used:
+
 \begin{examplecmd}
 [user@machine ~:]§ perl ltximg `\small\oarg[type=tt,cf=optcolor,sbc=gray,ac=lightgray]{options} \textcolor{gray}{\texttt{[-\/-]}} \meta[cf=optcolor]{input file}`
 \end{examplecmd}
@@ -1464,6 +1467,7 @@ Options that accept a \meta{value} require either a blank space \verb*| | or \te
 between the option and the \meta{value}. Multiple short options can be bundling and if the last option takes a
 \meta{comma separated list} you need \textcolor{optcolor}{\bfseries\texttt{-\/-}} at the end.
 
+\vspace{\baselineskip}
 \DescribeCmd[h]{help}{boolean}{off}
 Display a command line help and exit.
 
@@ -1521,7 +1525,7 @@ Using this option \emph{\enquote{only}} the extracted environments are processed
 it is better to use it together with \cmdopt{force}.
 
 \DescribeCmd[m]{margins}{integer}{0}
-Set margins in bp for \scriptname{pdfcrop}.
+Set margins in \texttt{bp} for \scriptname{pdfcrop}.
 
 \DescribeCmd[r]{runs}{\textnormal{\ttfamily 1\textbar 2\textbar 3}}{1}
 Set the number of times the \meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} will run
@@ -1536,7 +1540,7 @@ Set \meta{prefix} append to each generated files.
 
 \DescribeCmd{myverb}{macro name}{myverb}
 Set custom verbatim command \lstinline+\myverb+. Just pass the \meta{macro name}{}
-\emph{without} \enquote{\textcolor{optcolor}{\texttt{\bfseries\textbackslash}}}.
+\emph{without} \enquote{\textcolor{blue!75}{\texttt{\bfseries\textbackslash}}}.
 
 \DescribeCmd{imgdir}{string}{images}
 Set the name of directory for save generated files. Only the \meta{name} of directory
@@ -1588,15 +1592,31 @@ and it is only done on the \meta[cf=optcolor]{input file}.
 
 \DescribeCmd{latex}{boolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-compiler in \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for \meta[cf=optcolor]{output file}.
+compiler in \meta[cf=optcolor]{input file} and \prgname*{pdflatex} for
+\meta[cf=optcolor]{output file}. To support transparencies in the
+updated versions of \prgname{ghostscript} the line executed by \scriptname{ps2pdf} is:
+
+\begin{examplecmd}
+[user@machine ~:]§ ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None -dALLOWPSTRANSPARENCY
+\end{examplecmd}
 
 \DescribeCmd{dvips}{boolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
+for compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}. To support transparencies in the
+updated versions of \prgname{ghostscript} the line executed by \scriptname{ps2pdf} is:
+
+\begin{examplecmd}
+[user@machine ~:]§ ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None -dALLOWPSTRANSPARENCY
+\end{examplecmd}
 
 \DescribeCmd{dvilua}{boolean}{off}
 Using \prgname*{dvilualatex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
-for compiler \meta[cf=optcolor]{input file} and \prgname*{lualatex} for \meta[cf=optcolor]{output file}.
+for compiler \meta[cf=optcolor]{input file} and \prgname*{lualatex} for \meta[cf=optcolor]{output file}. To support transparencies in the
+updated versions of \prgname{ghostscript} the line executed by \scriptname{ps2pdf} is:
+
+\begin{examplecmd}
+[user@machine ~:]§ ps2pdf -sPDFSETTINGS=prepress -sAutoRotatePages=None -dALLOWPSTRANSPARENCY
+\end{examplecmd}
 
 \DescribeCmd{dvipdf}{boolean}{off}
 Using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvipdfmx}
@@ -1657,8 +1677,6 @@ with all extracted environments converted to \ics{includegraphics} and a single 
 using \prgname*{latex}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\prgname*{dvips}\textcolor{optcolor}{\texttt{\bfseries\guillemotright}}\scriptname{ps2pdf}
 and \pkgname{preview} package for for process \meta[ac=LightSlateGrey,cf=OrangeRed]{test-in.ltx} and
 \prgname*{pdflatex} for \meta[ac=LightSlateGrey,cf=OrangeRed]{test-out.ltx}.
-
-\newpage
 
 \subsection{Options from input file}
 \label{sec:optfile}
@@ -1816,7 +1834,31 @@ or \cmdopt{nocrop} at the cost of not having the images cropped.
 In this way we can \meta{compile} and \meta{convert} any document as long as the conditions
 of the \meta[cf=optcolor]{input file} are met and the correct \enquote{rule} are used.
 
-\newpage
+\section{Note for \texttt{dvisvgm} users}
+\label{sec:dvisvgm}
+
+By design, the image format \iext{svg} is created using \prgname{pdftocairo} over the
+generated \iext{pdf} file, but, if you want to have a good \iext{svg} files that preserve our \emph{typographic} fonts it is best to
+use \prgname{dvisvgm}\footnote{\url{https://ctan.org/pkg/dvisvgm}}. The best results of \prgname{dvisvgm}\cite{dvisvgm} are obtained when processing the file in \fext{dvi} or \fext{xdv}
+format, there are two possible ways to do this:
+
+\begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
+\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{} to generate \meta{standalone} files, move to \sysdir{./images}
+and generate \fext{dvi} or \fext{xdv} files, then runing:
+
+\begin{examplecmd}
+[user@machine~:]§ for i in *.tex; do `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
+[user@machine~:]§ for i in *.dvi; do `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
+\end{examplecmd}
+
+\item Execute the script using \cmdopt{norun}{}, move to \sysdir{./images} and generate  \fext{dvi} or \fext{xdv} file, then runing:
+
+\begin{examplecmd}
+[user@machine~:]§ `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.tex
+[user@machine~:]§ `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.dvi
+\end{examplecmd}
+
+\end{enumerate}
 
 \section{Example usign \texttt{latexmk}}
 
@@ -1878,31 +1920,7 @@ only environments \env{picture} extracted using \prgname*{lualatex} and \pkgname
 \meta[ac=LightSlateGrey,cf=OrangeRed]{file-in.tex} and \scriptname{latexmk} for \emph{full} process
 \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex}.
 
-\section{Note for \texttt{dvisvgm} users}
-\label{sec:dvisvgm}
-
-By design, the image format \iext{svg} is created using \prgname{pdftocairo} over the
-generated \iext{pdf} file, but, if you want to have a good \iext{svg} files that preserve our \emph{typographic} fonts it is best to
-use \prgname{dvisvgm}\footnote{\url{https://ctan.org/pkg/dvisvgm}}. The best results of \prgname{dvisvgm}\cite{dvisvgm} are obtained when processing the file in \fext{dvi} or \fext{xdv}
-format, there are two possible ways to do this:
-
-\begin{enumerate}[font=\small, nosep, noitemsep,leftmargin=*]
-\item Execute the script using \cmdopt{subenv}{} and \cmdopt{norun}{} to generate \meta{standalone} files, move to \sysdir{./images}
-and generate \fext{dvi} or \fext{xdv} files, then runing:
-
-\begin{examplecmd}
-[user@machine~:]§ for i in *.tex; do `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
-[user@machine~:]§ for i in *.dvi; do `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` §i;done
-\end{examplecmd}
-
-\item Execute the script using \cmdopt{norun}{}, move to \sysdir{./images} and generate  \fext{dvi} or \fext{xdv} file, then runing:
-
-\begin{examplecmd}
-[user@machine~:]§ `\meta[type=tt,cf=ForestGreen,ac=lightgray]{compiler} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.tex
-[user@machine~:]§ `\small\prgname{dvisvgm} \oarg[type=tt,cf=gray,sbc=optcolor,ac=gray]{options}` test-fig-all.dvi
-\end{examplecmd}
-
-\end{enumerate}
+\newpage
 
 \section{Final notes}
 

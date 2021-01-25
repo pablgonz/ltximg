@@ -45,7 +45,7 @@ my $workdir = cwd;
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
 my $nv         = 'v2.0';
-my $date       = '2021-01-23';
+my $date       = '2021-01-24';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
@@ -1827,7 +1827,7 @@ while ($preamble =~ /\%<\*$dtxverb>(.+?)\%<\/$dtxverb>/pgmsx) {
     pos ($preamble) = $pos_inicial + length $encontrado;
 }
 
-### Set wraped environments for extraction
+### Set wrapped environments for extraction
 my $wrapping = "$scriptname$tmp";
 Log("Set up the environment [$wrapping] to encapsulate the extraction");
 
