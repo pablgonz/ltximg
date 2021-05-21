@@ -2551,10 +2551,6 @@ if ($clean{pst} and $outfile) {
                    ^ $USEPACK (?: $CORCHETES )? $FAMILIA \s*//msxg;
     $preamble =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                    (?: ^ $USEPACK \{ | \G) [^}]*? \K (,?) \s* $PALABRAS (\s*) (,?) /$1 and $3 ? ',' : $1 ? $2 : ''/gemsx;
-    #if (@pst_exa) {
-        #Log("Uncomment pst-exa package in preamble for $opts_cmd{string}{output}$outext");
-        #$preamble =~ s/(?:\%)(\\usepackage\[\s*)(swpl|tcb)(,pdf\s*\]\{pst-exa\})/$1$2$3/msxg;
-    #}
     Log("Remove \\psset\{...\} in preamble for $opts_cmd{string}{output}$outext");
     $preamble =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                    \\psset\{(?:\{.*?\}|[^\{])*\}(?:[\t ]*(?:\r?\n|\r))+//gmsx;
