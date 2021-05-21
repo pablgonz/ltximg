@@ -4,8 +4,8 @@
 
 -- Identification
 module  = "ltximg"
-scriptv = "2.0"
-scriptd = "2021-01-24"
+scriptv = "2.1"
+scriptd = "2021-05-21"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
@@ -37,7 +37,7 @@ cleanfiles = {
 
 -- For CTAN distribution
 flatten = true
-packtdszip = true
+packtdszip = false
 
 -- Update date and version
 tagfiles = {"ltximg-doc.tex", "README.md", "ltximg.pl"}
@@ -269,11 +269,11 @@ if options["target"] == "testpkg" then
     return errorlevel
   end
   -- Second test
-  local file = jobname(tmpdir.."/test-pst-exa-swpl.tex")
-  print("** Running: perl "..script..".pl --xetex "..file..".tex")
-  errorlevel = run(tmpdir, "perl "..script.." --xetex "..file..".tex")
+  local file = jobname(tmpdir.."/test-pst-exa-tcb.tex")
+  print("** Running: perl "..script.." --gray --latex "..file..".tex")
+  errorlevel = run(tmpdir, "perl "..script.." --gray --latex "..file..".tex")
   if errorlevel ~= 0 then
-    error("** Error!!: perl "..script..".pl --xetex "..file..".tex")
+    error("** Error!!: perl "..script.." --gray --latex "..file..".tex")
     return errorlevel
   end
   -- Clean

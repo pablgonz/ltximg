@@ -85,8 +85,8 @@
 
 % Identification
 \def\myscript{ltximg}
-\def\fileversion{2.0}
-\def\filedate{2021-01-24}
+\def\fileversion{2.1}
+\def\filedate{2021-05-21}
 
 % Logo with fetamont and libertuns font
 \ExplSyntaxOn
@@ -400,7 +400,17 @@
     \SortIndex{#2}{\texttt{\small\textbackslash#2}}
   }
 
-% file extention
+% \module{m}
+\NewDocumentCommand{\module}{m}
+  {
+    \SortIndex{Perl ~ module}{Perl ~ module >\small\texttt{#1}}
+    \tl_set:Nn \l_tmpa_tl { #1 }
+    \regex_replace_all:nnN { (\:\:) } { \c{textcolor}\cB\{MediumOrchid\cE\}\cB\{\1\cE\} } \l_tmpa_tl
+    \textcolor{blue!75}{\ttfamily{\tl_use:N \l_tmpa_tl}}
+    %\SortIndex{Perl ~ module}{Perl ~ module >\small\texttt{\tl_use:N \l_tmpa_tl}}
+  }
+
+% File extention
 \NewDocumentCommand{\fext}{m}
   {
     \mbox{\textcolor{OrangeRed}{\texttt{.#1}}}
@@ -414,8 +424,7 @@
     \SortIndex{file}{File >\small\texttt{#1.#2}}
   }
 
-
-% image format/extention
+% Image format/extention
 \NewDocumentCommand{\iext}{m}
   {
     \textcolor{optcolor}{\texttt{#1}}
@@ -572,8 +581,8 @@
 % Important words 2 (macros)
     keywordstyle=[2]{\color{blue!75}},%
     keywords=[2]{graphicspath,RequirePackage,renewcommand,includegraphics,coordinate,draw,approx,%
-    PreviewBbAdjust,setlength,parindent,usetikzlibrary,tikzexternalize,psset,tikzset,PrependGraphicsExtensions,%
-    DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb,verb,myverb,macro,put,line},%
+    PreviewBbAdjust,setlength,parindent,usetikzlibrary,tikzexternalize,psset,tikzset,PrependGraphicsExtensions,cmd,%
+    DefineShortVerb,lstMakeShortInline,MakeSpecialShortVerb,UndefineShortVerb,verb,myverb,macro,put,line,Win32::Console::ANSI},%
 % Important words 3, options in input file
     keywordstyle=[3]{\color{optcolor!85}},%
     keywords=[3]{extrenv,deltenv,skipenv,options,arara,extensions,luatex,env,norun,%
@@ -756,16 +765,19 @@ to \emph{any type} of environment covering three central points:
 \item Generate a standalone files with only the extracted environments.
 
 \item Generate a file replacing the environments by \ics{includegraphics}.
+
 \end{enumerate}
 
-From the side of \hologo{TeX} there are some packages that cover several of these
-points such as the \pkgname{preview}\cite{preview}, \pkgname{xcomment}\cite{xcomment}, \pkgname{extract}\cite{extract}
-and \pkgname{cachepic}\cite{cachepic} packages among others, but none covered all points.
+From the side of \hologo{TeX} there are some packages that cover
+several of these points such as the \pkgname{preview}\cite{preview},
+\pkgname{xcomment}\cite{xcomment}, \pkgname{extract}\cite{extract} and
+\pkgname{cachepic}\cite{cachepic} packages among others, but none
+covered all points.
 
-In the network there are some solutions in \texttt{bash} that were able to
-extract and convert environments, but in general they presented problems
-when the document contained \emph{\enquote{verbatim style}} code or were only
-available for \OSsystem{Linux}.
+In the network there are some solutions in \texttt{bash} that were able
+to extract and convert environments, but in general they presented
+problems when the document contained \emph{\enquote{verbatim style}}
+code or were only available for \OSsystem{Linux}.
 
 \thispagestyle{plain}
 
@@ -773,9 +785,9 @@ available for \OSsystem{Linux}.
 
 \pagestyle{myheader}
 
-Analysed the situation the best thing was to create a new \emph{\enquote{script}} that
-was able to cover the three points and was multi platform, the union of all
-these ideas is born \ltximg.
+Analysed the situation the best thing was to create a new
+\emph{\enquote{script}} that was able to cover the three points and was
+multi platform, the union of all these ideas is born \ltximg.
 
 This script would not be possible without the great work of Herbert Voß
 author of \scriptname{pst2pdf}\footnote{\url{https://ctan.org/pkg/pst2pdf}}
@@ -791,49 +803,91 @@ a version equal to or greater than \liningnums{5.28} of \prgname{perl}, a
 version equal to or greater than \liningnums{9.52} of \prgname{ghostscript}, a
 version equal to or greater than \liningnums{1.40} of \scriptname{pdfcrop}
 and have a version equal to or greater than \liningnums{0.52} of %
-\prgname{poppler-utils}.
+\prgname{poppler-utils}. \hologo{MiKTeX} and \prgname{cygwin} users
+must install the appropriate software for full operation.
 
-The script uses only packages from the core of the \prgname{perl}, the
-distribution encapsulated in \hologo{TeX} Live 2020 for \OSsystem{Windows}
-does not have the \verb|Win32::Console::ANSI| package, this does not
-affect the operation of the script, but it does affect the presentation
-of the messages when invoked from \verb|cmd|, it is recommended to use
-a more modern (and comfortable) application such as \prgname{Windows Terminal}.
-\hologo{MiKTeX} users must install the appropriate software for full
-operation.
-
-The script auto detects the \prgname{ghostscript}, but not \prgname{poppler-utils}.
+\ltximg{} auto detects the \prgname{ghostscript}, but not \prgname{poppler-utils}.
 You should keep this in mind if you are using the script directly and not
 the version provided in your \hologo{TeX} distribution.
 
-The script has been tested on \OSsystem{Windows} v10, \prgname{cygwin} v3.1.6, \prgname{Git for Windows} v2.30 and %
-\OSsystem{Linux} (fedora 33) using \prgname{ghostscript} v9.53.3, \prgname{poppler-utils} v0.90, \prgname{perl} v5.32
-and the standard classes offers by \hologo{LaTeX}: \myclass{book}, \myclass{report}, \myclass{article} and
-\myclass{letter}. The \pkgname{preview}\cite{preview} and \pkgname{pst-pdf}\cite{pst-pdf} packages are
-required to process the \meta{input file} and if an \meta{output file} is generated, the \pkgname{graphicx}\cite{graphicx}
-and \pkgname{grfext}\cite{grfext} packages will be needed.
+The script has been tested on \OSsystem{Windows} 10, \prgname{cygwin}
+3.1.6, \prgname{Git for Windows} 2.30 and \OSsystem{Linux} (fedora 34)
+using \prgname{ghostscript} 9.53.3, \prgname{poppler-utils} 0.90,
+\prgname{perl} 5.32 and the standard classes offers by \hologo{LaTeX}:
+\myclass{book}, \myclass{report}, \myclass{article} and
+\myclass{letter}. The \pkgname{preview}\cite{preview} and
+\pkgname{pst-pdf}\cite{pst-pdf} packages are required to process the
+\meta{input file} and if an \meta{output file} is generated, the
+\pkgname{graphicx}\cite{graphicx} and \pkgname{grfext}\cite{grfext}
+packages will be needed.
+
+
+\subsection{Modules required}
+
+\ltximg{} uses only packages from the core of the \prgname{perl}, the
+distribution encapsulated in \hologo{TeX} Live 2020 for
+\OSsystem{Windows} does not have the module
+\module{Win32::Console::ANSI}, this does not affect the operation of
+the script, but it does affect the presentation of the messages when
+invoked from \emph{standart} \prgname{cmd}, it is recommended to use a
+more modern (and comfortable) application such as \prgname{Windows
+Terminal}.
+
+\setlength{\multicolsep}{2ex}
+\begin{multicols}{2}
+\begin{itemize}[font=\sffamily\small,first=\small,partopsep=5pt,parsep=5pt,nosep,leftmargin=*]
+  \item \module{Getopt::Long}
+  \item \module{File::Spec::Functions}
+  \item \module{File::Basename}
+  \item \module{Archive::Tar}
+  \item \module{Data::Dumper}
+  \item \module{FileHandle}
+  \item \module{IO::Compress::Zip}
+  \item \module{File::Path}
+  \item \module{File::Temp}
+  \item \module{POSIX}
+  \item \module{File::Copy}
+  \item \module{File::Find}
+  \item \module{Env}
+  \item \module{autodie}
+  \item \module{Config}
+  \item \module{Cwd}
+  \item \module{Term::ANSIColor}
+  \item \module{Module::Load::Conditional}
+  \item Only on \OSsystem{Windows}:
+     \begin{itemize}[font=\sffamily\small,first=\small,nosep]
+         \item \module{Win32}
+         \item \module{Win32::Console::ANSI}
+         \item \module{Win32::TieRegistry}
+     \end{itemize}
+\end{itemize}
+\end{multicols}
 
 \section{How it works}
 \label{sec:howtowork}
 
-It is important to have a general idea of how the \emph{\enquote{extraction and conversion}}
-process works and the requirements that must be fulfilled so
-that everything works correctly, for this we must be clear about some
-concepts related to how to work with the \meta[cf=optcolor]{input file}, the \meta{verbatim content}
+It is important to have a general idea of how the
+\emph{\enquote{extraction and conversion}} process works and the
+requirements that must be fulfilled so that everything works correctly,
+for this we must be clear about some concepts related to how to work
+with the \meta[cf=optcolor]{input file}, the \meta{verbatim content}
 and the \meta{steps process}.
 
 \subsection{The input file}
 \label{sec:inputfile}
 
-The \meta[cf=optcolor]{input file} must comply with \emph{certain characteristics} in order to
-be processed, the content at the beginning and at the end of the \meta{input
-file} is treated in a special way, before \lstinline|\documentclass| and after
-\lstinline|\end{document}| can go any type of content, internally the script will
-\emph{\enquote{split}} the \meta[cf=optcolor]{input file} at this points.
+The \meta[cf=optcolor]{input file} must comply with \emph{certain
+characteristics} in order to be processed, the content at the beginning
+and at the end of the \meta{input file} is treated in a special way,
+before \lstinline|\documentclass| and after \lstinline|\end{document}|
+can go any type of content, internally the script will
+\emph{\enquote{split}} the \meta[cf=optcolor]{input file} at this
+points.
 
-If the \meta[cf=optcolor]{input file} contains files using \ics{input}\marg[type=tt]{file} or
-\ics{include}\marg[type=tt]{file} these will not be processed, from the side of
-the \emph{script} they only represent lines within the file, if you want
+If the \meta[cf=optcolor]{input file} contains files using
+\ics{input}\marg[type=tt]{file} or \ics{include}\marg[type=tt]{file}
+these will not be processed, from the side of the \emph{script} they
+only represent lines within the file, if you want
 them to be processed it is better to use the \scriptname{latexpand}\footnote{\url{https://www.ctan.org/pkg/latexpand}}
 first and then process the file.
 
@@ -865,22 +919,22 @@ parts and then processing them:
 % Part Four: Everything after \end{document}
 \end{examplecode}
 
-If for some reason you have an environment \LWenv{filecontens} before \lstinline|\documentclass| or
-in the preamble of the \meta{input file} that contains a \emph{sub-document} or \emph{environment}
-you want to extract, the script will ignore them. Similarly, the content after \lstinline|\end{document}|
-is ignored in the extraction process.
-
-\newpage
+If for some reason you have an environment \LWenv{filecontents} before
+\lstinline|\documentclass| or in the preamble of the \meta{input file}
+that contains a \emph{sub-document} or \emph{environment} you want to
+extract, the script will ignore them. Similarly, the content after
+\lstinline|\end{document}| is ignored in the extraction process.
 
 \subsection{Verbatim contents}
 \label{sec:verbatim}
 
-One of the greatest capabilities of this script is to \emph{\enquote{skip}}
-the complications that \meta{verbatim content} produces with the extraction
-of environments using tools outside the \enquote{\hologo{TeX} world}\footnote{Only \hologo{TeX} can
-understand \hologo{TeX}, all other languages and programs are just lines in a file.}.
-In order to \emph{\enquote{skip}} the complications, the \meta{verbatim content} is classified into
-three types:
+One of the greatest capabilities of this script is to
+\emph{\enquote{skip}} the complications that \meta{verbatim content}
+produces with the extraction of environments using tools outside the
+\enquote{\hologo{TeX} world}\footnote{Only \hologo{TeX} can understand
+\hologo{TeX}, all other languages and programs are just lines in a
+file.}. In order to \emph{\enquote{skip}} the complications, the
+\meta{verbatim content} is classified into three types:
 
 \begin{itemize}[nosep]
     \item Verbatim in line.
@@ -936,9 +990,9 @@ it correctly. The solution is quite simple, just add in \meta[cf=optcolor]{input
 \DefineShortVerb{\|}
 \end{examplecode}
 
-depending on the package you are using. If your \emph{\enquote{verbatim macro}} is not
-supported by default or can not detect, use the options described in \ref%
-{sec:optline} and \ref{sec:optfile}.
+depending on the package you are using. If your \emph{\enquote{verbatim macro}}
+is not supported by default or can not detect, use the options
+described in \ref{sec:optline} and \ref{sec:optfile}.
 
 \subsection*{Verbatim standard}
 \label{sec:verbatim:std}
@@ -1109,8 +1163,6 @@ check the name and extension of \sysfile{test-out.tex}, check the directory \sys
 and create a temporary directory \sysdir{/tmp/hG45uVklv9}.
 
 The entire \sysfile{test.tex} file is loaded into memory and \emph{\enquote{split}} to start the extraction process.
-
-\newpage
 
 \subsection*{Comment and ignore}
 In the second step, once the file \sysfile{test.tex} is loaded and divided in memory,
@@ -1283,7 +1335,7 @@ package with the [\pkgopt{swpl}] or [\pkgopt{tcb}] option and run the script
 using \cmdopt{latex}{} or \cmdopt{xetex}. This environment is reserved for the internal process of extraction and conversion, it
 cannot be passed as an argument to the option \cmdopt{skipenv}{}.
 
-\vspace{0.25\baselineskip}
+\newpage
 
 \DescribeTE{pspicture}
 Environment provide by \pkgname{PStricks}\cite{pstricks} package. The plain \hologo{TeX}
@@ -1297,7 +1349,7 @@ Environment provide by \pkgname{pst-plot}\cite{pst-plot} package. The plain \hol
 its converted to \hologo{LaTeX} syntax \lstinline|\begin{psgraph} ... \end{psgraph}| if
 not within the \env{PSTexample} or \env{postscript} environments.
 
-\newpage
+\vspace{0.75\baselineskip}
 
 \DescribeTE{tikzpicture}
 Environment provide by \pkgname{TikZ}\cite{tikz} package. The plain \hologo{TeX} syntax \lstinline|\tikzpicture ... \tikzpicture|
@@ -1343,8 +1395,6 @@ converts all \emph{\enquote{skip}} environments to \lstinline|\begin{nopreview}|
 unless the option \cmdopt[n]{noprew}{} is used. This environment is
 reserved for the internal process of extraction and conversion, it
 cannot be passed as an argument to the option \cmdopt{extrenv}.
-
-\vspace{\baselineskip}
 
 \DescribeTE*{noltximg}
 All content betwen \lstinline|%<*noltximg> ... %</noltximg>| are ignored and no extract.
@@ -1394,6 +1444,8 @@ The image format generated using \prgname{pdftoeps}. The line executed by the sy
 \begin{examplecmd}
 [user@machine ~:]§ pdftops -q -eps
 \end{examplecmd}
+
+\newpage
 
 \DescribeIF{png}
 The image format generated using \prgname{ghostscript}. The line executed by the system is:
@@ -1467,7 +1519,6 @@ Options that accept a \meta{value} require either a blank space \verb*| | or \te
 between the option and the \meta{value}. Multiple short options can be bundling and if the last option takes a
 \meta{comma separated list} you need \textcolor{optcolor}{\bfseries\texttt{-\/-}} at the end.
 
-\vspace{\baselineskip}
 \DescribeCmd[h]{help}{boolean}{off}
 Display a command line help and exit.
 
@@ -1587,7 +1638,7 @@ and \meta[cf=optcolor]{output file}, is mutually exclusive with \emph{\enquote{a
 Using \prgname*{xelatex} compiler \meta[cf=optcolor]{input file} and \meta[cf=optcolor]{output file}.
 In the execution \prgname*{xelatex} is called with the \prgopt*{no-pdf} option
 generating a \fext{xvd} file and then it is processed using \prgname*{xdvipdfmx},
-this is only to execute \emph{faster} the conversion of environments to images
+this is only to execute \emph{faster} conversion of environments to images
 and it is only done on the \meta[cf=optcolor]{input file}.
 
 \DescribeCmd{latex}{boolean}{off}
@@ -1653,6 +1704,8 @@ at the end. The environments \env{PSTexample} and \env{preview} are not supporte
 Add \meta{verbatim standard} environment support, if it's the last option
 passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
 
+\newpage
+
 \DescribeCmd{writenv}{comma separated list}{empty}
 Add \meta{verbatim write} environment support, if it's the last option
 passed need \textcolor{optcolor}{\textbf{\texttt{-\/-}}} at the end.\par
@@ -1670,6 +1723,7 @@ An example of usage from command line:
 \begin{examplecmd}
 [user@machine ~:]§ ltximg --latex -s -o test-out  test-in.ltx
 \end{examplecmd}
+
 Create a \sysdir{./images} directory (if it does not exist) with all extracted environments converted to image
 formats (\iext{pdf}, \iext{svg}) in individual files, an output file \meta[ac=LightSlateGrey,cf=OrangeRed]{test-out.ltx}
 with all extracted environments converted to \ics{includegraphics} and a single file
@@ -1717,7 +1771,7 @@ This line is to indicate to the script which environments are deleted.
 \DescribeOptFile{options}{option one = value, option two = value, option three = value, \ldots}
 This line is to indicate to the script which options(other than those listed above) need to process.
 
-The options passed from the \meta[cf=optcolor]{input file} are validated by the script after they are read. If you are going to
+All options passed from the \meta[cf=optcolor]{input file} are validated by the \ltximg{} after they are read. If you are going to
 create an \meta[cf=optcolor]{output file} and you do not want these lines to remain, it is better to
 place them inside the \lstinline|%<*remove> ... %</remove>|. Like this:
 
@@ -1752,7 +1806,8 @@ and \meta[ac=LightSlateGrey,cf=OrangeRed]{file-out.tex}.
 
 \section{The way of \texttt{arara}}
 \label{sec:arara}
-By design, the script only runs \emph{\enquote{one or more compilation}} on top
+
+By design, \ltximg{} only runs \emph{\enquote{one or more compilation}} on top
 of the \meta[cf=optcolor]{input file}, but, sometimes you need to process in a specific mode the \meta[cf=optcolor]{input file}
 or needs to be processed with something other than \hologo{LaTeX}, \hologo{XeLaTeX}, \hologo{pdfLaTeX} or \hologo{LuaLaTeX} engine.
 This is where \arara\cite{arara} comes in, this \emph{\enquote{great little tool}},
@@ -1880,7 +1935,6 @@ to generate an image in \iext{svg}, \iext{png} and \iext{pdf} format from enviro
 \begin{document}
 \section{How to get Tikzmark to work}
 By taking logarithms of both sides:
-
 \[
   t = \frac{30\cdot\ln(3/22)}{\ln(15/22)}
   \tikzmark{calculator}\approx\tikzmark{otherside}
@@ -1890,7 +1944,6 @@ By taking logarithms of both sides:
   \coordinate (target) at ($(pic cs:calculator)!1/2!(pic cs:otherside) - (0,.5ex)$);
   \draw[arrows=->] (target) ++(0,-2ex) node [anchor=north] {use calculator} -- (target);
 \end{tikzpicture}
-
 \section{Draw an aircraft with Tikz}
 The best airplane ever drawn by David Carlise. No TikZ used, just the
 classic and perhaps forgotten \verb|\begin{picture} ... \end{picture}|.
@@ -1956,6 +2009,10 @@ versions, both development (devp) and public (ctan).
 \setlist[itemize,1]{label=\textendash,nosep,noitemsep,leftmargin=-10pt}
 \begin{description}[font=\small\sffamily,style=nextline,nosep,noitemsep]
 \item [v\fileversion\ (ctan), \filedate] \leavevmode\vspace{-\baselineskip}
+    \begin{itemize}
+        \item Maintenance update.
+    \end{itemize}
+\item [v2.0 (ctan), 2021-01-24] \leavevmode\vspace{-\baselineskip}
     \begin{itemize}
         \item Add \texttt{-dALLOWPSTRANSPARENCY} to \texttt{ps2pdf}.
         \item The \texttt{--xetex} option now uses \texttt{xelatex} and then \texttt{xdvipdfmx}.
