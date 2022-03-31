@@ -73,9 +73,9 @@ my $PSTexa   = 0;          # run extract PSTexample environments
 my $STDenv   = 0;          # run extract standart environments
 my $verbose  = 0;          # verbose info
 my $gscmd;                 # ghostscript executable name
-my $write18;               # storing write18 for compiler in TeXLive and MikTeX
+my $write18;               # storing write18 for compiler in TeX Live and MikTeX
 my $log      = 0;          # log file
-my @currentopt;            # storing current options for log file
+my @currentopt;            # storing current options for .log file
 
 ### Hash to store options for Getopt::Long and log file
 my %opts_cmd;
@@ -415,7 +415,7 @@ Log("Creating the temporary directory $tempDir");
 ### Make ENV safer (perldoc perlsec)
 delete @ENV{qw(IFS CDPATH ENV BASH_ENV)};
 
-### The next code it's part of pdfcrop (adapted from TexLive 2014)
+### The next code it's part of pdfcrop (adapted from TeX Live 2014)
 # Windows detection
 my $Win = 0;
 if ($^O =~ /mswin32/i) { $Win = 1; }
@@ -602,7 +602,7 @@ sub SearchRegistry {
 } # end GS search registry
 
 ### This part is only necessary if you're using Git-bash on windows and don't
-### have gs configured in PATH. Git for windows don't have a Win32::TieRegistry
+### have gs configured in PATH. Git-bash for windows don't have a Win32::TieRegistry
 ### module for perl (is not supported in the current versions of msys).
 sub Searchbyregquery {
     my $found = 0;
@@ -948,13 +948,13 @@ if(%opts_file) {
 }
 
 ### Validate --dpi
-if( $opts_cmd{string}{dpi} <= 0 or $opts_cmd{string}{dpi} >= 2500) {
+if ($opts_cmd{string}{dpi} <= 0 or $opts_cmd{string}{dpi} >= 2500) {
     Log('Error!!: Invalid argument for --dpi, argument out of range');
     errorUsage('Invalid argument for --dpi option');
 }
 
 ### Validate --runs
-if( $opts_cmd{string}{runs} <= 0 or $opts_cmd{string}{runs} >= 3) {
+if ($opts_cmd{string}{runs} <= 0 or $opts_cmd{string}{runs} >= 3) {
     Log('Error!!: Invalid argument for --runs, argument out of range');
     errorUsage('Invalid argument for --runs option');
 }
@@ -2267,7 +2267,7 @@ if ($PSTexa) {
     @exa_extract = undef;
     Log("Adding packages to $name-$opts_cmd{string}{prefix}-exa-$tmp$ext");
     Logline($pstpdfpkg);
-    Log('Convert plain Tex syntax for pspicture and psgraph to LaTeX syntax in PSTexample environments');
+    Log('Convert plain TeX syntax for pspicture and psgraph to LaTeX syntax in PSTexample environments');
     while ($tmpbodydoc =~ m/$BE\[.+? $opts_cmd{string}{imgdir}\/.+?-\d+\}\] .+?$EE/pgsmx ) { # search
         my ($pos_inicial, $pos_final) = ($-[0], $+[0]);
         my $encontrado = ${^MATCH};
