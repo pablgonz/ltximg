@@ -4,8 +4,8 @@
 
 -- Identification
 module  = "ltximg"
-scriptv = "2.1"
-scriptd = "2021-05-21"
+scriptv = "2.2"
+scriptd = "2024-04-15"
 ctanpkg = module
 ctanzip = ctanpkg.."-"..scriptv
 
@@ -169,7 +169,7 @@ function typeset(file)
   return 0
 end
 
--- Generating man pages for script
+-- Generating man pages for script, need groff-perl
 function docinit_hook()
   -- Check OS
   local my_os = package.config:sub(1,1)

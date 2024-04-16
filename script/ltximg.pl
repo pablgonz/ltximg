@@ -44,13 +44,13 @@ my $workdir = cwd;
 ### Script identification
 my $scriptname = 'ltximg';
 my $program    = 'LTXimg';
-my $nv         = 'v2.1';
-my $date       = '2021-05-21';
+my $nv         = 'v2.2';
+my $date       = '2024-04-15';
 my $copyright  = <<"END_COPYRIGHT" ;
 [$date] - LaTeX environments to image and standalone files
 END_COPYRIGHT
 
-### Standart info in terminal
+### Standard info in terminal
 my $title = "$program $nv $copyright";
 
 ### Log vars
@@ -70,7 +70,7 @@ my @clean;                 # clean document options
 my $outfile  = 0;          # write output file
 my $outsrc   = 0;          # write standalone files
 my $PSTexa   = 0;          # run extract PSTexample environments
-my $STDenv   = 0;          # run extract standart environments
+my $STDenv   = 0;          # run extract standard environments
 my $verbose  = 0;          # verbose info
 my $gscmd;                 # ghostscript executable name
 my $write18;               # storing write18 for compiler in TeX Live and MikTeX
@@ -107,19 +107,19 @@ sub exterr {
     }
 }
 
-### Funtion uniq
+### Function uniq
 sub uniq {
     my %seen;
     return grep !$seen{$_}++, @_;
 }
 
-### Funtion array_minus
+### Function array_minus
 sub array_minus(\@\@) {
     my %e = map{ $_ => undef } @{$_[1]};
     return grep !exists $e{$_}, @{$_[0]};
 }
 
-### Funtion to create hash begin -> BEGIN, end -> END
+### Function to create hash begin -> BEGIN, end -> END
 sub crearhash {
     my %cambios;
     for my $aentra(@_){
@@ -373,8 +373,8 @@ my $result=GetOptions (
     'nopdf'          => \$opts_cmd{boolean}{nopdf},  # no pdf image format
     'norun'          => \$opts_cmd{boolean}{norun},  # no run compiler
     'nocrop'         => \$opts_cmd{boolean}{nocrop}, # no run pdfcrop
-    'subenv'         => \$opts_cmd{boolean}{subenv}, # subfile environments (bolean)
-    'srcenv'         => \$opts_cmd{boolean}{srcenv}, # source files (bolean)
+    'subenv'         => \$opts_cmd{boolean}{subenv}, # subfile environments (boolean)
+    'srcenv'         => \$opts_cmd{boolean}{srcenv}, # source files (boolean)
     'g|gray'         => \$opts_cmd{boolean}{gray},   # gray (boolean)
     'f|force'        => \$opts_cmd{boolean}{force},  # force (boolean)
     'n|noprew'       => \$opts_cmd{boolean}{noprew}, # no preview (boolean)
@@ -426,7 +426,7 @@ $archname = 'unknown' unless defined $Config{'archname'};
 # Get ghostscript command name
 sub find_ghostscript {
     if ($log) {
-        Log('General information about the Perl instalation and operating system');
+        Log('General information about the Perl installation and operating system');
         print {$LogWrite} "* Perl executable: $^X\n";
         if ($] < 5.006) {
             print {$LogWrite} "* Perl version: $]\n";
@@ -518,7 +518,7 @@ sub find_ghostscript {
 
 sub SearchRegistry {
     my $found = 0;
-    # The module Win32::TieRegistry not aviable in cygwin/msys
+    # The module Win32::TieRegistry not available in cygwin/msys
     eval 'use Win32::TieRegistry qw|KEY_READ REG_SZ|';
     if ($@) {
         if ($log) {
@@ -656,7 +656,7 @@ sub Searchbyregquery {
 ### Call GS
 find_ghostscript();
 
-### Windows need suport space in path
+### Windows need support space in path
 if ($Win and $gscmd =~ /\s/) { $gscmd = "\"$gscmd\"";}
 
 ### Help
@@ -675,14 +675,14 @@ if (defined $opts_cmd{internal}{version}) {
 @ARGV > 0 or errorUsage('Input filename missing');
 @ARGV < 2 or errorUsage('Unknown option or too many input files');
 
-### Check <input file> extention
+### Check <input file> extension
 my @SuffixList = ('.tex', '.ltx');
 my ($name, $path, $ext) = fileparse($ARGV[0], @SuffixList);
 if ($ext eq '.tex' or $ext eq '.ltx') {
     $ext = $ext;
 }
 else {
-    errorUsage('Invalid or empty extention for input file');
+    errorUsage('Invalid or empty extension for input file');
 }
 
 ### Read <input file> in memory, need [:crlf] for old windows files
@@ -708,14 +708,14 @@ s/^\s*(\=):?|\s*//mg foreach @verb_env_tmp;
 s/^\s*(\=):?|\s*//mg foreach @verw_env_tmp;
 s/^\s*(\=):?|\s*//mg foreach @delt_env_tmp;
 
-### Split comma separte list options from command line
+### Split comma separate list options from command line
 @extr_env_tmp = split /,/,join q{},@extr_env_tmp;
 @skip_env_tmp = split /,/,join q{},@skip_env_tmp;
 @verb_env_tmp = split /,/,join q{},@verb_env_tmp;
 @verw_env_tmp = split /,/,join q{},@verw_env_tmp;
 @delt_env_tmp = split /,/,join q{},@delt_env_tmp;
 
-### Validate environments options from comand line
+### Validate environments options from command line
 if (grep /(^\-|^\.).*?/, @extr_env_tmp) {
     Log('Error!!: Invalid argument for --extrenv, some argument from list begin with -');
     errorUsage('Invalid argument for --extrenv option');
@@ -1183,7 +1183,7 @@ if (@mint_cenv) {
     push @verb_env_tmp, @mint_cenv;
 }
 
-### Remove repetead again :)
+### Remove repeated again :)
 @verb_env_tmp = uniq(@verb_env_tmp);
 
 ### Capture verbatim inline macros in input file
@@ -1227,7 +1227,7 @@ if (@mint_cline) {
     push @mintline, @mint_cline;
 }
 
-### Add standart mint, mintinline and lstinline
+### Add standard mint, mintinline and lstinline
 my @mint_tmp = qw(mint mintinline lstinline);
 
 ### Join all inline verbatim macros captured
@@ -1384,7 +1384,7 @@ my %verbatim = crearhash(@verbatim);
 Log('The environments that are considered verbatim:');
 Logarray(\@verbatim);
 
-### Create a Regex for verbatim standart environment
+### Create a Regex for verbatim standard environment
 my $verbatim = join q{|}, map { quotemeta } sort { length $a <=> length $b } @verbatim;
 $verbatim = qr/$verbatim/x;
 my $verb_std = qr {
@@ -1450,9 +1450,9 @@ if (@skip_env_tmp) {
     }
 }
 
-### List of environments to be skiped from extraction
+### List of environments to be skipped from extraction
 @skipped = uniq(@skip_env_tmp);
-Log('The environments that will be skiped for extraction:');
+Log('The environments that will be skipped for extraction:');
 Logarray(\@skipped);
 
 ### Create a Regex for skip environment
@@ -1490,7 +1490,7 @@ if (exists $envcheck{nopreview}) {
 my @extract_env = qw(nopreview);
 push @extract_env,@extr_env_tmp;
 
-### Some oprations for skip environments
+### Some operations for skip environments
 @extract_env = array_minus(@extract_env, @skip_env_tmp);
 @extract_env = uniq(@extract_env);
 
@@ -1894,7 +1894,7 @@ if ($exaNo!=0) {
                  /\\begin\{nopreview\}\%$tmp$+{code}\\end\{nopreview\}\%$tmp/gmsx;
 }
 
-### Second search standart environments for extract
+### Second search standard environments for extract
 my @env_extract = $bodydoc =~ m/(?<=$BP)(.+?)(?=$EP)/gms;
 my $envNo = scalar @env_extract;
 
@@ -1914,7 +1914,7 @@ if ($envNo!=0) {
     }
 }
 
-### Run script process only if any enviroment found in <input file>
+### Run script process only if any environment found in <input file>
 if ($envNo == 0 and $exaNo == 0) {
     errorUsage("$scriptname can not find any environment to extract in $name$ext");
 }
@@ -1979,7 +1979,7 @@ my $arara_rule = qr /^(?:\%\s{1}arara[:]\s{1}) ($arara_engines) /msx;
 
 ### Set options for [compiler], [preview] and [pdfcrop]
 if ($compiler eq 'arara') {
-    Log('Trying to detect some suported [engine] in the rules of arara');
+    Log('Trying to detect some supported [engine] in the rules of arara');
     my @engine = $atbegindoc =~ m/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|$arara_rule/msx;
     my %engine = map { $_ => 1 } @engine; # anon hash
     if (exists $engine{latex}) {
@@ -2084,7 +2084,7 @@ my $style_page = qr /(?:\\)(?:this)?(?:pagestyle\{) (.+?) (?:\})/x;
 my @style_page = $preamout =~ m/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)| $style_page/gmsx;
 my %style_page = map { $_ => 1 } @style_page; # anon hash
 
-### Seting \pagestyle{empty} for subfiles and process
+### Setting \pagestyle{empty} for subfiles and process
 if (@style_page) {
     if (!exists $style_page{empty}) {
         Log("Replacing page style for generated files");
@@ -2097,7 +2097,7 @@ else {
     $preamout = $preamout."\\pagestyle\{empty\}\n";
 }
 
-#### Remove wraped postscript environments provide by pst-pdf, auto-pst-pdf, auto-pst-pdf-lua pkgs
+#### Remove wrapped postscript environments provide by pst-pdf, auto-pst-pdf, auto-pst-pdf-lua pkgs
 Log("Convert postscript environments to \\begin\{$wrapping\} ... \\end\{$wrapping\} for standalone files");
 $tmpbodydoc =~ s/(?:$BP)(?:\\begin\{postscript\})(?:\s*\[ [^]]*? \])?
                  (?<code>.+?)
@@ -2437,7 +2437,7 @@ if (!$opts_cmd{boolean}{norun}) {
     Log("Creating the image formats: $format, working on $tempDir");
     opendir(my $DIR, $tempDir);
         while (readdir $DIR) {
-            # PDF/PNG/JPG/BMP/TIFF format suported by ghostscript
+            # PDF/PNG/JPG/BMP/TIFF format supported by ghostscript
             if (/(?<name>$name-$opts_cmd{string}{prefix}(-exa)?)(?<type>-all\.pdf)/) {
                 for my $var (qw(pdf png jpg bmp tif)) {
                     if (defined $opts_cmd{image}{$var}) {
@@ -2447,7 +2447,7 @@ if (!$opts_cmd{boolean}{norun}) {
                     }
                 }
             }
-            # EPS/PPM/SVG format suported by poppler-utils
+            # EPS/PPM/SVG format supported by poppler-utils
             if (/(?<name>$name-$opts_cmd{string}{prefix}-exa)(?<type>-all\.pdf)/) { # pst-exa package
                 for my $var (qw(eps ppm svg)) {
                     if (defined $opts_cmd{image}{$var}) {
@@ -2535,7 +2535,7 @@ if (@pst_exa and $outfile) {
     $preamble =~ s/\%<\*$dtxverb> .+?\%<\/$dtxverb>(*SKIP)(*F)|
                    (\\usepackage\[)\s*(swpl|tcb)\s*(\]\{pst-exa\})/\%$1$2,pdf$3/msxg;
     if (exists $pst_exa{tcb}) {
-        Log("Suport for \\usepackage[tcb,pdf]\{pst-exa\} for $opts_cmd{string}{output}$outext");
+        Log("Support for \\usepackage[tcb,pdf]\{pst-exa\} for $opts_cmd{string}{output}$outext");
         $bodydoc =~ s/(graphic=\{)\[(scale=\d*)\]($opts_cmd{string}{imgdir}\/$name-$opts_cmd{string}{prefix}-exa-\d*)\}/$1$2\}\{$3\}/gsmx;
     }
 }
@@ -2984,7 +2984,7 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
         else{
             print "Creating the file ", color('magenta'), "[$archivetar.zip]",
             color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
-            Log("Writen the file $archivetar.tar.gz in $workdir");
+            Log("Written the file $archivetar.tar.gz in $workdir");
         }
         zip \@savetozt => "$archivetar.zip";
     }
@@ -2996,7 +2996,7 @@ if ($opts_cmd{boolean}{zip} or $opts_cmd{boolean}{tar}) {
         else{
             print "Creating the file ", color('magenta'), "[$archivetar.tar.gz]",
             color('reset'), " with generate files in ./$opts_cmd{string}{imgdir}\r\n";
-            Log("Writen the file $archivetar.tar.gz in $workdir");
+            Log("Written the file $archivetar.tar.gz in $workdir");
         }
         my $imgdirtar = Archive::Tar->new();
         $imgdirtar->add_files(@savetozt);

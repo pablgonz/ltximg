@@ -1,6 +1,6 @@
 ## LTXimg &ndash; LaTeX environments to image and standalone files
 
-Release v2.1 \[2021-05-21\]
+Release v2.2 \[2024-04-15\]
 
 ## Description
 
@@ -42,7 +42,7 @@ and saved in the `./images` directory using `pdflatex` and `preview` package to 
 ```
                                                                     [default]
 -h, --help            Display command line help and exit            [off]
--v, --version         Display current version (2.1) and exit        [off]
+-v, --version         Display current version (2.2) and exit        [off]
 -V, --verbose         Verbose printing information                  [off]
 -l, --log             Write .log file with debug information        [off]
 -t, --tif             Create .tif files using ghostscript           [gs]
@@ -127,7 +127,7 @@ Pablo González L, `<pablgonz@yahoo.com>`.
 
 ## Copyright and Licence
 
-Copyright 2013 - 2021 Pablo González L `<pablgonz@yahoo.com>`.
+Copyright 2013 - 2024 Pablo González L `<pablgonz@yahoo.com>`.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation; either version 3 of the License,
