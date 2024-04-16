@@ -601,8 +601,8 @@ sub SearchRegistry {
     return $found;
 } # end GS search registry
 
-### This part is only necessary if you're using Git-bash on windows and don't
-### have gs configured in PATH. Git-bash for windows don't have a Win32::TieRegistry
+### This part is only necessary if you're using Git-bash on Windows and don't
+### have gs configured in PATH. Git-bash for Windows don't have a Win32::TieRegistry
 ### module for perl (is not supported in the current versions of msys).
 sub Searchbyregquery {
     my $found = 0;
@@ -685,7 +685,7 @@ else {
     errorUsage('Invalid or empty extension for input file');
 }
 
-### Read <input file> in memory, need [:crlf] for old windows files
+### Read <input file> in memory, need [:crlf] for old Windows files
 Log("Read input file $name$ext in memory");
 open my $INPUTfile, '<:crlf', "$name$ext";
     my $ltxfile;
@@ -3266,7 +3266,7 @@ Pablo González Luengo, I<pablgonz@yahoo.com>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2013-2021 Pablo González, I<pablgonz@yahoo.com>.
+Copyright 2013-2024 Pablo González, I<pablgonz@yahoo.com>.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
